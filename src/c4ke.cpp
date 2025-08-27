@@ -654,11 +654,12 @@ struct Thread {
     Stack stack[STACK_SIZE];
     vector<u64> visited;
 
-    int search(Board& board, int alpha, int beta, int ply, int depth) {
+    int search(Board& board, int alpha, int beta, int ply, int depth, int is_pv) {
+        // Check qsearch
         if (depth < 0)
             depth = 0;
-
-        int is_pv = alpha + 1 < beta;
+        
+        int is_qsearch = !depth;
 
         // Abort
         if (!(++nodes & 4095) && now() > LIMIT_HARD)
@@ -698,7 +699,7 @@ struct Thread {
         u8 bound = BOUND_UPPER;
         
         // Standpat
-        if (!depth && !board.is_checked) {
+        if (is_qsearch && !board.is_checked) {
             best = board.eval();
 
             if (best >= beta)
@@ -711,7 +712,7 @@ struct Thread {
         // Generate move
         u16 move_list[MAX_MOVE];
         int move_scores[MAX_MOVE];
-        int move_count = board.movegen(move_list, depth | board.is_checked);
+        int move_count = board.movegen(move_list, !is_qsearch || board.is_checked);
 
         // Score move
         for (int i = 0; i < move_count; i++) {
@@ -758,7 +759,21 @@ struct Thread {
             visited.push_back(child.hash);
 
             // Search
-            int score = -search(child, -beta, -alpha, ply + 1, depth - 1);
+            int score;
+
+            // Don't do null window search for qsearch
+            if (is_qsearch)
+                goto pvsearch;
+
+            // Null window search
+            if (!is_pv || legals > 1)
+                score = -search(child, -alpha - 1, -alpha, ply + 1, depth - 1, FALSE);
+
+            // Principle variation search
+            if (is_pv && (legals == 1 || score > alpha)) {
+                pvsearch:
+                score = -search(child, -beta, -alpha, ply + 1, depth - 1, is_qsearch ? is_pv : TRUE);
+            }
 
             // Unmake
             visited.pop_back();
@@ -789,13 +804,13 @@ struct Thread {
                 bound = BOUND_LOWER;
 
                 // Don't update history in qsearch
-                if (!depth)
+                if (is_qsearch)
                     break;
 
-                if (victim == TYPE_NONE) {
-                    // Update quiet history
-                    int bonus = min(150 * depth - 50, 1500);
+                // Update history
+                int bonus = min(150 * depth - 50, 1500);
 
+                if (victim == TYPE_NONE) {
                     update_history(qhist[move & 4095], bonus);
 
                     for (int k = 0; k < quiet_count; k++)
@@ -813,7 +828,7 @@ struct Thread {
         // Return mate score
         if (!legals) {
             if (board.is_checked) return ply - INF;
-            if (depth) return DRAW;
+            if (!is_qsearch) return DRAW;
         }
 
         // Update transposition
@@ -835,7 +850,7 @@ struct Thread {
             for (Stack& ss : stack) ss = Stack();
 
             // Search
-            int score = search(board, -INF, INF, 0, depth);
+            int score = search(board, -INF, INF, 0, depth, TRUE);
 
             // Print info
             cout << "info depth " << depth << " score cp " << score << " pv ";
