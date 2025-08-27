@@ -643,8 +643,9 @@ u16 BEST_MOVE;
 
 // Search
 struct Stack {
-    u16 move = MOVE_NONE;
     int eval = INF;
+    u16 move = MOVE_NONE;
+    u16 killer = MOVE_NONE;
 };
 
 struct Thread {
@@ -692,6 +693,9 @@ struct Thread {
             return tt.score;
         }
 
+        // Clear killer
+        stack[ply + 1].killer = MOVE_NONE;
+
         // Best score
         int best = -INF;
         u16 best_move = MOVE_NONE;
@@ -718,12 +722,15 @@ struct Thread {
         for (int i = 0; i < move_count; i++) {
             int victim = board.board[move_to(move_list[i])] / 2;
 
+            // Hash move
             if (move_list[i] == tt.move)
-                move_scores[i] = 1e7;
-            else if (victim < TYPE_NONE)
-                move_scores[i] = PIECE_VALUE[victim] * 16 - PIECE_VALUE[board.board[move_from(move_list[i])] / 2] * 8 + 1e6;
+                move_scores[i] = 1e8;
+            // Noisy moves
+            else if (victim < TYPE_NONE || move_promo(move_list[i]))
+                move_scores[i] = PIECE_VALUE[victim] * 16 - PIECE_VALUE[board.board[move_from(move_list[i])] / 2] * 8 + 1e7;
+            // Quiet moves
             else
-                move_scores[i] = qhist[move_list[i] & 4095];
+                move_scores[i] = move_list[i] == stack[ply].killer ? 1e6 : qhist[move_list[i] & 4095];
         }
 
         // Iterate moves
@@ -745,8 +752,8 @@ struct Thread {
 
             u16 move = move_list[i];
 
-            // Get move data
-            int victim = board.board[move_to(move)] / 2;
+            // Check if quiet
+            int is_quiet = board.board[move_to(move)] < PIECE_NONE || move_promo(move);
 
             // Make
             Board child = board;
@@ -803,14 +810,18 @@ struct Thread {
                 // Set lower bound
                 bound = BOUND_LOWER;
 
-                // Don't update history in qsearch
+                // Skip for qsearch
                 if (is_qsearch)
                     break;
 
-                // Update history
+                // History bonus
                 int bonus = min(150 * depth - 50, 1500);
 
-                if (victim == TYPE_NONE) {
+                if (is_quiet) {
+                    // Killer
+                    stack[ply].killer = move;
+
+                    // Update quiet history
                     update_history(qhist[move & 4095], bonus);
 
                     for (int k = 0; k < quiet_count; k++)
@@ -821,7 +832,7 @@ struct Thread {
             }
 
             // Push visited moves
-            if (victim == TYPE_NONE)
+            if (is_quiet)
                 quiet_list[quiet_count++] = move;
         }
 
