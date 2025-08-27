@@ -107,6 +107,7 @@ using u64 = uint64_t;
 
 #define WIN 32000
 #define INF 32256
+#define DRAW 0
 
 #define CASTLED_NONE 0
 #define CASTLED_WK 1
@@ -118,12 +119,20 @@ using u64 = uint64_t;
 #define BOUND_LOWER 1
 #define BOUND_EXACT 2
 
-#define MOVE_NORMAL 0
-#define MOVE_PROMOTION 1
-#define MOVE_ENPASSANT 2
-#define MOVE_CASTLING 3
+#define MOVE_NONE 0
 
-#define TT_BIT 20
+#define TT_BITS 20
+
+#define HIST_MAX 16384
+
+#define STACK_SIZE 264
+
+// Time
+u64 now() {
+    timespec t;
+    clock_gettime(1, &t);
+    return t.tv_sec * 1e3 + t.tv_nsec / 1e6;
+}
 
 // Zobrist
 u64 KEYS[13][64];
@@ -229,32 +238,29 @@ int move_promo(u16 move) {
     return move >> 12;
 }
 
-string move_str(u16 move) {
-    string str;
-
-    str += 97 + move_from(move) % 8;
-    str += 49 + (move_from(move) / 8);
-    str += 97 + move_to(move) % 8;
-    str += 49 + (move_to(move) / 8);
-
-    if (move_promo(move)) str += " nbrq"[move_promo(move)];
-
-    return str;
+void move_print(u16 move) {
+    cout.put(97 + move_from(move) % 8).put(49 + move_from(move) / 8).put(97 + move_to(move) % 8).put(49 + move_to(move) / 8).put(" nbrq"[move_promo(move)]) << endl;
 }
-
-// Transposition
-struct TTEntry {
-    u16 hash;
-    u16 move;
-    i16 score;
-    u8 depth;
-    u8 bound;
-};
-
-vector<TTEntry> ttable;
 
 // Board
 int LAYOUT[] = { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK };
+int PIECE_VALUE[] = { 100, 320, 330, 500, 900, 2000 };
+int PST_RANK[] = {
+    0, -3, -3, -1, 1, 5, 0, 0,
+    -2, 0, 1, 3, 4, 5, 2, -15,
+    0, 2, 2, 2, 2, 2, -1, -10,
+    0, -1, -2, -2, 0, 2, 1, 2,
+    2, 3, 2, 0, 0, -1, -4, -2,
+    -1, 1, -1, -4, -1, 5, 5, 5,
+};
+int PST_FILE[] = {
+    -1, -2, -1, 0, 1, 2, 2, -1,
+    -4, -1, 0, 2, 2, 2, 1, -1,
+    -2, 0, 1, 0, 1, 0, 2, -1,
+    -2, -1, 0, 1, 2, 1, 1, -1,
+    -2, -1, -1, 0, 0, 1, 2, 1,
+    -2, 2, -1, -4, -4, -2, 2, 0,
+};
 
 void add_pawn_moves(u16 list[], int& count, u64 targets, int offset) {
     while (targets) {
@@ -322,7 +328,7 @@ struct Board {
         board[square] = piece;
     }
 
-    int is_attacked(int square, int enemy) {
+    int attacked(int square, int enemy) {
         u64 mask = 1ULL << square;
         u64 pawns = pieces[PAWN] & colors[enemy];
         u64 occupied = colors[WHITE] | colors[BLACK];
@@ -335,18 +341,31 @@ struct Board {
             king(mask) & colors[enemy] & pieces[KING];
     }
 
+    int drawn(vector<u64>& visited, int ply) {
+        int before_root = FALSE;
+
+        for (int i = 4; i <= halfmove && i <= visited.size(); i += 2) {
+            if (hash == visited[visited.size() - i]) {
+                if (ply >= i) return TRUE;
+                if (before_root) return TRUE;
+                before_root = TRUE;
+            }
+        }
+
+        return halfmove > 99;
+    }
+
     int make(u16 move) {
         // Get move data
         int from = move_from(move);
         int to = move_to(move);
         int piece = board[from];
 
-        // Check move type
-        int is_castling = board[to] == 6 + stm; // ROOK * 2 = 6
+        // Check enpassant
         int is_enpassant = to == enpassant;
 
         // Update halfmove
-        halfmove += board[to] == PIECE_NONE || !is_castling;
+        halfmove += board[to] == PIECE_NONE;
 
         // Update enpassant square
         if (enpassant < SQUARE_NONE)
@@ -379,15 +398,14 @@ struct Board {
         hash ^= KEYS[PIECE_NONE][castled];
 
         if (piece / 2 == KING) {
-            if (is_castling) {
+            if (abs(from - to) == 2) {
                 int dt = to > from ? 1 : -1;
 
-                if (is_attacked(from + dt, !stm) || is_attacked(from + dt * 2, !stm))
+                if (attacked(from + dt, !stm) || attacked(from + dt * 2, !stm))
                     return FALSE;
 
-                edit(to, PIECE_NONE);
+                edit(to + (to > from ? 1 : -2), PIECE_NONE);
                 edit(from + dt, ROOK * 2 + stm);
-                edit(from + dt * 2, piece);
             }
 
             castled |= 3 << stm * 2;
@@ -405,10 +423,10 @@ struct Board {
         hash ^= KEYS[PIECE_NONE][0];
 
         // In check
-        is_checked = is_attacked(lsb(pieces[KING] & colors[stm]), !stm);
+        is_checked = attacked(lsb(pieces[KING] & colors[stm]), !stm);
 
         // Check if legal
-        return !is_attacked(lsb(pieces[KING] & colors[!stm]), stm);
+        return !attacked(lsb(pieces[KING] & colors[!stm]), stm);
     }
 
     int movegen(u16 list[], int is_all) {
@@ -443,11 +461,35 @@ struct Board {
         if (is_all && !is_checked) {
             u8 castling_rights = castled >> stm * 2 ^ 3;
 
-            if (castling_rights & 1 && !(occupied & 0x60ULL << stm * 56)) list[count++] = move_make(E1 + stm * 56, H1 + stm * 56);
-            if (castling_rights & 2 && !(occupied & 0xEULL << stm * 56)) list[count++] = move_make(E1 + stm * 56, A1 + stm * 56);
+            if (castling_rights & 1 && !(occupied & 0x60ULL << stm * 56)) list[count++] = move_make(E1 + stm * 56, G1 + stm * 56);
+            if (castling_rights & 2 && !(occupied & 0xEULL << stm * 56)) list[count++] = move_make(E1 + stm * 56, C1 + stm * 56);
         }
 
         return count;
+    }
+
+    int eval() {
+        int eval = 0;
+
+        for (int type = PAWN; type < KING; type++) {
+            eval += PIECE_VALUE[type] * count(pieces[type] & colors[WHITE]);
+            eval -= PIECE_VALUE[type] * count(pieces[type] & colors[BLACK]);
+        }
+
+        for (int square = A1; square < 64; square++) {
+            if (board[square] < PIECE_NONE) {
+                int type = board[square] / 2;
+                int flip = board[square] & 1;
+                int index = square ^ (flip * 56);
+
+                int rank = index / 8;
+                int file = index % 8;
+
+                eval += (PST_RANK[type * 8 + rank] + PST_FILE[type * 8 + file]) * (flip ? -8 : 8);
+            }
+        }
+
+        return (stm ? -eval : eval) + 20;
     }
 
     // TODO: will minify away
@@ -579,206 +621,238 @@ struct Board {
     }
 };
 
-// Time
-u64 now() {
-    timespec t;
-    clock_gettime(1, &t);
-    return t.tv_sec * 1e4 + t.tv_nsec / 1e6;
+// History
+void update_history(i16& entry, int bonus) {
+    entry += bonus - entry * abs(bonus) / HIST_MAX;
 }
 
-// TODO: will minify away
-u64 perft(Board& board, int depth, bool is_root = false) {
-    if (depth <= 0) {
-        return 1;
+// Shared state
+struct TTEntry {
+    u16 hash;
+    u16 move;
+    i16 score;
+    u8 depth;
+    u8 bound;
+};
+
+TTEntry* TTABLE;
+int RUNNING;
+u64 LIMIT_SOFT;
+u64 LIMIT_HARD;
+u16 BEST_MOVE;
+
+// Search
+struct Stack {
+    u16 move = MOVE_NONE;
+    int eval = INF;
+};
+
+struct Thread {
+    u64 nodes;
+    u16 pv;
+    i16 qhist[4096];
+    Stack stack[STACK_SIZE];
+    vector<u64> visited;
+
+    int search(Board& board, int alpha, int beta, int ply, int depth) {
+        if (depth < 0)
+            depth = 0;
+
+        int is_pv = alpha + 1 < beta;
+
+        // Abort
+        if (!(++nodes & 4095) && now() > LIMIT_HARD)
+            RUNNING = FALSE;
+
+        if (!RUNNING || ply >= MAX_PLY)
+            return DRAW;
+
+        // Oracle
+        if (ply) {
+            // Draw
+            if (board.drawn(visited, ply))
+                return DRAW;
+
+            // Mate distance pruning
+            alpha = max(alpha, ply - INF);
+            beta = min(beta, INF - ply - 1);
+
+            if (alpha >= beta)
+                return alpha;
+        }
+
+        // Probe transposition table
+        TTEntry& slot = TTABLE[board.hash >> (64 - TT_BITS)];
+        TTEntry tt = slot;
+
+        tt.hash ^= board.hash;
+
+        if (!tt.hash && !is_pv && depth <= tt.depth && tt.bound != tt.score < beta) {
+            return tt.score;
+        }
+
+        // Best score
+        int best = -INF;
+        u16 best_move = MOVE_NONE;
+
+        u8 bound = BOUND_UPPER;
+        
+        // Standpat
+        if (!depth && !board.is_checked) {
+            best = board.eval();
+
+            if (best >= beta)
+                return best;
+
+            if (alpha < best)
+                alpha = best;
+        }
+
+        // Generate move
+        u16 move_list[MAX_MOVE];
+        int move_scores[MAX_MOVE];
+        int move_count = board.movegen(move_list, depth | board.is_checked);
+
+        // Score move
+        for (int i = 0; i < move_count; i++) {
+            int victim = board.board[move_to(move_list[i])] / 2;
+
+            if (move_list[i] == tt.move)
+                move_scores[i] = 1e7;
+            else if (victim < TYPE_NONE)
+                move_scores[i] = PIECE_VALUE[victim] * 16 - PIECE_VALUE[board.board[move_from(move_list[i])] / 2] * 8 + 1e6;
+            else
+                move_scores[i] = qhist[move_list[i] & 4095];
+        }
+
+        // Iterate moves
+        u16 quiet_list[MAX_MOVE];
+        int quiet_count = 0;
+        
+        int legals = 0;
+
+        for (int i = 0; i < move_count; i++) {
+            // Sort next move
+            int next_index = i;
+
+            for (int k = i + 1; k < move_count; k++)
+                if (move_scores[k] > move_scores[next_index])
+                    next_index = k;
+            
+            swap(move_list[i], move_list[next_index]);
+            swap(move_scores[i], move_scores[next_index]);
+
+            u16 move = move_list[i];
+
+            // Get move data
+            int victim = board.board[move_to(move)] / 2;
+
+            // Make
+            Board child = board;
+
+            if (!child.make(move))
+                continue;
+
+            legals++;
+
+            visited.push_back(child.hash);
+
+            // Search
+            int score = -search(child, -beta, -alpha, ply + 1, depth - 1);
+
+            // Unmake
+            visited.pop_back();
+
+            // Abort
+            if (!RUNNING)
+                return DRAW;
+
+            // Update score
+            if (score > best)
+                best = score;
+
+            // Alpha raised
+            if (score > alpha) {
+                alpha = score;
+                best_move = move;
+
+                // Set exact bound
+                bound = BOUND_EXACT;
+
+                if (!ply)
+                    pv = move;
+            }
+
+            // Cutoff
+            if (score >= beta) {
+                // Set lower bound
+                bound = BOUND_LOWER;
+
+                // Don't update history in qsearch
+                if (!depth)
+                    break;
+
+                if (victim == TYPE_NONE) {
+                    // Update quiet history
+                    int bonus = min(150 * depth - 50, 1500);
+
+                    update_history(qhist[move & 4095], bonus);
+
+                    for (int k = 0; k < quiet_count; k++)
+                        update_history(qhist[quiet_list[k] & 4095], -bonus);
+                }
+
+                break;
+            }
+
+            // Push visited moves
+            if (victim == TYPE_NONE)
+                quiet_list[quiet_count++] = move;
+        }
+
+        // Return mate score
+        if (!legals) {
+            if (board.is_checked) return ply - INF;
+            if (depth) return DRAW;
+        }
+
+        // Update transposition
+        slot = TTEntry { u8(board.hash), best_move, i16(best), u8(depth), bound };
+
+        return best;
     }
 
-    u64 nodes = 0;
+    void start(Board board, vector<u64>& pre_visited, u64 time) {
+        // Set data
+        nodes = 0;
+        pv = MOVE_NONE;
+        visited = pre_visited;
+        memset(qhist, 0, sizeof(qhist));
 
-    u16 moves[MAX_MOVE];
-    int count = board.movegen(moves, TRUE);
+        // Iterative deepening
+        for (int depth = 1; depth < MAX_PLY; ++depth) {
+            // Clear stack
+            for (Stack& ss : stack) ss = Stack();
 
-    for (int i = 0; i < count; i++) {
-        Board child = board;
+            // Search
+            int score = search(board, -INF, INF, 0, depth);
 
-        if (!child.make(moves[i])) {
-            continue;
+            // Print info
+            cout << "info depth " << depth << " score cp " << score << " pv ";
+            move_print(pv);
+
+            // Check time
+            if (now() > LIMIT_SOFT)
+                RUNNING = FALSE;
+
+            if (!RUNNING)
+                break;
         }
 
-        u64 children = perft(child, depth - 1);
-
-        nodes += children;
-
-        if (is_root) {
-            cout << move_str(moves[i]) << " - " << children << std::endl;
-        }
+        // Return best move
+        BEST_MOVE = pv;
     }
-
-    return nodes;
-}
-
-// TODO: will minify away
-void test_perft() {
-    struct Test {
-        string fen;
-        int depth;
-        u64 result;
-    };
-
-    Test tests[] = {
-        Test { "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", 6, 119060324 },
-        Test { "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1", 5, 193690690 },
-        Test { "4k3/8/8/8/8/8/8/4K2R w K - 0 1", 6, 764643 },
-        Test { "4k3/8/8/8/8/8/8/R3K3 w Q - 0 1", 6, 846648 },
-        Test { "4k2r/8/8/8/8/8/8/4K3 w k - 0 1", 6, 899442 },
-        Test { "r3k3/8/8/8/8/8/8/4K3 w q - 0 1", 6, 1001523 },
-        Test { "4k3/8/8/8/8/8/8/R3K2R w KQ - 0 1", 6, 2788982 },
-        Test { "r3k2r/8/8/8/8/8/8/4K3 w kq - 0 1", 6, 3517770 },
-        Test { "8/8/8/8/8/8/6k1/4K2R w K - 0 1", 6, 185867 },
-        Test { "8/8/8/8/8/8/1k6/R3K3 w Q - 0 1", 6, 413018 },
-        Test { "4k2r/6K1/8/8/8/8/8/8 w k - 0 1", 6, 179869 },
-        Test { "r3k3/1K6/8/8/8/8/8/8 w q - 0 1", 6, 367724 },
-        Test { "r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1", 6, 179862938 },
-        Test { "r3k2r/8/8/8/8/8/8/1R2K2R w Kkq - 0 1", 6, 195629489 },
-        Test { "r3k2r/8/8/8/8/8/8/2R1K2R w Kkq - 0 1", 6, 184411439 },
-        Test { "r3k2r/8/8/8/8/8/8/R3K1R1 w Qkq - 0 1", 6, 189224276 },
-        Test { "1r2k2r/8/8/8/8/8/8/R3K2R w KQk - 0 1", 6, 198328929 },
-        Test { "2r1k2r/8/8/8/8/8/8/R3K2R w KQk - 0 1", 6, 185959088 },
-        Test { "r3k1r1/8/8/8/8/8/8/R3K2R w KQq - 0 1", 6, 190755813 },
-        Test { "4k3/8/8/8/8/8/8/4K2R b K - 0 1", 6, 899442 },
-        Test { "4k3/8/8/8/8/8/8/R3K3 b Q - 0 1", 6, 1001523 },
-        Test { "4k2r/8/8/8/8/8/8/4K3 b k - 0 1", 6, 764643 },
-        Test { "r3k3/8/8/8/8/8/8/4K3 b q - 0 1", 6, 846648 },
-        Test { "4k3/8/8/8/8/8/8/R3K2R b KQ - 0 1", 6, 3517770 },
-        Test { "r3k2r/8/8/8/8/8/8/4K3 b kq - 0 1", 6, 2788982 },
-        Test { "8/8/8/8/8/8/6k1/4K2R b K - 0 1", 6, 179869 },
-        Test { "8/8/8/8/8/8/1k6/R3K3 b Q - 0 1", 6, 367724 },
-        Test { "4k2r/6K1/8/8/8/8/8/8 b k - 0 1", 6, 185867 },
-        Test { "r3k3/1K6/8/8/8/8/8/8 b q - 0 1", 6, 413018 },
-        Test { "r3k2r/8/8/8/8/8/8/R3K2R b KQkq - 0 1", 6, 179862938 },
-        Test { "r3k2r/8/8/8/8/8/8/1R2K2R b Kkq - 0 1", 6, 198328929 },
-        Test { "r3k2r/8/8/8/8/8/8/2R1K2R b Kkq - 0 1", 6, 185959088 },
-        Test { "r3k2r/8/8/8/8/8/8/R3K1R1 b Qkq - 0 1", 6, 190755813 },
-        Test { "1r2k2r/8/8/8/8/8/8/R3K2R b KQk - 0 1", 6, 195629489 },
-        Test { "2r1k2r/8/8/8/8/8/8/R3K2R b KQk - 0 1", 6, 184411439 },
-        Test { "r3k1r1/8/8/8/8/8/8/R3K2R b KQq - 0 1", 6, 189224276 },
-        Test { "8/1n4N1/2k5/8/8/5K2/1N4n1/8 w - - 0 1", 6, 8107539 },
-        Test { "8/1k6/8/5N2/8/4n3/8/2K5 w - - 0 1", 6, 2594412 },
-        Test { "8/8/4k3/3Nn3/3nN3/4K3/8/8 w - - 0 1", 6, 19870403 },
-        Test { "K7/8/2n5/1n6/8/8/8/k6N w - - 0 1", 6, 588695 },
-        Test { "k7/8/2N5/1N6/8/8/8/K6n w - - 0 1", 6, 688780 },
-        Test { "8/1n4N1/2k5/8/8/5K2/1N4n1/8 b - - 0 1", 6, 8503277 },
-        Test { "8/1k6/8/5N2/8/4n3/8/2K5 b - - 0 1", 6, 3147566 },
-        Test { "8/8/3K4/3Nn3/3nN3/4k3/8/8 b - - 0 1", 6, 4405103 },
-        Test { "K7/8/2n5/1n6/8/8/8/k6N b - - 0 1", 6, 688780 },
-        Test { "k7/8/2N5/1N6/8/8/8/K6n b - - 0 1", 6, 588695 },
-        Test { "B6b/8/8/8/2K5/4k3/8/b6B w - - 0 1", 6, 22823890 },
-        Test { "8/8/1B6/7b/7k/8/2B1b3/7K w - - 0 1", 6, 28861171 },
-        Test { "k7/B7/1B6/1B6/8/8/8/K6b w - - 0 1", 6, 7881673 },
-        Test { "K7/b7/1b6/1b6/8/8/8/k6B w - - 0 1", 6, 7382896 },
-        Test { "B6b/8/8/8/2K5/5k2/8/b6B b - - 0 1", 6, 9250746 },
-        Test { "8/8/1B6/7b/7k/8/2B1b3/7K b - - 0 1", 6, 29027891 },
-        Test { "k7/B7/1B6/1B6/8/8/8/K6b b - - 0 1", 6, 7382896 },
-        Test { "K7/b7/1b6/1b6/8/8/8/k6B b - - 0 1", 6, 7881673 },
-        Test { "7k/RR6/8/8/8/8/rr6/7K w - - 0 1", 6, 44956585 },
-        Test { "R6r/8/8/2K5/5k2/8/8/r6R w - - 0 1", 6, 525169084 },
-        Test { "7k/RR6/8/8/8/8/rr6/7K b - - 0 1", 6, 44956585 },
-        Test { "R6r/8/8/2K5/5k2/8/8/r6R b - - 0 1", 6, 524966748 },
-        Test { "6kq/8/8/8/8/8/8/7K w - - 0 1", 6, 391507 },
-        Test { "6KQ/8/8/8/8/8/8/7k b - - 0 1", 6, 391507 },
-        Test { "K7/8/8/3Q4/4q3/8/8/7k w - - 0 1", 6, 3370175 },
-        Test { "6qk/8/8/8/8/8/8/7K b - - 0 1", 6, 419369 },
-        Test { "6KQ/8/8/8/8/8/8/7k b - - 0 1", 6, 391507 },
-        Test { "K7/8/8/3Q4/4q3/8/8/7k b - - 0 1", 6, 3370175 },
-        Test { "8/8/8/8/8/K7/P7/k7 w - - 0 1", 6, 6249 },
-        Test { "8/8/8/8/8/7K/7P/7k w - - 0 1", 6, 6249 },
-        Test { "K7/p7/k7/8/8/8/8/8 w - - 0 1", 6, 2343 },
-        Test { "7K/7p/7k/8/8/8/8/8 w - - 0 1", 6, 2343 },
-        Test { "8/2k1p3/3pP3/3P2K1/8/8/8/8 w - - 0 1", 6, 34834 },
-        Test { "8/8/8/8/8/K7/P7/k7 b - - 0 1", 6, 2343 },
-        Test { "8/8/8/8/8/7K/7P/7k b - - 0 1", 6, 2343 },
-        Test { "K7/p7/k7/8/8/8/8/8 b - - 0 1", 6, 6249 },
-        Test { "7K/7p/7k/8/8/8/8/8 b - - 0 1", 6, 6249 },
-        Test { "8/2k1p3/3pP3/3P2K1/8/8/8/8 b - - 0 1", 6, 34822 },
-        Test { "8/8/8/8/8/4k3/4P3/4K3 w - - 0 1", 6, 11848 },
-        Test { "4k3/4p3/4K3/8/8/8/8/8 b - - 0 1", 6, 11848 },
-        Test { "8/8/7k/7p/7P/7K/8/8 w - - 0 1", 6, 10724 },
-        Test { "8/8/k7/p7/P7/K7/8/8 w - - 0 1", 6, 10724 },
-        Test { "8/8/3k4/3p4/3P4/3K4/8/8 w - - 0 1", 6, 53138 },
-        Test { "8/3k4/3p4/8/3P4/3K4/8/8 w - - 0 1", 6, 157093 },
-        Test { "8/8/3k4/3p4/8/3P4/3K4/8 w - - 0 1", 6, 158065 },
-        Test { "k7/8/3p4/8/3P4/8/8/7K w - - 0 1", 6, 20960 },
-        Test { "8/8/7k/7p/7P/7K/8/8 b - - 0 1", 6, 10724 },
-        Test { "8/8/k7/p7/P7/K7/8/8 b - - 0 1", 6, 10724 },
-        Test { "8/8/3k4/3p4/3P4/3K4/8/8 b - - 0 1", 6, 53138 },
-        Test { "8/3k4/3p4/8/3P4/3K4/8/8 b - - 0 1", 6, 158065 },
-        Test { "8/8/3k4/3p4/8/3P4/3K4/8 b - - 0 1", 6, 157093 },
-        Test { "k7/8/3p4/8/3P4/8/8/7K b - - 0 1", 6, 21104 },
-        Test { "7k/3p4/8/8/3P4/8/8/K7 w - - 0 1", 6, 32191 },
-        Test { "7k/8/8/3p4/8/8/3P4/K7 w - - 0 1", 6, 30980 },
-        Test { "k7/8/8/7p/6P1/8/8/K7 w - - 0 1", 6, 41874 },
-        Test { "k7/8/7p/8/8/6P1/8/K7 w - - 0 1", 6, 29679 },
-        Test { "k7/8/8/6p1/7P/8/8/K7 w - - 0 1", 6, 41874 },
-        Test { "k7/8/6p1/8/8/7P/8/K7 w - - 0 1", 6, 29679 },
-        Test { "k7/8/8/3p4/4p3/8/8/7K w - - 0 1", 6, 22886 },
-        Test { "k7/8/3p4/8/8/4P3/8/7K w - - 0 1", 6, 28662 },
-        Test { "7k/3p4/8/8/3P4/8/8/K7 b - - 0 1", 6, 32167 },
-        Test { "7k/8/8/3p4/8/8/3P4/K7 b - - 0 1", 6, 30749 },
-        Test { "k7/8/8/7p/6P1/8/8/K7 b - - 0 1", 6, 41874 },
-        Test { "k7/8/7p/8/8/6P1/8/K7 b - - 0 1", 6, 29679 },
-        Test { "k7/8/8/6p1/7P/8/8/K7 b - - 0 1", 6, 41874 },
-        Test { "k7/8/6p1/8/8/7P/8/K7 b - - 0 1", 6, 29679 },
-        Test { "k7/8/8/3p4/4p3/8/8/7K b - - 0 1", 6, 22579 },
-        Test { "k7/8/3p4/8/8/4P3/8/7K b - - 0 1", 6, 28662 },
-        Test { "7k/8/8/p7/1P6/8/8/7K w - - 0 1", 6, 41874 },
-        Test { "7k/8/p7/8/8/1P6/8/7K w - - 0 1", 6, 29679 },
-        Test { "7k/8/8/1p6/P7/8/8/7K w - - 0 1", 6, 41874 },
-        Test { "7k/8/1p6/8/8/P7/8/7K w - - 0 1", 6, 29679 },
-        Test { "k7/7p/8/8/8/8/6P1/K7 w - - 0 1", 6, 55338 },
-        Test { "k7/6p1/8/8/8/8/7P/K7 w - - 0 1", 6, 55338 },
-        Test { "3k4/3pp3/8/8/8/8/3PP3/3K4 w - - 0 1", 6, 199002 },
-        Test { "7k/8/8/p7/1P6/8/8/7K b - - 0 1", 6, 41874 },
-        Test { "7k/8/p7/8/8/1P6/8/7K b - - 0 1", 6, 29679 },
-        Test { "7k/8/8/1p6/P7/8/8/7K b - - 0 1", 6, 41874 },
-        Test { "7k/8/1p6/8/8/P7/8/7K b - - 0 1", 6, 29679 },
-        Test { "k7/7p/8/8/8/8/6P1/K7 b - - 0 1", 6, 55338 },
-        Test { "k7/6p1/8/8/8/8/7P/K7 b - - 0 1", 6, 55338 },
-        Test { "3k4/3pp3/8/8/8/8/3PP3/3K4 b - - 0 1", 6, 199002 },
-        Test { "8/Pk6/8/8/8/8/6Kp/8 w - - 0 1", 6, 1030499 },
-        Test { "n1n5/1Pk5/8/8/8/8/5Kp1/5N1N w - - 0 1", 6, 37665329 },
-        Test { "8/PPPk4/8/8/8/8/4Kppp/8 w - - 0 1", 6, 28859283 },
-        Test { "n1n5/PPPk4/8/8/8/8/4Kppp/5N1N w - - 0 1", 6, 71179139 },
-        Test { "8/Pk6/8/8/8/8/6Kp/8 b - - 0 1", 6, 1030499 },
-        Test { "n1n5/1Pk5/8/8/8/8/5Kp1/5N1N b - - 0 1", 6, 37665329 },
-        Test { "8/PPPk4/8/8/8/8/4Kppp/8 b - - 0 1", 6, 28859283 },
-        Test { "n1n5/PPPk4/8/8/8/8/4Kppp/5N1N b - - 0 1", 6, 71179139 },
-        Test { "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1", 6, 11030083 },
-        Test { "rnbqkb1r/ppppp1pp/7n/4Pp2/8/8/PPPP1PPP/RNBQKBNR w KQkq f6 0 3", 5, 11139762 }
-    };
-
-    int passed = 0;
-
-    for (auto& test : tests) {
-        Board board;
-        board.from_fen(stringstream(test.fen));
-
-        u64 result = perft(board, test.depth);
-
-        if (result != test.result) {
-            cout << "FAILED: \n";
-            cout << "- fen: " << test.fen << "\n";
-            cout << "- depth: " << test.depth << "\n";
-            cout << "- expect: " << test.result << "\n";
-            cout << "- result: " << result << "\n";
-
-            break;
-        }
-        else {
-            passed += 1;
-
-            cout << "PASSED: " << passed << "/" << _countof(tests) << "\n";
-        }
-    }
-}
+};
 
 int main() {
     // Zobrist hash init
@@ -786,7 +860,62 @@ int main() {
         for (int k = 0; k < 64; k++)
             KEYS[i][k] = rand() | rand() << 16 | (u64)rand() << 32 | (u64)rand() << 48;
 
-    test_perft();
+    // Search data
+    Board board;
+    vector<u64> visited(512);
+    TTABLE = (TTEntry*)calloc(1ULL << TT_BITS, 8);
+
+    // Uci
+    string token;
+
+    cin >> token;
+    cout << "uciok\n";
+
+    while (getline(cin, token)) {
+        stringstream tokens(token);
+        tokens >> token;
+
+        if (token[0] == 'i') {
+            cout << "readyok\n";
+        }
+        else if (token[0] == 'p') {
+            board = Board();
+            visited.clear();
+
+            tokens >> token >> token;
+
+            while (tokens >> token) {
+                visited.push_back(board.hash);
+                board.make(move_make(token[0] + token[1] * 8 - 489, token[2] + token[3] * 8 - 489, token[4] % 35 * 5 % 6));
+            }
+        }
+        else if (token[0] == 'g') {
+            u64 time;
+
+            tokens >> token >> time;
+
+            if (board.stm)
+                tokens >> token >> time;
+
+            RUNNING = TRUE;
+            LIMIT_SOFT = now() + time / 50;
+            LIMIT_HARD = now() + time / 2;
+
+            thread t([&] () {
+                Thread().start(board, visited, time);
+            });
+
+            t.join();
+
+            cout << "bestmove ";
+            move_print(BEST_MOVE);
+        }
+        else if (token[0] == 'q') {
+            break;
+        }
+    }
+
+    free(TTABLE);
 
     return 0;
 };
