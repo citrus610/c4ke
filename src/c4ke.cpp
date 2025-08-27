@@ -657,10 +657,7 @@ struct Thread {
 
     int search(Board& board, int alpha, int beta, int ply, int depth, int is_pv) {
         // Check qsearch
-        if (depth < 0)
-            depth = 0;
-        
-        int is_qsearch = !depth;
+        int is_qsearch = depth <= 0;
 
         // Abort
         if (!(++nodes & 4095) && now() > LIMIT_HARD)
@@ -843,7 +840,7 @@ struct Thread {
         }
 
         // Update transposition
-        slot = TTEntry { u8(board.hash), best_move, i16(best), u8(depth), bound };
+        slot = TTEntry { u8(board.hash), best_move, i16(best), u8(!is_qsearch * depth), bound };
 
         return best;
     }
