@@ -62,12 +62,13 @@ struct Thread {
 
         // Probe transposition table
         TTEntry& slot = TTABLE[board.hash >> (64 - TT_BITS)];
-        TTEntry tt = slot;
+        TTEntry tt {};
 
-        tt.hash ^= board.hash;
+        if (slot.hash == u16(board.hash)) {
+            tt = slot;
 
-        if (!tt.hash && !is_pv && depth <= tt.depth && tt.bound != tt.score < beta) {
-            return tt.score;
+            if (!is_pv && depth <= tt.depth && tt.bound != tt.score < beta)
+                return tt.score;
         }
 
         // Killer
