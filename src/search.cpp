@@ -99,7 +99,7 @@ struct Thread {
                 if (alpha < best)
                     alpha = best;
             }
-            else {
+            else if (!is_pv) {
                 // Reverse futility pruning
                 if (depth <= 8 && eval < WIN && eval > beta + 70 * depth)
                     return eval;
