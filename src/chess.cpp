@@ -7,7 +7,7 @@ using i16 = int16_t;
 using u16 = uint16_t;
 using u64 = uint64_t;
 
-#define OB 1
+#define OB
 
 // Constants
 #define TRUE 1

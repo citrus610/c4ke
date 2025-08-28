@@ -253,13 +253,29 @@ struct Thread {
         visited = pre_visited;
         memset(qhist, 0, sizeof(qhist));
 
+        int score = 0;
+
         // Iterative deepening
         for (int depth = 1; depth < MAX_DEPTH; ++depth) {
             // Clear stack
             for (Stack& ss : stack) ss = Stack();
 
-            // Search
-            int score = search(board, -INF, INF, 0, depth, TRUE);
+            // Aspiration window
+            int delta = 25;
+            int alpha = score;
+            int beta = score;
+
+            while (score <= alpha || score >= beta) {
+                // Update window
+                alpha = min(alpha, score);
+                beta = max(alpha, score);
+
+                // Search
+                score = search(board, alpha -= delta, beta += delta, 0, depth, TRUE);
+
+                // Scale delta
+                delta *= 1.5;
+            }
 
             // Print info
 #ifdef OB
