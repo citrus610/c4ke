@@ -236,7 +236,7 @@ struct Thread {
         }
 
         // Update transposition
-        slot = { u8(board.hash), best_move, i16(best), u8(!is_qsearch * depth), bound };
+        slot = { u16(board.hash), best_move, i16(best), u8(!is_qsearch * depth), bound };
 
         return best;
     }
