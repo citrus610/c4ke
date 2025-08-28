@@ -11,7 +11,7 @@ endif
 EXE := $(EXE)$(SUFFIX)
 
 c4ke:
-	g++ -DNDEBUG -std=c++20 -O3 -march=native -pthread $(STATIC) src/*.cpp -o $(EXE)
+	g++ -DNDEBUG -std=c++20 -O3 -march=native -pthread $(STATIC) src/main.cpp -o $(EXE)
 
 clean:
 	@rm -rf $(EXE)
