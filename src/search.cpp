@@ -101,8 +101,28 @@ struct Thread {
             }
             else if (!is_pv) {
                 // Reverse futility pruning
-                if (depth <= 8 && eval < WIN && eval > beta + 70 * depth)
+                if (depth < 9 && eval < WIN && eval > beta + 70 * depth)
                     return eval;
+
+                // Null move pruning
+                if (depth > 2 && eval >= beta && stack[ply - 1].move && board.colors[board.stm] & ~board.pieces[PAWN] & ~board.pieces[KING]) {
+                    int reduction = 5 + depth / 3;
+
+                    Board child = board;
+
+                    child.stm ^= 1;
+                    child.hash ^= KEYS[PIECE_NONE][0];
+                    child.enpassant = SQUARE_NONE;
+                    child.is_checked = FALSE;
+
+                    stack[ply].move = MOVE_NONE;
+
+                    int score = -search(child, -beta, -beta + 1, ply + 1, depth - reduction, FALSE);
+
+                    if (score >= beta) {
+                        return score < WIN ? score : beta;
+                    }
+                }
             }
         }
 
@@ -154,9 +174,10 @@ struct Thread {
             if (!child.make(move))
                 continue;
 
-            legals++;
-
+            stack[ply].move = move;
             visited.push_back(child.hash);
+
+            legals++;
 
             // Search
             int score;
