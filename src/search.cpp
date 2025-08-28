@@ -113,7 +113,6 @@ struct Thread {
                     child.stm ^= 1;
                     child.hash ^= KEYS[PIECE_NONE][0];
                     child.enpassant = SQUARE_NONE;
-                    child.is_checked = FALSE;
 
                     stack[ply].move = MOVE_NONE;
 
