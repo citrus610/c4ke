@@ -253,41 +253,6 @@ struct Board {
         return (stm ? -eval : eval) + 20;
     }
 
-    // TODO: will minify away
-    void print() {
-        char piece_str[] = {
-            'P', 'p',
-            'N', 'n',
-            'B', 'b',
-            'R', 'r',
-            'Q', 'q',
-            'K', 'k'
-        };
-
-        for (int rank = 7; rank >= 0; rank--) {
-            char line[] = ". . . . . . . .";
-
-            for (int file = 0; file < 8; file++) {
-                int square = file | (rank << 3);
-
-                if (board[square] == PIECE_NONE) {
-                    continue;
-                }
-
-                line[2 * file] = piece_str[board[square]];
-            }
-
-            printf("%s\n", line);
-        }
-
-        printf("\n");
-
-        cout << "stm: " << int(stm) << "\n";
-        cout << "ep: " << int(enpassant) << "\n";
-        cout << "hm: " << halfmove << "\n";
-        cout << "castled: " << bitset<4>(castled) << "\n";
-    }
-
 #ifdef OB
     void from_fen(istream& fen) {
         memset(this, 0, sizeof(Board));
