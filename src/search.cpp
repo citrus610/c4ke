@@ -267,11 +267,11 @@ struct Thread {
 
             while (score <= alpha || score >= beta) {
                 // Update window
-                alpha = min(alpha, score);
-                beta = max(alpha, score);
+                alpha = score <= alpha ? score - delta : alpha;
+                beta = score >= beta ? score + delta : beta;
 
                 // Search
-                score = search(board, alpha -= delta, beta += delta, 0, depth, TRUE);
+                score = search(board, alpha, beta, 0, depth, TRUE);
 
                 // Scale delta
                 delta *= 1.5;
