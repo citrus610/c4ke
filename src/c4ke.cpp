@@ -7,6 +7,8 @@ using i16 = int16_t;
 using u16 = uint16_t;
 using u64 = uint64_t;
 
+#define OB 1
+
 // Constants
 #define TRUE 1
 #define FALSE 0
@@ -242,9 +244,10 @@ void move_print(u16 move) {
     cout.put(97 + move_from(move) % 8).put(49 + move_from(move) / 8).put(97 + move_to(move) % 8).put(49 + move_to(move) / 8).put(" nbrq"[move_promo(move)]) << endl;
 }
 
-// Board
-int LAYOUT[] = { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK };
+// Eval
 int PIECE_VALUE[] = { 100, 320, 330, 500, 900, 2000 };
+
+// PST copied from 4ku, will replace later
 int PST_RANK[] = {
     0, -3, -3, -1, 1, 5, 0, 0,
     -2, 0, 1, 3, 4, 5, 2, -15,
@@ -253,6 +256,7 @@ int PST_RANK[] = {
     2, 3, 2, 0, 0, -1, -4, -2,
     -1, 1, -1, -4, -1, 5, 5, 5,
 };
+
 int PST_FILE[] = {
     -1, -2, -1, 0, 1, 2, 2, -1,
     -4, -1, 0, 2, 2, 2, 1, -1,
@@ -261,6 +265,9 @@ int PST_FILE[] = {
     -2, -1, -1, 0, 0, 1, 2, 1,
     -2, 2, -1, -4, -4, -2, 2, 0,
 };
+
+// Board
+int LAYOUT[] = { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK };
 
 void add_pawn_moves(u16 list[], int& count, u64 targets, int offset) {
     while (targets) {
@@ -527,8 +534,8 @@ struct Board {
         cout << "castled: " << bitset<4>(castled) << "\n";
     }
 
-    // TODO: will minify away
-    void from_fen(stringstream fen) {
+#ifdef OB
+    void from_fen(istream& fen) {
         memset(this, 0, sizeof(Board));
         memset(board, PIECE_NONE, 64);
 
@@ -567,6 +574,7 @@ struct Board {
                 square += 1;
             }
         }
+#endif
 
         // Side to move
         fen >> token;
@@ -604,6 +612,9 @@ struct Board {
         fen >> token;
 
         halfmove = stoi(token);
+
+        // Fullmove counter;
+        fen >> token;
     }
 
     Board() {
@@ -693,21 +704,36 @@ struct Thread {
         // Clear killer
         stack[ply + 1].killer = MOVE_NONE;
 
+        // Static eval
+        int eval;
+
+        stack[ply].eval = INF;
+
         // Best score
         int best = -INF;
         u16 best_move = MOVE_NONE;
-
         u8 bound = BOUND_UPPER;
         
-        // Standpat
-        if (is_qsearch && !board.is_checked) {
-            best = board.eval();
+        // Pruning
+        if (!board.is_checked) {
+            // Get eval
+            eval = stack[ply].eval = board.eval();
 
-            if (best >= beta)
-                return best;
+            if (is_qsearch) {
+                // Standpat
+                best = eval;
 
-            if (alpha < best)
-                alpha = best;
+                if (best >= beta)
+                    return best;
+
+                if (alpha < best)
+                    alpha = best;
+            }
+            else {
+                // Reverse futility pruning
+                if (depth <= 8 && eval < WIN && eval > beta + 70 * depth)
+                    return eval;
+            }
         }
 
         // Generate move
@@ -840,7 +866,7 @@ struct Thread {
         }
 
         // Update transposition
-        slot = TTEntry { u8(board.hash), best_move, i16(best), u8(!is_qsearch * depth), bound };
+        slot = { u8(board.hash), best_move, i16(best), u8(!is_qsearch * depth), bound };
 
         return best;
     }
@@ -881,7 +907,7 @@ int main() {
     // Zobrist hash init
     for (int i = 0; i < 13; i++)
         for (int k = 0; k < 64; k++)
-            KEYS[i][k] = rand() | rand() << 16 | (u64)rand() << 32 | (u64)rand() << 48;
+            KEYS[i][k] = rand() | rand() << 16 | u64(rand()) << 32 | u64(rand()) << 48;
 
     // Search data
     Board board;
@@ -898,20 +924,39 @@ int main() {
         stringstream tokens(token);
         tokens >> token;
 
+        // Uci isready
         if (token[0] == 'i') {
             cout << "readyok\n";
         }
+#ifdef OB
+        // Uci ucinewgame
+        else if (token[0] == 'u') {
+            memset(TTABLE, 0, sizeof(TTEntry) * (1ULL << TT_BITS));
+        }
+#endif
+        // Uci position
         else if (token[0] == 'p') {
             board = Board();
             visited.clear();
 
+#ifdef OB
+            tokens >> token;
+
+            if (token[0] == 'f') {
+                board.from_fen(tokens);
+            }
+
+            tokens >> token;
+#else
             tokens >> token >> token;
+#endif
 
             while (tokens >> token) {
                 visited.push_back(board.hash);
                 board.make(move_make(token[0] + token[1] * 8 - 489, token[2] + token[3] * 8 - 489, token[4] % 35 * 5 % 6));
             }
         }
+        // Uci go
         else if (token[0] == 'g') {
             u64 time;
 
@@ -933,6 +978,7 @@ int main() {
             cout << "bestmove ";
             move_print(BEST_MOVE);
         }
+        // Uci quit
         else if (token[0] == 'q') {
             break;
         }
