@@ -113,9 +113,11 @@ int main(int argc, char *argv[]) {
 int main() {
 #endif
     // Zobrist hash init
+    mt19937_64 rng;
+
     for (int i = 0; i < 13; i++)
         for (int k = 0; k < 64; k++)
-            KEYS[i][k] = rand() | rand() << 16 | u64(rand()) << 32 | u64(rand()) << 48;
+            KEYS[i][k] = rng();
 
     // Search data
     Board board;
