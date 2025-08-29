@@ -172,6 +172,10 @@ struct Thread {
             // Check if quiet
             int is_quiet = board.quiet(move);
 
+            // Late move pruning
+            if (!is_pv && !board.is_checked && quiet_count > depth * depth + 1)
+                break;
+
             // Make
             Board child = board;
 
