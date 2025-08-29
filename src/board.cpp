@@ -1,6 +1,6 @@
 #include "chess.cpp"
 
-int PIECE_VALUE[] = { 100, 320, 330, 500, 900, 2000 };
+int PIECE_VALUE[] = { 100, 320, 330, 500, 900, 2000, 0 };
 
 // PST copied from 4ku, will replace later
 int PST_RANK[] = {
