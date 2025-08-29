@@ -191,7 +191,7 @@ struct Thread {
             if (is_qsearch)
                 goto pvsearch;
 
-            // Null window search
+            // Late move pruning
             if (depth > 2 && legals > 1 + !!ply * 2) {
                 int reduction = LOG[depth] * LOG[legals] * 0.3 + 1;
 
@@ -202,6 +202,7 @@ struct Thread {
                 if (score > alpha && reduction)
                     goto zwsearch;
             }
+            // Zero window search
             else if (!is_pv || legals > 1)
                 zwsearch:
                 score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next, FALSE);
