@@ -179,6 +179,10 @@ struct Thread {
             if (is_qsearch && best > -WIN && board.is_checked && is_quiet)
                 break;
 
+            // Delta pruning
+            if (is_qsearch && !board.is_checked && !move_promo(move) && eval + 100 + PIECE_VALUE[board.board[move_to(move)] / 2] < alpha)
+                continue;
+
             // Late move pruning
             if (!is_pv && !board.is_checked && quiet_count > depth * depth + 1)
                 break;
