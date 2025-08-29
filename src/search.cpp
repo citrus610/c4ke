@@ -172,6 +172,10 @@ struct Thread {
             // Check if quiet
             int is_quiet = board.quiet(move);
 
+            // Quiet pruning in qsearch
+            if (is_qsearch && best > -WIN && board.is_checked && is_quiet)
+                break;
+
             // Late move pruning
             if (!is_pv && !board.is_checked && quiet_count > depth * depth + 1)
                 break;
@@ -214,7 +218,7 @@ struct Thread {
             // Principle variation search
             if (is_pv && (legals == 1 || score > alpha)) {
                 pvsearch:
-                score = -search(child, -beta, -alpha, ply + 1, depth_next, is_qsearch ? is_pv : TRUE);
+                score = -search(child, -beta, -alpha, ply + 1, depth_next, is_pv);
             }
 
             // Unmake

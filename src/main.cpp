@@ -94,7 +94,7 @@ void bench()
 
         u64 time_1 = now();
 
-        engine.start(board, visited, 8, TRUE);
+        engine.start(board, visited, 15, TRUE);
 
         u64 time_2 = now();
 
