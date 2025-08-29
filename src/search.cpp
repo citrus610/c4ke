@@ -187,11 +187,11 @@ struct Thread {
             int depth_next = depth - 1;
             int score;
 
-            // Don't do null window search for qsearch
+            // Don't do zero window search for qsearch
             if (is_qsearch)
                 goto pvsearch;
 
-            // Late move pruning
+            // Late move reduction
             if (depth > 2 && legals > 1 + !!ply * 2) {
                 int reduction = LOG[depth] * LOG[legals] * 0.3 + 1;
 
