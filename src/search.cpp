@@ -1,5 +1,7 @@
 #include "board.cpp"
 
+double LOG[256];
+
 // History
 void update_history(i16& entry, int bonus) {
     entry += bonus - entry * abs(bonus) / HIST_MAX;
@@ -182,6 +184,7 @@ struct Thread {
             legals++;
 
             // Search
+            int depth_next = depth - 1;
             int score;
 
             // Don't do null window search for qsearch
@@ -189,13 +192,24 @@ struct Thread {
                 goto pvsearch;
 
             // Null window search
-            if (!is_pv || legals > 1)
-                score = -search(child, -alpha - 1, -alpha, ply + 1, depth - 1, FALSE);
+            if (depth > 2 && legals > 1 + !!ply * 2) {
+                int reduction = LOG[depth] * LOG[legals] * 0.3 + 1;
+
+                reduction = max(reduction, 0);
+
+                score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next - reduction, FALSE);
+
+                if (score > alpha && reduction)
+                    goto zwsearch;
+            }
+            else if (!is_pv || legals > 1)
+                zwsearch:
+                score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next, FALSE);
 
             // Principle variation search
             if (is_pv && (legals == 1 || score > alpha)) {
                 pvsearch:
-                score = -search(child, -beta, -alpha, ply + 1, depth - 1, is_qsearch ? is_pv : TRUE);
+                score = -search(child, -beta, -alpha, ply + 1, depth_next, is_qsearch ? is_pv : TRUE);
             }
 
             // Unmake

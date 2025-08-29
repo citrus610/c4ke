@@ -7,7 +7,7 @@ string move_str(u16 move) {
     str += 97 + move_from(move) % 8;
     str += 49 + move_from(move) / 8;
     str += 97 + move_to(move) % 8;
-    str += 97 + move_to(move) % 8;
+    str += 49 + move_to(move) / 8;
 
     if (move_promo(move)) {
         str += " nbrq"[move_promo(move)];
@@ -118,6 +118,10 @@ int main() {
     for (int i = 0; i < 13; i++)
         for (int k = 0; k < 64; k++)
             KEYS[i][k] = rng();
+    
+    // Table
+    for (int i = 0; i < 256; i++)
+        LOG[i] = log(max(i, 1));
 
     // Search data
     Board board;
