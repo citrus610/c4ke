@@ -91,6 +91,9 @@ struct Thread {
             // Get eval
             eval = stack[ply].eval = board.eval();
 
+            if (tt.hash && tt.bound != eval > tt.score)
+                eval = tt.score;
+
             if (is_qsearch) {
                 // Standpat
                 best = eval;
