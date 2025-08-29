@@ -134,15 +134,18 @@ struct Thread {
         for (int i = 0; i < move_count; i++) {
             int victim = board.board[move_to(move_list[i])] / 2;
 
+            if (victim == TYPE_NONE)
+                victim = PAWN;
+
             // Hash move
             if (move_list[i] == tt.move)
                 move_scores[i] = 1e8;
-            // Noisy moves
-            else if (victim < TYPE_NONE || move_promo(move_list[i]))
-                move_scores[i] = PIECE_VALUE[victim] * 16 - PIECE_VALUE[board.board[move_from(move_list[i])] / 2] * 8 + 1e7;
             // Quiet moves
-            else
+            else if (board.quiet(move_list[i]))
                 move_scores[i] = move_list[i] == stack[ply].killer ? 1e6 : qhist[move_list[i] & 4095];
+            // Noisy moves
+            else
+                move_scores[i] = PIECE_VALUE[victim] * 16 - PIECE_VALUE[board.board[move_from(move_list[i])] / 2] * 8 + 1e7;
         }
 
         // Iterate moves
@@ -165,7 +168,7 @@ struct Thread {
             u16 move = move_list[i];
 
             // Check if quiet
-            int is_quiet = board.board[move_to(move)] < PIECE_NONE || move_promo(move);
+            int is_quiet = board.quiet(move);
 
             // Make
             Board child = board;

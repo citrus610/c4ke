@@ -116,6 +116,10 @@ struct Board {
         return halfmove > 99;
     }
 
+    int quiet(u16 move) {
+        return board[move_to(move)] > BLACK_KING && !move_promo(move) && !(board[move_from(move)] < WHITE_KNIGHT && move_to(move) == enpassant);
+    }
+
     int make(u16 move) {
         // Get move data
         int from = move_from(move);
