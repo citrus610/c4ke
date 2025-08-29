@@ -33,7 +33,7 @@ struct Stack {
 struct Thread {
     u64 nodes;
     u16 pv;
-    i16 qhist[4096];
+    i16 qhist[2][4096];
     Stack stack[STACK_SIZE];
     vector<u64> visited;
 
@@ -147,7 +147,7 @@ struct Thread {
                 move_scores[i] = 1e8;
             // Quiet moves
             else if (board.quiet(move_list[i]))
-                move_scores[i] = move_list[i] == stack[ply].killer ? 1e6 : qhist[move_list[i] & 4095];
+                move_scores[i] = move_list[i] == stack[ply].killer ? 1e6 : qhist[board.stm][move_list[i] & 4095];
             // Noisy moves
             else
                 move_scores[i] = PIECE_VALUE[victim] * 16 - PIECE_VALUE[board.board[move_from(move_list[i])] / 2] * 8 + 1e7;
@@ -269,10 +269,10 @@ struct Thread {
                     stack[ply].killer = move;
 
                     // Update quiet history
-                    update_history(qhist[move & 4095], bonus);
+                    update_history(qhist[board.stm][move & 4095], bonus);
 
                     for (int k = 0; k < quiet_count; k++)
-                        update_history(qhist[quiet_list[k] & 4095], -bonus);
+                        update_history(qhist[board.stm][quiet_list[k] & 4095], -bonus);
                 }
 
                 break;
