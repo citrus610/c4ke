@@ -3,6 +3,8 @@
 double LOG[256];
 
 // History
+typedef i16 HTable[12][64];
+
 void update_history(i16& entry, int bonus) {
     entry += bonus - entry * abs(bonus) / HIST_MAX;
 }
@@ -27,14 +29,16 @@ struct Stack {
     int eval = INF;
     u16 move = MOVE_NONE;
     u16 killer = MOVE_NONE;
+    HTable* conthist;
 };
 
 // Search thread
 struct Thread {
-    u64 nodes{};
-    u16 pv{};
-    i16 qhist[2][4096]{};
-    i16 nhist[12][64][6]{};
+    u64 nodes {};
+    u16 pv {};
+    i16 qhist[2][4096] {};
+    HTable nhist[6] {};
+    HTable conthist[12][64] {};
     Stack stack[STACK_SIZE];
     vector<u64> visited;
 
@@ -120,6 +124,7 @@ struct Thread {
                     child.enpassant = SQUARE_NONE;
 
                     stack[ply].move = MOVE_NONE;
+                    stack[ply + 2].conthist = conthist[PAWN];
 
                     int score = -search(child, -beta, -beta + 1, ply + 1, depth - reduction, FALSE);
 
@@ -137,6 +142,7 @@ struct Thread {
         // Score move
         for (int i = 0; i < move_count; i++) {
             int move = move_list[i];
+            int piece = board.board[move_from(move)];
             int victim = board.board[move_to(move)] / 2 % TYPE_NONE;
 
             // Hash move
@@ -144,10 +150,10 @@ struct Thread {
                 move_scores[i] = 1e8;
             // Quiet moves
             else if (board.quiet(move))
-                move_scores[i] = move == stack[ply].killer ? 1e6 : qhist[board.stm][move & 4095];
+                move_scores[i] = move == stack[ply].killer ? 1e6 : qhist[board.stm][move & 4095] + (*stack[ply + 1].conthist)[piece][move_to(move)];
             // Noisy moves
             else
-                move_scores[i] = PIECE_VALUE[victim] * 16 + nhist[board.board[move_from(move)]][move_to(move)][victim] + 1e7;
+                move_scores[i] = PIECE_VALUE[victim] * 16 + nhist[victim][piece][move_to(move)] + 1e7;
         }
 
         // Iterate moves
@@ -191,10 +197,12 @@ struct Thread {
             if (!child.make(move))
                 continue;
 
-            stack[ply].move = move;
-            visited.push_back(child.hash);
-
             legals++;
+
+            stack[ply].move = move;
+            stack[ply + 2].conthist = &conthist[board.board[move_from(move)]][move_to(move)];
+
+            visited.push_back(child.hash);
 
             // Search
             int depth_next = depth - 1;
@@ -268,18 +276,21 @@ struct Thread {
 
                     // Update quiet history
                     update_history(qhist[board.stm][move & 4095], bonus);
+                    update_history((*stack[ply + 1].conthist)[board.board[move_from(move)]][move_to(move)], bonus);
 
                     // Add pelnaty to visited quiet moves
-                    for (int k = 0; k < quiet_count; k++)
+                    for (int k = 0; k < quiet_count; k++) {
                         update_history(qhist[board.stm][quiet_list[k] & 4095], -bonus);
+                        update_history((*stack[ply + 1].conthist)[board.board[move_from(quiet_list[k])]][move_to(quiet_list[k])], -bonus);
+                    }
                 }
                 else
                     // Update noisy history
-                    update_history(nhist[board.board[move_from(move)]][move_to(move)][board.board[move_to(move)] / 2 % TYPE_NONE], bonus);
+                    update_history(nhist[board.board[move_to(move)] / 2 % TYPE_NONE][board.board[move_from(move)]][move_to(move)], bonus);
 
                 // Add pelnaty to visited noisy moves
                 for (int k = 0; k < noisy_count; k++)
-                    update_history(nhist[board.board[move_from(noisy_list[k])]][move_to(noisy_list[k])][board.board[move_to(noisy_list[k])] / 2 % TYPE_NONE], -bonus);
+                    update_history(nhist[board.board[move_to(noisy_list[k])] / 2 % TYPE_NONE][board.board[move_from(noisy_list[k])]][move_to(noisy_list[k])], -bonus);
 
                 break;
             }
@@ -318,6 +329,8 @@ struct Thread {
         for (int depth = 1; depth < MAX_DEPTH; ++depth) {
             // Clear stack
             for (Stack& ss : stack) ss = Stack();
+            stack[0].conthist = conthist[PAWN];
+            stack[1].conthist = conthist[PAWN];
 
             // Aspiration window
             int delta = 25;
