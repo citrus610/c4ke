@@ -621,9 +621,9 @@ std::vector<std::string> get_renamed(std::vector<std::string> tokens)
 int main()
 {
     // Create output file
-    auto output = std::ofstream(MINI_FILE, std::ios::out | std::ios::app);
+    std::string output;
 
-    output << "#include <bits/stdc++.h>\n";
+    output += "#include <bits/stdc++.h>\n";
 
     // Unify all source code files
     auto str = get_unified();
@@ -652,15 +652,17 @@ int main()
     // Rename
     tokens = get_renamed(tokens);
 
-    std::string text;
-
     for (auto& token : tokens) {
-        text.append(token);
+        output.append(token);
     }
 
-    output << text;
+    // Print to stdout
+    std::cout << output;
 
-    output.close();
+    auto file = std::ofstream("mini.cpp", std::ios::out);
+
+    file << output;
+    file.close();
 
     return 0;
 };
