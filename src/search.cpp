@@ -151,8 +151,11 @@ struct Thread {
         }
 
         // Iterate moves
-        u16 quiet_list[MAX_MOVE], noisy_list[MAX_MOVE];
-        int quiet_count = 0, noisy_count = 0, legals = 0;
+        u16 quiet_list[MAX_MOVE];
+        u16 noisy_list[MAX_MOVE];
+        int quiet_count = 0;
+        int noisy_count = 0;
+        int legals = 0;
 
         for (int i = 0; i < move_count; i++) {
             // Sort next move
