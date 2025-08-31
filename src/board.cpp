@@ -107,8 +107,7 @@ struct Board {
 
         for (int i = 4; i <= halfmove && i <= visited.size(); i += 2) {
             if (hash == visited[visited.size() - i]) {
-                if (ply >= i) return TRUE;
-                if (before_root) return TRUE;
+                if (ply >= i || before_root) return TRUE;
                 before_root = TRUE;
             }
         }

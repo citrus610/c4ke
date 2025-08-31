@@ -34,6 +34,7 @@ struct Thread {
     u64 nodes;
     u16 pv;
     i16 qhist[2][4096];
+    i16 nhist[12][64][6];
     Stack stack[STACK_SIZE];
     vector<u64> visited;
 
@@ -101,8 +102,7 @@ struct Thread {
                 if (best >= beta)
                     return best;
 
-                if (alpha < best)
-                    alpha = best;
+                alpha = max(alpha, best);
             }
             else if (!is_pv) {
                 // Reverse futility pruning
@@ -123,9 +123,8 @@ struct Thread {
 
                     int score = -search(child, -beta, -beta + 1, ply + 1, depth - reduction, FALSE);
 
-                    if (score >= beta) {
+                    if (score >= beta)
                         return score < WIN ? score : beta;
-                    }
                 }
             }
         }
@@ -148,14 +147,12 @@ struct Thread {
                 move_scores[i] = move == stack[ply].killer ? 1e6 : qhist[board.stm][move & 4095];
             // Noisy moves
             else
-                move_scores[i] = PIECE_VALUE[victim] * 16 - PIECE_VALUE[board.board[move_from(move)] / 2] * 8 + 1e7;
+                move_scores[i] = PIECE_VALUE[victim] * 16 + nhist[board.board[move_from(move)]][move_to(move)][victim] + 1e7;
         }
 
         // Iterate moves
-        u16 quiet_list[MAX_MOVE];
-        int quiet_count = 0;
-        
-        int legals = 0;
+        u16 quiet_list[MAX_MOVE], noisy_list[MAX_MOVE];
+        int quiet_count = 0, noisy_count = 0, legals = 0;
 
         for (int i = 0; i < move_count; i++) {
             // Sort next move
@@ -208,7 +205,7 @@ struct Thread {
             if (depth > 2 && legals > 1 + !!ply * 2) {
                 int reduction = LOG[depth] * LOG[legals] * 0.3 + 1;
 
-                reduction = max(reduction, 0);
+                reduction *= reduction > 0;
 
                 score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next - reduction, FALSE);
 
@@ -269,9 +266,17 @@ struct Thread {
                     // Update quiet history
                     update_history(qhist[board.stm][move & 4095], bonus);
 
+                    // Add pelnaty to visited quiet moves
                     for (int k = 0; k < quiet_count; k++)
                         update_history(qhist[board.stm][quiet_list[k] & 4095], -bonus);
                 }
+                else
+                    // Update noisy history
+                    update_history(nhist[board.board[move_from(move)]][move_to(move)][board.board[move_to(move)] / 2 % TYPE_NONE], bonus);
+
+                // Add pelnaty to visited noisy moves
+                for (int k = 0; k < noisy_count; k++)
+                    update_history(nhist[board.board[move_from(noisy_list[k])]][move_to(noisy_list[k])][board.board[move_to(noisy_list[k])] / 2 % TYPE_NONE], -bonus);
 
                 break;
             }
@@ -279,6 +284,8 @@ struct Thread {
             // Push visited moves
             if (is_quiet)
                 quiet_list[quiet_count++] = move;
+            else
+                noisy_list[noisy_count++] = move;
         }
 
         // Return mate score
