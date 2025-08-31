@@ -137,10 +137,7 @@ struct Thread {
 
         // Score move
         for (int i = 0; i < move_count; i++) {
-            int victim = board.board[move_to(move_list[i])] / 2;
-
-            if (victim == TYPE_NONE)
-                victim = PAWN;
+            int victim = board.board[move_to(move_list[i])] / 2 % TYPE_NONE;
 
             // Hash move
             if (move_list[i] == tt.move)
