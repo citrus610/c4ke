@@ -95,7 +95,10 @@ struct Thread {
         // Pruning
         if (!board.is_checked) {
             // Get eval
-            eval = stack[ply].eval = board.eval() + corrhist[board.stm][board.hash_pawn % CORRHIST_SIZE] / 128;
+            eval = stack[ply].eval = board.eval() +
+                corrhist[board.stm][board.hash_pawn % CORRHIST_SIZE] / 128 +
+                corrhist[board.stm][board.hash_non_pawn[WHITE] % CORRHIST_SIZE] / 256 +
+                corrhist[board.stm][board.hash_non_pawn[BLACK] % CORRHIST_SIZE] / 256;
 
             // Use tt score as better eval
             if (tt.hash && tt.bound != tt.score < eval)
@@ -311,11 +314,13 @@ struct Thread {
         }
 
         // Update corrhist
-        if (!board.is_checked && (!best_move || board.quiet(best_move)) && bound != best < stack[ply].eval)
-            update_history(
-                corrhist[board.stm][board.hash_pawn % CORRHIST_SIZE],
-                clamp((best - stack[ply].eval) * depth, -CORRHIST_BONUS_MAX, CORRHIST_BONUS_MAX) * CORRHIST_BONUS_SCALE
-            );
+        if (!board.is_checked && (!best_move || board.quiet(best_move)) && bound != best < stack[ply].eval) {
+            int bonus = clamp((best - stack[ply].eval) * depth, -CORRHIST_BONUS_MAX, CORRHIST_BONUS_MAX) * CORRHIST_BONUS_SCALE;
+
+            update_history(corrhist[board.stm][board.hash_pawn % CORRHIST_SIZE], bonus);
+            update_history(corrhist[board.stm][board.hash_non_pawn[WHITE] % CORRHIST_SIZE], bonus);
+            update_history(corrhist[board.stm][board.hash_non_pawn[BLACK] % CORRHIST_SIZE], bonus);
+        }
 
         // Update transposition
         slot = { u16(board.hash), best_move, i16(best), u8(!is_qsearch * depth), bound };
