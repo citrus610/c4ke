@@ -127,6 +127,10 @@ typedef uint64_t u64;
 
 #define HIST_MAX 16384
 
+#define CORRHIST_SIZE 16384
+#define CORRHIST_BONUS_MAX 512
+#define CORRHIST_BONUS_SCALE 8
+
 #define STACK_SIZE 264
 
 // Time

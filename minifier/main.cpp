@@ -130,6 +130,7 @@ const std::vector<std::string> KEYWORDS_SKIP = {
     "stoi",
     "max",
     "min",
+    "clamp",
     "swap",
     "push_back",
     "pop_back",

@@ -39,6 +39,7 @@ struct Thread {
     i16 qhist[2][4096] {};
     HTable nhist[6] {};
     HTable conthist[12][64] {};
+    i16 corrhist[2][CORRHIST_SIZE] {};
     Stack stack[STACK_SIZE];
     vector<u64> visited;
 
@@ -94,9 +95,10 @@ struct Thread {
         // Pruning
         if (!board.is_checked) {
             // Get eval
-            eval = stack[ply].eval = board.eval();
+            eval = stack[ply].eval = board.eval() + corrhist[board.stm][board.hash_pawn % CORRHIST_SIZE] / 128;
 
-            if (tt.hash && tt.bound != eval > tt.score)
+            // Use tt score as better eval
+            if (tt.hash && tt.bound != tt.score < eval)
                 eval = tt.score;
 
             if (is_qsearch) {
@@ -307,6 +309,13 @@ struct Thread {
             if (board.is_checked) return ply - INF;
             if (!is_qsearch) return DRAW;
         }
+
+        // Update corrhist
+        if (!board.is_checked && (!best_move || board.quiet(best_move)) && bound != best < stack[ply].eval)
+            update_history(
+                corrhist[board.stm][board.hash_pawn % CORRHIST_SIZE],
+                clamp((best - stack[ply].eval) * depth, -CORRHIST_BONUS_MAX, CORRHIST_BONUS_MAX) * CORRHIST_BONUS_SCALE
+            );
 
         // Update transposition
         slot = { u16(board.hash), best_move, i16(best), u8(!is_qsearch * depth), bound };
