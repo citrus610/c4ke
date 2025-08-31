@@ -31,10 +31,10 @@ struct Stack {
 
 // Search thread
 struct Thread {
-    u64 nodes;
-    u16 pv;
-    i16 qhist[2][4096];
-    i16 nhist[12][64][6];
+    u64 nodes{};
+    u16 pv{};
+    i16 qhist[2][4096]{};
+    i16 nhist[12][64][6]{};
     Stack stack[STACK_SIZE];
     vector<u64> visited;
 
@@ -307,10 +307,7 @@ struct Thread {
         #define MAX_DEPTH 256
 #endif
         // Set data
-        nodes = 0;
-        pv = MOVE_NONE;
         visited = pre_visited;
-        memset(qhist, 0, sizeof(qhist));
 
         int score = 0;
 
