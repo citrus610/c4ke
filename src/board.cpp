@@ -68,6 +68,7 @@ struct Board {
     int is_checked;
     int halfmove;
     u64 hash;
+    u64 hash_pawn;
 
     void edit(int square, int piece) {
         u64 mask = 1ULL << square;
@@ -77,6 +78,9 @@ struct Board {
 
             pieces[board[square] / 2] &= ~mask;
             colors[board[square] & 1] &= ~mask;
+
+            if (board[square] / 2 == PAWN)
+                hash_pawn ^= KEYS[board[square]][square];
         }
 
         if (piece < PIECE_NONE) {
@@ -84,6 +88,9 @@ struct Board {
 
             pieces[piece / 2] |= mask;
             colors[piece & 1] |= mask;
+
+            if (piece / 2 == PAWN)
+                hash_pawn ^= KEYS[piece][square];
         }
 
         board[square] = piece;
