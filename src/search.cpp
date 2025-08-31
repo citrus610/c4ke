@@ -137,17 +137,18 @@ struct Thread {
 
         // Score move
         for (int i = 0; i < move_count; i++) {
-            int victim = board.board[move_to(move_list[i])] / 2 % TYPE_NONE;
+            int move = move_list[i];
+            int victim = board.board[move_to(move)] / 2 % TYPE_NONE;
 
             // Hash move
-            if (move_list[i] == tt.move)
+            if (move == tt.move)
                 move_scores[i] = 1e8;
             // Quiet moves
-            else if (board.quiet(move_list[i]))
-                move_scores[i] = move_list[i] == stack[ply].killer ? 1e6 : qhist[board.stm][move_list[i] & 4095];
+            else if (board.quiet(move))
+                move_scores[i] = move == stack[ply].killer ? 1e6 : qhist[board.stm][move & 4095];
             // Noisy moves
             else
-                move_scores[i] = PIECE_VALUE[victim] * 16 - PIECE_VALUE[board.board[move_from(move_list[i])] / 2] * 8 + 1e7;
+                move_scores[i] = PIECE_VALUE[victim] * 16 - PIECE_VALUE[board.board[move_from(move)] / 2] * 8 + 1e7;
         }
 
         // Iterate moves
