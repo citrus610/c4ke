@@ -198,7 +198,7 @@ std::string get_name(size_t index)
     const size_t FIRST_CHAR_COUNT = 26 + 26 + 1;
     const size_t REMAIN_CHAR_COUNT = 26 + 26 + 1 + 10;
 
-    // Init all 1 letter, 2 letters names and 3 letters names
+    // Init all 1 letter, 2 letters names
     std::vector<std::string> NAMES;
 
     for (size_t i = 0; i < FIRST_CHAR_COUNT; ++i) {
@@ -213,20 +213,6 @@ std::string get_name(size_t index)
             name += CHARACTERS[k];
 
             NAMES.push_back(name);
-        }
-    }
-
-    for (size_t i = 0; i < FIRST_CHAR_COUNT; ++i) {
-        for (size_t k = 0; k < REMAIN_CHAR_COUNT; ++k) {
-            for (size_t n = 0; n < REMAIN_CHAR_COUNT; ++n) {
-                std::string name;
-
-                name += CHARACTERS[i];
-                name += CHARACTERS[k];
-                name += CHARACTERS[n];
-
-                NAMES.push_back(name);
-            }
         }
     }
 

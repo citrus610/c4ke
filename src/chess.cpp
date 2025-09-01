@@ -182,11 +182,11 @@ u64 south(u64 bitboard) {
 }
 
 u64 west(u64 bitboard) {
-    return bitboard >> 1 & 0x7F7F7F7F7F7F7F7FULL;
+    return bitboard >> 1 & 0x7f7f7f7f7f7f7f7full;
 }
 
 u64 east(u64 bitboard) {
-    return bitboard << 1 & 0xFEFEFEFEFEFEFEFEULL;
+    return bitboard << 1 & 0xfefefefefefefefeull;
 }
 
 u64 nw(u64 bitboard) {
@@ -216,7 +216,7 @@ u64 ray(u64 mask, u64 occupied, u64 (*func)(u64)) {
 }
 
 u64 knight(u64 mask, u64 occupied = 0) {
-    return (mask << 6 | mask >> 10) & 0x3F3F3F3F3F3F3F3FULL | (mask << 10 | mask >> 6) & 0xFCFCFCFCFCFCFCFCULL | (mask << 17 | mask >> 15) & 0xFEFEFEFEFEFEFEFEULL | (mask << 15 | mask >> 17) & 0x7F7F7F7F7F7F7F7FULL;
+    return (mask << 6 | mask >> 10) & 0x3f3f3f3f3f3f3f3full | (mask << 10 | mask >> 6) & 0xfcfcfcfcfcfcfcfcull | (mask << 17 | mask >> 15) & 0xfefefefefefefefeull | (mask << 15 | mask >> 17) & 0x7f7f7f7f7f7f7f7full;
 }
 
 u64 bishop(u64 mask, u64 occupied) {
@@ -228,5 +228,5 @@ u64 rook(u64 mask, u64 occupied) {
 }
 
 u64 king(u64 mask, u64 occupied = 0) {
-    return mask << 8 | mask >> 8 | (mask >> 1 | mask >> 9 | mask << 7) & 0x7F7F7F7F7F7F7F7FULL | (mask << 1 | mask << 9 | mask >> 7) & 0xFEFEFEFEFEFEFEFEULL;
+    return mask << 8 | mask >> 8 | (mask >> 1 | mask >> 9 | mask << 7) & 0x7f7f7f7f7f7f7f7full | (mask << 1 | mask << 9 | mask >> 7) & 0xfefefefefefefefeull;
 }

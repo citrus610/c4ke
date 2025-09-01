@@ -47,7 +47,7 @@ void add_moves(u16 list[], int& count, u64 mask, u64 targets, u64 occupied, u64 
         int from = lsb(mask);
         mask &= mask - 1;
 
-        u64 attack = func(1ULL << from, occupied) & targets;
+        u64 attack = func(1ull << from, occupied) & targets;
 
         while (attack) {
             int to = lsb(attack);
@@ -72,7 +72,7 @@ struct Board {
     u64 hash_non_pawn[2];
 
     void edit(int square, int piece) {
-        u64 mask = 1ULL << square;
+        u64 mask = 1ull << square;
 
         if (board[square] < PIECE_NONE) {
             hash ^= KEYS[board[square]][square];
@@ -102,7 +102,7 @@ struct Board {
     }
 
     int attacked(int square, int enemy) {
-        u64 mask = 1ULL << square;
+        u64 mask = 1ull << square;
         u64 pawns = pieces[PAWN] & colors[enemy];
         u64 occupied = colors[WHITE] | colors[BLACK];
 
@@ -213,11 +213,11 @@ struct Board {
 
         // Pawn
         u64 pawns = pieces[PAWN] & colors[stm];
-        u64 pawns_push = (stm ? south(pawns) : north(pawns)) & ~occupied & (is_all ? ~0ULL : 0xFF000000000000FFULL);
+        u64 pawns_push = (stm ? south(pawns) : north(pawns)) & ~occupied & (is_all ? ~0ull : 0xff000000000000ffull);
         u64 pawns_targets = colors[!stm] | u64(enpassant < SQUARE_NONE) << enpassant;
 
         add_pawn_moves(list, count, pawns_push, stm ? -8 : 8);
-        add_pawn_moves(list, count, (stm ? south(pawns_push & 0xFFULL << 40) : north(pawns_push & 0xFF0000ULL)) & ~occupied, stm ? -16 : 16);
+        add_pawn_moves(list, count, (stm ? south(pawns_push & 0xffull << 40) : north(pawns_push & 0xff0000ull)) & ~occupied, stm ? -16 : 16);
         add_pawn_moves(list, count, (stm ? se(pawns) : nw(pawns)) & pawns_targets, stm ? -7 : 7);
         add_pawn_moves(list, count, (stm ? sw(pawns) : ne(pawns)) & pawns_targets, stm ? -9 : 9);
 
@@ -237,8 +237,8 @@ struct Board {
         if (is_all && !is_checked) {
             u8 castling_rights = ~castled >> stm * 2;
 
-            if (castling_rights & 1 && !(occupied & 0x60ULL << stm * 56)) list[count++] = move_make(E1 + stm * 56, G1 + stm * 56);
-            if (castling_rights & 2 && !(occupied & 0xEULL << stm * 56)) list[count++] = move_make(E1 + stm * 56, C1 + stm * 56);
+            if (castling_rights & 1 && !(occupied & 0x60ull << stm * 56)) list[count++] = move_make(E1 + stm * 56, G1 + stm * 56);
+            if (castling_rights & 2 && !(occupied & 0xeull << stm * 56)) list[count++] = move_make(E1 + stm * 56, C1 + stm * 56);
         }
 
         return count;

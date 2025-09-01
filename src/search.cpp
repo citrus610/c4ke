@@ -84,7 +84,6 @@ struct Thread {
 
         // Static eval
         int eval;
-
         stack[ply].eval = INF;
 
         // Best score

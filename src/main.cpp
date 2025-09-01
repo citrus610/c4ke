@@ -126,7 +126,7 @@ int main() {
     // Search data
     Board board;
     vector<u64> visited(512);
-    TTABLE = (TTEntry*)calloc(1ULL << TT_BITS, 8);
+    TTABLE = (TTEntry*)calloc(1ull << TT_BITS, 8);
 
 #ifdef OB
     // Bench
@@ -166,7 +166,7 @@ int main() {
 #ifdef OB
         // Uci ucinewgame
         else if (token[0] == 'u') {
-            memset(TTABLE, 0, sizeof(TTEntry) * (1ULL << TT_BITS));
+            memset(TTABLE, 0, sizeof(TTEntry) * (1ull << TT_BITS));
         }
 #endif
         // Uci position
