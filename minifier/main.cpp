@@ -514,6 +514,94 @@ std::vector<std::string> get_removed_spaces(std::vector<std::string> tokens)
     return result;
 };
 
+// Replace names with IR
+struct NameIR
+{
+    std::string name;
+    std::string ir;
+};
+
+size_t rename_ir_scope(size_t index, size_t counter_ir, std::vector<NameIR>& map, std::vector<std::string>& tokens)
+{
+    // Checker
+    int counter_scope = 1;
+    bool is_string = false;
+
+    // Iterate all tokens
+    for (index; index < tokens.size(); index++) {
+        // Get token
+        auto& token = tokens[index];
+
+        // Check if in string
+        if (token == "\"" || token == "\'") {
+            is_string = !is_string;
+        }
+
+        if (is_string) {
+            continue;
+        }
+
+        // Check scope
+        if (token == "{") {
+            counter_scope += 1;
+
+            // Only count entering a function as entering a scope
+            if (index > 0 && tokens[index - 1] == ")") {
+                index = rename_ir_scope(index + 1, counter_ir, map, tokens);
+            }
+        }
+
+        if (token == "}") {
+            counter_scope -= 1;
+
+            if (counter_scope <= 0) {
+                break;
+            }
+        }
+
+        // Skip non word or if in string
+        if (!is_word_character(token.front()) || isdigit(token.front())) {
+            continue;
+        }
+
+        // Skip special keyword
+        if (std::find(KEYWORDS.begin(), KEYWORDS.end(), token) != KEYWORDS.end()) {
+            continue;
+        }
+
+        if (std::find(KEYWORDS_SKIP.begin(), KEYWORDS_SKIP.end(), token) != KEYWORDS_SKIP.end()) {
+            continue;
+        }
+
+        // Check if this name exist
+        bool found = false;
+
+        for (auto& name : map) {
+            if (token == name.name) {
+                token = name.ir;
+                found = true;
+                break;
+            }
+        }
+
+        // Push new ir
+        if (!found) {
+            auto new_ir = std::string("name_") + std::to_string(counter_ir);
+
+            map.push_back(NameIR {
+                .name = token,
+                .ir = new_ir
+            });
+
+            token = new_ir;
+
+            counter_ir += 1;
+        }
+    }
+
+    return index;
+};
+
 // Rename variable and struct
 std::vector<std::string> get_renamed(std::vector<std::string> tokens)
 {
@@ -527,16 +615,16 @@ std::vector<std::string> get_renamed(std::vector<std::string> tokens)
     std::vector<Name> names;
 
     // Iterate all tokens
-    bool is_in_string = false;
+    bool is_string = false;
 
     for (auto& token : tokens) {
         // Check if in string
         if (token == "\"" || token == "\'") {
-            is_in_string = !is_in_string;
+            is_string = !is_string;
         }
 
         // Skip non word or if in string
-        if (!is_word_character(token.front()) || isdigit(token.front()) || is_in_string) {
+        if (!is_word_character(token.front()) || isdigit(token.front()) || is_string) {
             continue;
         }
 
@@ -580,16 +668,16 @@ std::vector<std::string> get_renamed(std::vector<std::string> tokens)
     }
 
     // Iterate all tokens
-    is_in_string = false;
+    is_string = false;
 
     for (auto& token : tokens) {
         // Check if in string
         if (token == "\"" || token == "\'") {
-            is_in_string = !is_in_string;
+            is_string = !is_string;
         }
 
         // Skip non word or if in string
-        if (!is_word_character(token.front()) || is_in_string) {
+        if (!is_word_character(token.front()) || is_string) {
             continue;
         }
 
@@ -637,8 +725,13 @@ int main()
     tokens = get_removed_spaces(tokens);
 
     // Rename
+    std::vector<NameIR> ir_map;
+
+    auto index = rename_ir_scope(0, 0, ir_map, tokens);
+
     tokens = get_renamed(tokens);
 
+    // Add to output
     for (auto& token : tokens) {
         output.append(token);
     }
