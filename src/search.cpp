@@ -28,7 +28,6 @@ u16 BEST_MOVE;
 struct Stack {
     int eval = INF;
     u16 move = MOVE_NONE;
-    u16 killer = MOVE_NONE;
     HTable* conthist;
 };
 
@@ -78,9 +77,6 @@ struct Thread {
             if (!is_pv && depth <= tt.depth && tt.bound != tt.score < beta)
                 return tt.score;
         }
-
-        // Killer
-        stack[ply + 1].killer = MOVE_NONE;
 
         // Static eval
         int eval;
@@ -155,7 +151,6 @@ struct Thread {
             // Quiet moves
             else if (board.quiet(move))
                 move_scores[i] =
-                    move == stack[ply].killer ? 1e6 :
                     qhist[board.stm][move & 4095] +
                     (*stack[ply].conthist)[piece][move_to(move)] +
                     (*stack[ply + 1].conthist)[piece][move_to(move)];
@@ -224,6 +219,9 @@ struct Thread {
             if (depth > 2 && legals > 1 + !!ply * 2) {
                 int reduction = LOG[depth] * LOG[legals] * 0.3 + 1;
 
+                if (is_quiet)
+                    reduction -= move_scores[i] / 8192;
+
                 reduction *= reduction > 0;
 
                 score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next - reduction, FALSE);
@@ -279,9 +277,6 @@ struct Thread {
                 int bonus = min(150 * depth - 50, 1500);
 
                 if (is_quiet) {
-                    // Killer
-                    stack[ply].killer = move;
-
                     // Update quiet history
                     update_history(qhist[board.stm][move & 4095], bonus);
                     update_history((*stack[ply].conthist)[board.board[move_from(move)]][move_to(move)], bonus);
