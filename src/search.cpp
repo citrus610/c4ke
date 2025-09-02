@@ -79,9 +79,13 @@ struct Thread {
         if (slot.hash == u16(board.hash)) {
             tt = slot;
 
+            // Cutoff
             if (!is_pv && depth <= tt.depth && tt.bound != tt.score < beta)
                 return tt.score;
         }
+        else
+            // Internal iterative reduction
+            depth -= depth > 3;
 
         // Static eval
         int eval;
