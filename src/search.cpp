@@ -153,22 +153,13 @@ struct Thread {
             int piece = board.board[move_from(move)];
             int victim = board.board[move_to(move)] / 2 % TYPE_NONE;
 
-            // Hash move
-            if (move == tt.move)
-                move_scores[i] = 1e7;
-            // Quiet moves
-            else if (board.quiet(move))
-                move_scores[i] =
-                    qhist[board.stm][move & 4095] +
-                    (*stack_conthist[ply])[piece][move_to(move)] +
-                    (*stack_conthist[ply + 1])[piece][move_to(move)];
-            // Noisy moves
-            else
-                move_scores[i] =
-                    PIECE_VALUE[victim] * 16 +
-                    PIECE_VALUE[move_promo(move)] +
-                    nhist[victim][piece][move_to(move)] +
-                    1e6;
+            move_scores[i] =
+                // Hash move
+                move == tt.move ? 1e7 :
+                // Quiet moves
+                board.quiet(move) ? qhist[board.stm][move & 4095] + (*stack_conthist[ply])[piece][move_to(move)] + (*stack_conthist[ply + 1])[piece][move_to(move)] :
+                // Noisy moves
+                PIECE_VALUE[victim] * 16 + PIECE_VALUE[move_promo(move)] + nhist[victim][piece][move_to(move)] + 1e6;
         }
 
         // Iterate moves
@@ -246,10 +237,9 @@ struct Thread {
                 score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next, FALSE);
 
             // Principle variation search
-            if (is_pv && (legals == 1 || score > alpha)) {
+            if (is_pv && (legals == 1 || score > alpha))
                 pvsearch:
                 score = -search(child, -beta, -alpha, ply + 1, depth_next, is_pv);
-            }
 
             // Unmake
             visited.pop_back();
