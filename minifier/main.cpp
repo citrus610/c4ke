@@ -514,14 +514,206 @@ std::vector<std::string> get_removed_spaces(std::vector<std::string> tokens)
     return result;
 };
 
-// Replace names with IR
+// Get custom types defined by user
+std::vector<std::string> get_custom_types(std::vector<std::string> tokens)
+{
+    std::vector<std::string> result;
+
+    // Iterate tokens
+    for (size_t index = 0; index < tokens.size(); index++) {
+        // Get token
+        auto& token = tokens[index];
+
+        // Skip non word
+        if (!is_word_character(token.front()) || isdigit(token.front())) {
+            continue;
+        }
+
+        // Find new types
+        std::optional<std::string> new_type = {};
+
+        // Case struct
+        if (token == "struct") {
+            new_type = tokens[index + 2];
+        }
+
+        // Case typedef
+        if (token == "typedef") {
+            new_type = tokens[index + 4];
+        }
+
+        // Failed to find new type
+        if (!new_type.has_value()) {
+            continue;
+        }
+
+        // Check if exist
+        bool found = false;
+
+        for (auto& type : result) {
+            if (type == new_type.value()) {
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
+            result.push_back(new_type.value());
+        }
+    }
+
+    return result;
+};
+
+// Name and IR map
 struct NameIR
 {
     std::string name;
     std::string ir;
 };
 
-size_t rename_ir_scope(size_t index, std::vector<NameIR> map, std::vector<std::string>& tokens)
+// Rename functions' arguments
+size_t rename_function_arguments(size_t index, std::vector<std::string>& tokens, std::vector<std::string> custom_types)
+{
+    // List of arguments and their new name
+    std::vector<NameIR> map;
+
+    // Checkers
+    int counter_scope = 0;
+    bool is_string = false;
+    bool is_inside = false;
+
+    // Iterate all tokens
+    for (index; index < tokens.size(); index++) {
+        // Get token
+        auto& token = tokens[index];
+
+        // Check if in string
+        if (token == "\"" || token == "\'") {
+            is_string = !is_string;
+        }
+
+        if (is_string) {
+            continue;
+        }
+
+        // Check if inside the function body
+        if (token == ")") {
+            is_inside = true;
+        }
+
+        // Check scope
+        if (token == "{") {
+            counter_scope += 1;
+        }
+
+        if (token == "}") {
+            counter_scope -= 1;
+
+            if (counter_scope <= 0) {
+                break;
+            }
+        }
+
+        // Skip non word
+        if (!is_word_character(token.front()) || isdigit(token.front())) {
+            continue;
+        }
+
+        // Skip special keyword
+        if (std::find(KEYWORDS.begin(), KEYWORDS.end(), token) != KEYWORDS.end()) {
+            continue;
+        }
+
+        if (std::find(KEYWORDS_SKIP.begin(), KEYWORDS_SKIP.end(), token) != KEYWORDS_SKIP.end()) {
+            continue;
+        }
+
+        if (std::find(custom_types.begin(), custom_types.end(), token) != custom_types.end()) {
+            continue;
+        }
+
+        // Check if we're inside the function body
+        if (!is_inside) {
+            auto new_ir = std::string("arg_") + std::to_string(map.size());
+
+            map.push_back(NameIR {
+                .name = token,
+                .ir = new_ir
+            });
+
+            token = new_ir;
+        }
+        else {
+            // Don't replace class method
+            if (tokens[index - 1] == ".") {
+                continue;
+            }
+
+            // Replace inside the function body
+            for (auto& name : map) {
+                if (token == name.name) {
+                    token = name.ir;
+                    break;
+                }
+            }
+        }
+    }
+
+    return index;
+};
+
+// Rename functions' arguments
+void rename_arguments(std::vector<std::string>& tokens, std::vector<std::string> custom_types)
+{
+    // Checkers
+    int counter_scope = 0;
+    bool is_string = false;
+
+    // Iterate all tokens
+    for (size_t index; index < tokens.size(); index++) {
+        // Get token
+        auto& token = tokens[index];
+
+        // Check if in string
+        if (token == "\"" || token == "\'") {
+            is_string = !is_string;
+        }
+
+        if (is_string) {
+            continue;
+        }
+
+        // Skip non word
+        if (!is_word_character(token.front()) || isdigit(token.front())) {
+            continue;
+        }
+
+        // Skip special keyword
+        if (std::find(KEYWORDS.begin(), KEYWORDS.end(), token) != KEYWORDS.end()) {
+            continue;
+        }
+
+        if (std::find(KEYWORDS_SKIP.begin(), KEYWORDS_SKIP.end(), token) != KEYWORDS_SKIP.end()) {
+            continue;
+        }
+
+        if (std::find(custom_types.begin(), custom_types.end(), token) != custom_types.end()) {
+            continue;
+        }
+
+        // Check if we're going into a function
+        bool is_parentheses_after = index + 1 < tokens.size() && tokens[index + 1] == "(";
+        bool is_identifier_before = index > 1 && is_word_character(tokens[index - 2].front()) && !isdigit(tokens[index - 2].front());
+
+        if (is_parentheses_after && is_identifier_before && token != "main") {
+            index = rename_function_arguments(index + 1, tokens, custom_types);
+        }
+    }
+};
+
+// Replace names with IR
+size_t rename_ir(size_t index, std::vector<NameIR> map, std::vector<std::string>& tokens, std::vector<std::string> custom_types)
 {
     // Checker
     int counter_scope = 1;
@@ -556,7 +748,7 @@ size_t rename_ir_scope(size_t index, std::vector<NameIR> map, std::vector<std::s
 
             // Only count entering a function as entering a scope
             if (is_function) {
-                index = rename_ir_scope(index + 1, map, tokens);
+                index = rename_ir(index + 1, map, tokens, custom_types);
                 is_function = false;
             }
         }
@@ -730,8 +922,14 @@ int main()
     // Remove white space
     tokens = get_removed_spaces(tokens);
 
-    // Rename
-    auto index = rename_ir_scope(0, {}, tokens);
+    // Get custom types
+    auto custom_types = get_custom_types(tokens);
+
+    // Rename function arguments
+    rename_arguments(tokens, custom_types);
+
+    // Rename to IR
+    auto index = rename_ir(0, {}, tokens, custom_types);
 
     tokens = get_renamed(tokens);
 
