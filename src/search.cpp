@@ -24,13 +24,6 @@ u64 LIMIT_SOFT;
 u64 LIMIT_HARD;
 u16 BEST_MOVE;
 
-// Search stack
-struct Stack {
-    int eval = INF;
-    u16 move = MOVE_NONE;
-    HTable* conthist;
-};
-
 // Search thread
 struct Thread {
     u64 nodes {};
@@ -39,10 +32,11 @@ struct Thread {
     HTable nhist[6] {};
     HTable conthist[12][64] {};
     i16 corrhist[2][CORRHIST_SIZE] {};
-    Stack stack[STACK_SIZE];
+    int stack_eval[STACK_SIZE];
+    HTable* stack_conthist[STACK_SIZE];
     vector<u64> visited;
 
-    int search(Board& board, int alpha, int beta, int ply, int depth, int is_pv) {
+    int search(Board& board, int alpha, int beta, int ply, int depth, int is_pv, int is_nmp = FALSE) {
         // Check qsearch
         int is_qsearch = depth <= 0;
 
@@ -80,7 +74,7 @@ struct Thread {
 
         // Static eval
         int eval;
-        stack[ply].eval = INF;
+        stack_eval[ply] = INF;
 
         // Best score
         int best = -INF;
@@ -90,7 +84,7 @@ struct Thread {
         // Pruning
         if (!board.is_checked) {
             // Get eval
-            eval = stack[ply].eval = board.eval() +
+            eval = stack_eval[ply] = board.eval() +
                 corrhist[board.stm][board.hash_pawn % CORRHIST_SIZE] / 128 +
                 corrhist[board.stm][board.hash_non_pawn[WHITE] % CORRHIST_SIZE] / 256 +
                 corrhist[board.stm][board.hash_non_pawn[BLACK] % CORRHIST_SIZE] / 256;
@@ -114,7 +108,7 @@ struct Thread {
                     return eval;
 
                 // Null move pruning
-                if (depth > 2 && eval >= beta && stack[ply - 1].move && board.colors[board.stm] & ~board.pieces[PAWN] & ~board.pieces[KING]) {
+                if (depth > 2 && eval >= beta && !is_nmp && board.colors[board.stm] & ~board.pieces[PAWN] & ~board.pieces[KING]) {
                     int reduction = 5 + depth / 3;
 
                     Board child = board;
@@ -123,10 +117,9 @@ struct Thread {
                     child.hash ^= KEYS[PIECE_NONE][0];
                     child.enpassant = SQUARE_NONE;
 
-                    stack[ply].move = MOVE_NONE;
-                    stack[ply + 2].conthist = conthist[WHITE_PAWN];
+                    stack_conthist[ply + 2] = conthist[WHITE_PAWN];
 
-                    int score = -search(child, -beta, -beta + 1, ply + 1, depth - reduction, FALSE);
+                    int score = -search(child, -beta, -beta + 1, ply + 1, depth - reduction, FALSE, TRUE);
 
                     if (score >= beta)
                         return score < WIN ? score : beta;
@@ -152,8 +145,8 @@ struct Thread {
             else if (board.quiet(move))
                 move_scores[i] =
                     qhist[board.stm][move & 4095] +
-                    (*stack[ply].conthist)[piece][move_to(move)] +
-                    (*stack[ply + 1].conthist)[piece][move_to(move)];
+                    (*stack_conthist[ply])[piece][move_to(move)] +
+                    (*stack_conthist[ply + 1])[piece][move_to(move)];
             // Noisy moves
             else
                 move_scores[i] = PIECE_VALUE[victim] * 16 + nhist[victim][piece][move_to(move)] + 1e7;
@@ -202,8 +195,7 @@ struct Thread {
 
             legals++;
 
-            stack[ply].move = move;
-            stack[ply + 2].conthist = &conthist[board.board[move_from(move)]][move_to(move)];
+            stack_conthist[ply + 2] = &conthist[board.board[move_from(move)]][move_to(move)];
 
             visited.push_back(child.hash);
 
@@ -279,14 +271,14 @@ struct Thread {
                 if (is_quiet) {
                     // Update quiet history
                     update_history(qhist[board.stm][move & 4095], bonus);
-                    update_history((*stack[ply].conthist)[board.board[move_from(move)]][move_to(move)], bonus);
-                    update_history((*stack[ply + 1].conthist)[board.board[move_from(move)]][move_to(move)], bonus);
+                    update_history((*stack_conthist[ply])[board.board[move_from(move)]][move_to(move)], bonus);
+                    update_history((*stack_conthist[ply + 1])[board.board[move_from(move)]][move_to(move)], bonus);
 
                     // Add pelnaty to visited quiet moves
                     for (int k = 0; k < quiet_count; k++) {
                         update_history(qhist[board.stm][quiet_list[k] & 4095], -bonus);
-                        update_history((*stack[ply].conthist)[board.board[move_from(quiet_list[k])]][move_to(quiet_list[k])], -bonus);
-                        update_history((*stack[ply + 1].conthist)[board.board[move_from(quiet_list[k])]][move_to(quiet_list[k])], -bonus);
+                        update_history((*stack_conthist[ply])[board.board[move_from(quiet_list[k])]][move_to(quiet_list[k])], -bonus);
+                        update_history((*stack_conthist[ply + 1])[board.board[move_from(quiet_list[k])]][move_to(quiet_list[k])], -bonus);
                     }
                 }
                 else
@@ -314,8 +306,8 @@ struct Thread {
         }
 
         // Update corrhist
-        if (!board.is_checked && (!best_move || board.quiet(best_move)) && bound != best < stack[ply].eval) {
-            int bonus = clamp((best - stack[ply].eval) * depth, -CORRHIST_BONUS_MAX, CORRHIST_BONUS_MAX) * CORRHIST_BONUS_SCALE;
+        if (!board.is_checked && (!best_move || board.quiet(best_move)) && bound != best < stack_eval[ply]) {
+            int bonus = clamp((best - stack_eval[ply]) * depth, -CORRHIST_BONUS_MAX, CORRHIST_BONUS_MAX) * CORRHIST_BONUS_SCALE;
 
             update_history(corrhist[board.stm][board.hash_pawn % CORRHIST_SIZE], bonus);
             update_history(corrhist[board.stm][board.hash_non_pawn[WHITE] % CORRHIST_SIZE], bonus);
@@ -342,9 +334,8 @@ struct Thread {
         // Iterative deepening
         for (int depth = 1; depth < MAX_DEPTH; ++depth) {
             // Clear stack
-            for (Stack& ss : stack) ss = Stack();
-            stack[0].conthist = &conthist[WHITE_PAWN][B1];
-            stack[1].conthist = &conthist[WHITE_PAWN][B1];
+            stack_conthist[0] = &conthist[WHITE_PAWN][B1];
+            stack_conthist[1] = &conthist[WHITE_PAWN][B1];
 
             // Aspiration window
             int delta = 25;
