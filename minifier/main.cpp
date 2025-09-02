@@ -698,6 +698,7 @@ void rename_arguments(std::vector<std::string>& tokens, std::vector<std::string>
             continue;
         }
 
+        // Skip custom types
         if (std::find(custom_types.begin(), custom_types.end(), token) != custom_types.end()) {
             continue;
         }
