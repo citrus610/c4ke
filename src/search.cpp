@@ -140,7 +140,7 @@ struct Thread {
 
             // Hash move
             if (move == tt.move)
-                move_scores[i] = 1e8;
+                move_scores[i] = 1e7;
             // Quiet moves
             else if (board.quiet(move))
                 move_scores[i] =
@@ -149,7 +149,11 @@ struct Thread {
                     (*stack_conthist[ply + 1])[piece][move_to(move)];
             // Noisy moves
             else
-                move_scores[i] = PIECE_VALUE[victim] * 16 + nhist[victim][piece][move_to(move)] + 1e7;
+                move_scores[i] =
+                    PIECE_VALUE[victim] * 16 +
+                    PIECE_VALUE[move_promo(move)] +
+                    nhist[victim][piece][move_to(move)] +
+                    1e6;
         }
 
         // Iterate moves
