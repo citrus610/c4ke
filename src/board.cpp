@@ -114,19 +114,6 @@ struct Board {
             king(mask) & colors[enemy] & pieces[KING];
     }
 
-    int drawn(vector<u64>& visited, int ply) {
-        int before_root = FALSE;
-
-        for (int i = 4; i <= halfmove && i <= visited.size(); i += 2) {
-            if (hash == visited[visited.size() - i]) {
-                if (ply >= i || before_root) return TRUE;
-                before_root = TRUE;
-            }
-        }
-
-        return halfmove > 99;
-    }
-
     int quiet(u16 move) {
         return board[move_to(move)] > BLACK_KING && !move_promo(move) && !(board[move_from(move)] < WHITE_KNIGHT && move_to(move) == enpassant);
     }

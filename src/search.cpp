@@ -50,7 +50,18 @@ struct Thread {
         // Oracle
         if (ply) {
             // Draw
-            if (board.drawn(visited, ply))
+            int before_root = FALSE;
+
+            for (int i = 4; i <= board.halfmove && i <= visited.size(); i += 2) {
+                if (board.hash == visited[visited.size() - i]) {
+                    if (ply >= i || before_root)
+                        return DRAW;
+
+                    before_root = TRUE;
+                }
+            }
+
+            if (board.halfmove > 99)
                 return DRAW;
 
             // Mate distance pruning
