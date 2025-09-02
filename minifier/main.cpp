@@ -521,7 +521,7 @@ struct NameIR
     std::string ir;
 };
 
-size_t rename_ir_scope(size_t index, size_t counter_ir, std::vector<NameIR>& map, std::vector<std::string>& tokens)
+size_t rename_ir_scope(size_t index, std::vector<NameIR> map, std::vector<std::string>& tokens)
 {
     // Checker
     int counter_scope = 1;
@@ -556,7 +556,7 @@ size_t rename_ir_scope(size_t index, size_t counter_ir, std::vector<NameIR>& map
 
             // Only count entering a function as entering a scope
             if (is_function) {
-                index = rename_ir_scope(index + 1, counter_ir, map, tokens);
+                index = rename_ir_scope(index + 1, map, tokens);
                 is_function = false;
             }
         }
@@ -588,7 +588,7 @@ size_t rename_ir_scope(size_t index, size_t counter_ir, std::vector<NameIR>& map
 
         // Push new ir
         if (!found) {
-            auto new_ir = std::string("name_") + std::to_string(counter_ir);
+            auto new_ir = std::string("name_") + std::to_string(map.size());
 
             map.push_back(NameIR {
                 .name = token,
@@ -596,8 +596,6 @@ size_t rename_ir_scope(size_t index, size_t counter_ir, std::vector<NameIR>& map
             });
 
             token = new_ir;
-
-            counter_ir += 1;
         }
 
         // Check if we're entering a new function
@@ -733,9 +731,7 @@ int main()
     tokens = get_removed_spaces(tokens);
 
     // Rename
-    std::vector<NameIR> ir_map;
-
-    auto index = rename_ir_scope(0, 0, ir_map, tokens);
+    auto index = rename_ir_scope(0, {}, tokens);
 
     tokens = get_renamed(tokens);
 
