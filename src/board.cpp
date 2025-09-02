@@ -25,7 +25,7 @@ int LAYOUT[] = { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK };
 
 void add_pawn_moves(u16 list[], int& count, u64 targets, int offset) {
     while (targets) {
-        int to = lsb(targets);
+        int to = __builtin_ctzll(targets);
         int from = to - offset;
 
         targets &= targets - 1;
@@ -44,13 +44,13 @@ void add_pawn_moves(u16 list[], int& count, u64 targets, int offset) {
 
 void add_moves(u16 list[], int& count, u64 mask, u64 targets, u64 occupied, u64 (*func)(u64, u64)) {
     while (mask) {
-        int from = lsb(mask);
+        int from = __builtin_ctzll(mask);
         mask &= mask - 1;
 
         u64 attack = func(1ull << from, occupied) & targets;
 
         while (attack) {
-            int to = lsb(attack);
+            int to = __builtin_ctzll(attack);
             attack &= attack - 1;
 
             list[count++] = move_make(from, to);
@@ -186,10 +186,10 @@ struct Board {
         hash ^= KEYS[PIECE_NONE][0];
 
         // In check
-        is_checked = attacked(lsb(pieces[KING] & colors[stm]), !stm);
+        is_checked = attacked(__builtin_ctzll(pieces[KING] & colors[stm]), !stm);
 
         // Check if legal
-        return !attacked(lsb(pieces[KING] & colors[!stm]), stm);
+        return !attacked(__builtin_ctzll(pieces[KING] & colors[!stm]), stm);
     }
 
     int movegen(u16 list[], int is_all) {
@@ -235,8 +235,8 @@ struct Board {
         int eval = 0;
 
         for (int type = PAWN; type < KING; type++) {
-            eval += PIECE_VALUE[type] * count(pieces[type] & colors[WHITE]);
-            eval -= PIECE_VALUE[type] * count(pieces[type] & colors[BLACK]);
+            eval += PIECE_VALUE[type] * __builtin_popcountll(pieces[type] & colors[WHITE]);
+            eval -= PIECE_VALUE[type] * __builtin_popcountll(pieces[type] & colors[BLACK]);
         }
 
         for (int square = A1; square < 64; square++) {
@@ -337,7 +337,7 @@ struct Board {
         fen >> token;
 
         // Check
-        is_checked = attacked(lsb(pieces[KING] & colors[stm]), !stm);
+        is_checked = attacked(__builtin_ctzll(pieces[KING] & colors[stm]), !stm);
     }
 #endif
 

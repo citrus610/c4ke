@@ -165,14 +165,6 @@ void move_print(u16 move) {
 }
 
 // Bitboard
-int lsb(u64 bitboard) {
-    return __builtin_ctzll(bitboard);
-}
-
-int count(u64 bitboard) {
-    return __builtin_popcountll(bitboard);
-}
-
 u64 north(u64 bitboard) {
     return bitboard << 8;
 }
