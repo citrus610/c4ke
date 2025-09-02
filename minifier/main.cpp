@@ -526,6 +526,7 @@ size_t rename_ir_scope(size_t index, size_t counter_ir, std::vector<NameIR>& map
     // Checker
     int counter_scope = 1;
     bool is_string = false;
+    bool is_function = false;
 
     // Iterate all tokens
     for (index; index < tokens.size(); index++) {
@@ -542,15 +543,6 @@ size_t rename_ir_scope(size_t index, size_t counter_ir, std::vector<NameIR>& map
         }
 
         // Check scope
-        if (token == "{") {
-            counter_scope += 1;
-
-            // Only count entering a function as entering a scope
-            if (index > 0 && tokens[index - 1] == ")") {
-                index = rename_ir_scope(index + 1, counter_ir, map, tokens);
-            }
-        }
-
         if (token == "}") {
             counter_scope -= 1;
 
@@ -559,7 +551,17 @@ size_t rename_ir_scope(size_t index, size_t counter_ir, std::vector<NameIR>& map
             }
         }
 
-        // Skip non word or if in string
+        if (token == "{") {
+            counter_scope += 1;
+
+            // Only count entering a function as entering a scope
+            if (is_function) {
+                index = rename_ir_scope(index + 1, counter_ir, map, tokens);
+                is_function = false;
+            }
+        }
+
+        // Skip non word
         if (!is_word_character(token.front()) || isdigit(token.front())) {
             continue;
         }
@@ -597,6 +599,12 @@ size_t rename_ir_scope(size_t index, size_t counter_ir, std::vector<NameIR>& map
 
             counter_ir += 1;
         }
+
+        // Check if we're entering a new function
+        bool is_parentheses_after = index + 1 < tokens.size() && tokens[index + 1] == "(";
+        bool is_identifier_before = index > 1 && is_word_character(tokens[index - 2].front()) && !isdigit(tokens[index - 2].front());
+
+        is_function = is_parentheses_after && is_identifier_before;
     }
 
     return index;
