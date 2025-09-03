@@ -61,13 +61,6 @@ struct Thread {
 
             if (board.halfmove > 99)
                 return DRAW;
-
-            // Mate distance pruning
-            alpha = max(alpha, ply - INF);
-            beta = min(beta, INF - ply - 1);
-
-            if (alpha >= beta)
-                return alpha;
         }
 
         // Probe transposition table
