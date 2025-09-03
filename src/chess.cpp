@@ -124,6 +124,7 @@ typedef uint64_t u64;
 #define MOVE_NONE 0
 
 #define TT_BITS 20
+#define TT_SHIFT 44
 
 #define HIST_MAX 16384
 
@@ -132,6 +133,8 @@ typedef uint64_t u64;
 #define CORRHIST_BONUS_SCALE 8
 
 #define STACK_SIZE 264
+#define VISIT_SIZE 2048
+#define VISIT_BYTES 16384
 
 // Time
 u64 now() {

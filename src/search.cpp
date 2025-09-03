@@ -25,14 +25,15 @@ u16 BEST_MOVE;
 // Search thread
 struct Thread {
     u64 nodes {};
-    u16 pv {};
+    u16 pv;
     i16 qhist[2][4096] {};
     HTable nhist[6] {};
     HTable conthist[12][64] {};
     i16 corrhist[2][CORRHIST_SIZE] {};
     int stack_eval[STACK_SIZE];
     HTable* stack_conthist[STACK_SIZE];
-    vector<u64> visited;
+    u64 visited[VISIT_SIZE];
+    int visited_count;
 
     int search(Board& board, int alpha, int beta, int ply, int depth, int is_pv, int is_nmp = FALSE) {
         // Check qsearch
@@ -50,8 +51,8 @@ struct Thread {
             // Draw
             int before_root = FALSE;
 
-            for (int i = 4; i <= board.halfmove && i <= visited.size(); i += 2) {
-                if (board.hash == visited[visited.size() - i]) {
+            for (int i = 4; i <= min(board.halfmove, visited_count); i += 2) {
+                if (board.hash == visited[visited_count - i]) {
                     if (ply >= i || before_root)
                         return DRAW;
 
@@ -64,7 +65,7 @@ struct Thread {
         }
 
         // Probe transposition table
-        TTEntry& slot = TTABLE[board.hash >> (64 - TT_BITS)];
+        TTEntry& slot = TTABLE[board.hash >> TT_SHIFT];
         TTEntry tt {};
 
         if (slot.hash == u16(board.hash)) {
@@ -198,7 +199,7 @@ struct Thread {
 
             stack_conthist[ply + 2] = &conthist[board.board[move_from(move)]][move_to(move)];
 
-            visited.push_back(child.hash);
+            visited[visited_count++] = board.hash;
 
             // Search
             int depth_next = depth - 1;
@@ -233,7 +234,7 @@ struct Thread {
                 score = -search(child, -beta, -alpha, ply + 1, depth_next, is_pv);
 
             // Unmake
-            visited.pop_back();
+            visited_count--;
 
             // Abort
             if (!RUNNING)
@@ -321,13 +322,14 @@ struct Thread {
     }
 
 #ifdef OB
-    void start(Board board, vector<u64>& pre_visited, int MAX_DEPTH = 256, int BENCH = FALSE) {
+    void start(Board board, u64* pre_visited, int pre_visited_count, int MAX_DEPTH = 256, int BENCH = FALSE) {
 #else
-    void start(Board board, vector<u64>& pre_visited) {
+    void start(Board board, u64* pre_visited, int pre_visited_count) {
         #define MAX_DEPTH 256
 #endif
         // Set data
-        visited = pre_visited;
+        memcpy(visited, pre_visited, VISIT_BYTES);
+        visited_count = pre_visited_count;
 
         int score = 0;
 
