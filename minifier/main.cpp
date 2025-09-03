@@ -706,7 +706,7 @@ void rename_arguments(std::vector<std::string>& tokens, std::vector<std::string>
 
         // Check if we're going into a function
         bool is_parentheses_after = index + 1 < tokens.size() && tokens[index + 1] == "(";
-        bool is_identifier_before = index > 1 && is_space(tokens[index - 1].front()) && is_word_character(tokens[index - 2].front()) && !isdigit(tokens[index - 2].front());
+        bool is_identifier_before = index > 1 && is_word_character(tokens[index - 2].front()) && !isdigit(tokens[index - 2].front());
         bool is_exist_body = false;
 
         for (size_t k = index + 1; k < tokens.size(); k++) {
@@ -802,7 +802,7 @@ size_t rename_ir(size_t index, std::vector<NameIR> map, std::vector<std::string>
 
         // Check if we're entering a new function
         bool is_parentheses_after = index + 1 < tokens.size() && tokens[index + 1] == "(";
-        bool is_identifier_before = index > 1 && is_space(tokens[index - 1].front()) && is_word_character(tokens[index - 2].front()) && !isdigit(tokens[index - 2].front());
+        bool is_identifier_before = index > 1 && is_word_character(tokens[index - 2].front()) && !isdigit(tokens[index - 2].front());
         bool is_exist_body = false;
 
         for (size_t k = index + 1; k < tokens.size(); k++) {
