@@ -199,7 +199,7 @@ struct Thread {
 
             stack_conthist[ply + 2] = &conthist[board.board[move_from(move)]][move_to(move)];
 
-            visited[visited_count++] = child.hash;
+            visited[visited_count++] = board.hash;
 
             // Search
             int depth_next = depth - 1;
