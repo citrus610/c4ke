@@ -125,6 +125,7 @@ const std::vector<std::string> KEYWORDS_SKIP = {
     "abs",
     "istream",
     "memset",
+    "memcpy",
     "string",
     "isdigit",
     "stoi",
@@ -705,9 +706,17 @@ void rename_arguments(std::vector<std::string>& tokens, std::vector<std::string>
 
         // Check if we're going into a function
         bool is_parentheses_after = index + 1 < tokens.size() && tokens[index + 1] == "(";
-        bool is_identifier_before = index > 1 && is_word_character(tokens[index - 2].front()) && !isdigit(tokens[index - 2].front());
+        bool is_identifier_before = index > 1 && is_space(tokens[index - 1].front()) && is_word_character(tokens[index - 2].front()) && !isdigit(tokens[index - 2].front());
+        bool is_exist_body = false;
 
-        if (is_parentheses_after && is_identifier_before && token != "main") {
+        for (size_t k = index + 1; k < tokens.size(); k++) {
+            if (tokens[k - 1] == ")") {
+                is_exist_body = tokens[k] == "{";
+                break;
+            }
+        }
+
+        if (is_parentheses_after && is_identifier_before && is_exist_body && token != "main") {
             index = rename_function_arguments(index + 1, tokens, custom_types);
         }
     }
@@ -793,9 +802,17 @@ size_t rename_ir(size_t index, std::vector<NameIR> map, std::vector<std::string>
 
         // Check if we're entering a new function
         bool is_parentheses_after = index + 1 < tokens.size() && tokens[index + 1] == "(";
-        bool is_identifier_before = index > 1 && is_word_character(tokens[index - 2].front()) && !isdigit(tokens[index - 2].front());
+        bool is_identifier_before = index > 1 && is_space(tokens[index - 1].front()) && is_word_character(tokens[index - 2].front()) && !isdigit(tokens[index - 2].front());
+        bool is_exist_body = false;
 
-        is_function = is_parentheses_after && is_identifier_before;
+        for (size_t k = index + 1; k < tokens.size(); k++) {
+            if (tokens[k - 1] == ")") {
+                is_exist_body = tokens[k] == "{";
+                break;
+            }
+        }
+
+        is_function = is_parentheses_after && is_identifier_before && is_exist_body;
     }
 
     return index;
