@@ -121,6 +121,7 @@ const std::vector<std::string> KEYWORDS_SKIP = {
     "endl",
     "__builtin_ctzll",
     "__builtin_popcountll",
+    "__builtin_bswap64",
     "vector",
     "abs",
     "istream",
@@ -228,6 +229,7 @@ std::string get_unified()
     // Files to be unified in order
     const std::string FILES[] = {
         "chess.cpp",
+        "eval.cpp",
         "board.cpp",
         "search.cpp",
         "main.cpp"
@@ -332,6 +334,92 @@ std::string get_removed_comments(std::string str)
 
     return result;
 };
+
+// Replace scores S(MG, EG)
+std::string get_replaced_scores(std::string str)
+{
+    std::string result;
+
+    std::stringstream ss(str);
+    std::string line;
+
+    // Find all instances of S(MG, EG)
+    while (std::getline(ss, line)) {
+        // Find define
+        auto found_define = line.find("#define S(MG, EG)");
+
+        if (found_define != std::string::npos) {
+            continue;
+        }
+
+        // Create new line
+        std::string new_line;
+        size_t position = 0;
+        size_t position_old = 0;
+
+        // Loop through the line
+        while (true) {
+            // Find S(MG, EG)
+            position_old = position;
+            position = line.find("S(", position);
+
+            if (position == std::string::npos) {
+                break;
+            }
+
+            // Get midgame value
+            std::string str_mg;
+            size_t index = position + 2;
+
+            for (index; index < line.size(); index++) {
+                if (line[index] == ',') {
+                    break;
+                }
+
+                if (is_space(line[index])) {
+                    continue;
+                }
+
+                str_mg.push_back(line[index]);
+            }
+
+            // Get endgame value
+            std::string str_eg;
+            index = index + 1;
+
+            for (index; index < line.size(); index++) {
+                if (line[index] == ')') {
+                    break;
+                }
+
+                if (is_space(line[index])) {
+                    continue;
+                }
+
+                str_eg.push_back(line[index]);
+            }
+
+            // Calculate int literal
+            int mg = std::stoi(str_mg);
+            int eg = std::stoi(str_eg);
+            int value = mg + (eg * 0x10000);
+
+            std::string str_value = std::to_string(value);
+
+            // Add to new line
+            new_line.append(line, position_old, position - position_old);
+            new_line += str_value;
+            position = index + 1;
+        }
+
+        new_line.append(line, position_old, line.size() - position_old);
+
+        result += new_line;
+        result += "\n";
+    }
+
+    return result;
+}
 
 // Replace constants
 struct Constant
@@ -924,6 +1012,9 @@ int main()
 
     // Remove comments
     str = get_removed_comments(str);
+
+    // Replace scores
+    str = get_replaced_scores(str);
 
     // Find all the constants
     auto constants = get_constants(str);

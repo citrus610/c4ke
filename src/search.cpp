@@ -151,7 +151,7 @@ struct Thread {
                 // Quiet moves
                 board.quiet(move) ? qhist[board.stm][move & 4095] + (*stack_conthist[ply])[piece][move_to(move)] + (*stack_conthist[ply + 1])[piece][move_to(move)] :
                 // Noisy moves
-                PIECE_VALUE[victim] * 16 + PIECE_VALUE[move_promo(move)] + nhist[victim][piece][move_to(move)] + 1e6;
+                VALUE[victim] * 16 + VALUE[move_promo(move)] + nhist[victim][piece][move_to(move)] + 1e6;
         }
 
         // Iterate moves
@@ -182,7 +182,7 @@ struct Thread {
                 break;
 
             // Delta pruning
-            if (is_qsearch && !board.is_checked && !move_promo(move) && eval + 100 + PIECE_VALUE[board.board[move_to(move)] / 2] < alpha)
+            if (is_qsearch && !board.is_checked && !move_promo(move) && eval + 100 + VALUE[board.board[move_to(move)] / 2] < alpha)
                 continue;
 
             // Late move pruning
