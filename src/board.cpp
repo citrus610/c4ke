@@ -222,8 +222,20 @@ struct Board {
                     int square = __builtin_ctzll(mask);
                     mask &= mask - 1;
 
+                    // Material + PST
                     eval += MATERIAL[type] + (PST_RANK[type * 8 + square / 8] + PST_FILE[type * 8 + square % 8]) * 8;
                     phase += PHASE[type];
+
+                    if (type > PAWN) {
+                        // Mobility
+                        u64 mobility =
+                            type < BISHOP ? knight(1ULL << square) :
+                            type > QUEEN ? king(1ULL << square) :
+                            (type != BISHOP) * rook(1ULL << square, colors[WHITE] | colors[BLACK]) |
+                            (type != ROOK) * bishop(1ULL << square, colors[WHITE] | colors[BLACK]);
+
+                        eval += MOBILITY[type] * __builtin_popcountll(mobility & ~colors[color]);
+                    }
                 }
             }
 
