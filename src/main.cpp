@@ -86,7 +86,7 @@ void bench()
 
         Thread engine {};
 
-        vector<u64> visited;
+        u64 visited[VISIT_SIZE];
 
         RUNNING = TRUE;
         LIMIT_SOFT = UINT64_MAX;
@@ -94,7 +94,7 @@ void bench()
 
         u64 time_1 = now();
 
-        engine.start(board, visited, 15, TRUE);
+        engine.start(board, visited, 0, 15, TRUE);
 
         u64 time_2 = now();
 
@@ -121,7 +121,8 @@ int main() {
 
     // Search data
     Board board;
-    vector<u64> visited(512);
+    u64 visited[VISIT_SIZE];
+    int visited_count = 0;
     TTABLE = (TTEntry*)calloc(1ull << TT_BITS, 8);
 
 #ifdef OB
@@ -168,7 +169,7 @@ int main() {
         // Uci position
         else if (token[0] == 'p') {
             board = Board();
-            visited.clear();
+            visited_count = 0;
 
 #ifdef OB
             tokens >> token;
@@ -183,7 +184,7 @@ int main() {
 #endif
 
             while (tokens >> token) {
-                visited.push_back(board.hash);
+                visited[visited_count++] = board.hash;
                 board.make(move_make(token[0] + token[1] * 8 - 489, token[2] + token[3] * 8 - 489, token[4] % 35 * 5 % 6));
             }
         }
@@ -201,7 +202,7 @@ int main() {
             LIMIT_HARD = now() + time / 2;
 
             thread t([&] () {
-                Thread().start(board, visited);
+                Thread().start(board, visited, visited_count);
             });
 
             t.join();
