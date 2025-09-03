@@ -1,25 +1,4 @@
-#include "chess.cpp"
-
-int PIECE_VALUE[] = { 100, 320, 330, 500, 900, 2000, 0 };
-
-// PST copied from 4ku, will replace later
-int PST_RANK[] = {
-    0, -3, -3, -1, 1, 5, 0, 0,
-    -2, 0, 1, 3, 4, 5, 2, -15,
-    0, 2, 2, 2, 2, 2, -1, -10,
-    0, -1, -2, -2, 0, 2, 1, 2,
-    2, 3, 2, 0, 0, -1, -4, -2,
-    -1, 1, -1, -4, -1, 5, 5, 5
-};
-
-int PST_FILE[] = {
-    -1, -2, -1, 0, 1, 2, 2, -1,
-    -4, -1, 0, 2, 2, 2, 1, -1,
-    -2, 0, 1, 0, 1, 0, 2, -1,
-    -2, -1, 0, 1, 2, 1, 1, -1,
-    -2, -1, -1, 0, 0, 1, 2, 1,
-    -2, 2, -1, -4, -4, -2, 2, 0
-};
+#include "eval.cpp"
 
 int LAYOUT[] = { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK };
 
@@ -233,26 +212,34 @@ struct Board {
 
     int eval() {
         int eval = 0;
+        int phase = 0;
 
-        for (int type = PAWN; type < KING; type++) {
-            eval += PIECE_VALUE[type] * __builtin_popcountll(pieces[type] & colors[WHITE]);
-            eval -= PIECE_VALUE[type] * __builtin_popcountll(pieces[type] & colors[BLACK]);
-        }
+        for (int color = WHITE; color < 2; color++) {
+            for (int type = PAWN; type < TYPE_NONE; type++) {
+                u64 mask = pieces[type] & colors[color];
 
-        for (int square = A1; square < 64; square++) {
-            if (board[square] < PIECE_NONE) {
-                int type = board[square] / 2;
-                int flip = board[square] & 1;
-                int index = square ^ flip * 56;
+                while (mask) {
+                    int square = __builtin_ctzll(mask);
+                    mask &= mask - 1;
 
-                int rank = index / 8;
-                int file = index % 8;
-
-                eval += (PST_RANK[type * 8 + rank] + PST_FILE[type * 8 + file]) * (flip ? -8 : 8);
+                    eval += MATERIAL[type] + (PST_RANK[type * 8 + square / 8] + PST_FILE[type * 8 + square % 8]) * 8;
+                    phase += PHASE[type];
+                }
             }
+
+            // Flip board
+            colors[WHITE] = __builtin_bswap64(colors[WHITE]);
+            colors[BLACK] = __builtin_bswap64(colors[BLACK]);
+
+            for (u64& type : pieces)
+                type = __builtin_bswap64(type);
+
+            eval = -eval;
         }
 
-        return (stm ? -eval : eval) + 20;
+        eval = (i16(eval) * phase + (eval + 0x8000 >> 16) * (24 - phase)) / 24;
+
+        return (stm ? -eval : eval) + TEMPO;
     }
 
 #ifdef OB
