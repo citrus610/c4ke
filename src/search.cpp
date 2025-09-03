@@ -1,7 +1,5 @@
 #include "board.cpp"
 
-double LOG[256];
-
 // History
 typedef i16 HTable[12][64];
 
@@ -219,7 +217,7 @@ struct Thread {
 
             // Late move reduction
             if (depth > 2 && legals > 1 + !!ply * 2) {
-                int reduction = LOG[depth] * LOG[legals] * 0.3 + 1;
+                int reduction = log(depth) * log(legals) * 0.3 + 1;
 
                 if (is_quiet)
                     reduction -= move_scores[i] / 8192;

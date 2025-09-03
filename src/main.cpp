@@ -118,10 +118,6 @@ int main() {
     for (int i = 0; i < 13; i++)
         for (int k = 0; k < 64; k++)
             KEYS[i][k] = rng();
-    
-    // Table
-    for (int i = 0; i < 256; i++)
-        LOG[i] = log(max(i, 1));
 
     // Search data
     Board board;
