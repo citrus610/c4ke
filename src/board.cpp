@@ -215,6 +215,9 @@ struct Board {
         int phase = 0;
 
         for (int color = WHITE; color < 2; color++) {
+            // Enemy pawn attacks
+            u64 enemy_pawn_attacks = se(pieces[PAWN] & colors[!color]) | sw(pieces[PAWN] & colors[!color]);
+
             for (int type = PAWN; type < TYPE_NONE; type++) {
                 u64 mask = pieces[type] & colors[color];
 
@@ -234,7 +237,7 @@ struct Board {
                             (type != BISHOP) * rook(1ULL << square, colors[WHITE] | colors[BLACK]) |
                             (type != ROOK) * bishop(1ULL << square, colors[WHITE] | colors[BLACK]);
 
-                        eval += MOBILITY[type] * __builtin_popcountll(mobility & ~colors[color]);
+                        eval += MOBILITY[type] * __builtin_popcountll(mobility & ~colors[color] & ~enemy_pawn_attacks);
                     }
                 }
             }
