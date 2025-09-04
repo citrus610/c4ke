@@ -654,28 +654,100 @@ std::vector<std::string> get_custom_types(std::vector<std::string> tokens)
     return result;
 };
 
-// Name and IR map
+// Map name to frequency
+struct NameFreq
+{
+    std::string name;
+    size_t count;
+};
+
+// Map name to IR
 struct NameIR
 {
     std::string name;
     std::string ir;
 };
 
-// Rename functions' arguments
-size_t rename_function_arguments(size_t index, std::vector<std::string>& tokens, std::vector<std::string> custom_types)
+// Check if a token is a name
+bool is_name(std::string token)
 {
-    // List of arguments and their new name
-    std::vector<NameIR> map;
+    return is_word_character(token.front()) && !isdigit(token.front());
+};
 
-    // Checkers
+// Check if it's in a list
+bool is_in_list(const std::vector<std::string>& list, std::string token)
+{
+    return std::find(list.begin(), list.end(), token) != list.end();
+};
+
+bool is_in_list(const std::vector<NameFreq>& list, std::string token)
+{
+    for (auto& i : list) {
+        if (i.name == token) {
+            return true;
+        }
+    }
+
+    return false;
+};
+
+bool is_in_list(const std::vector<NameIR>& list, std::string token)
+{
+    for (auto& i : list) {
+        if (i.name == token) {
+            return true;
+        }
+    }
+
+    return false;
+};
+
+// Check if it's a function
+bool is_function(const std::vector<std::string>& tokens, size_t index)
+{
+    // bool is_identifier_before = index > 1 && is_name(tokens[index - 2]);
+    bool is_parentheses_after = index + 1 < tokens.size() && tokens[index + 1] == "(";
+
+    // if (!is_identifier_before || !is_parentheses_after) {
+    if (!is_parentheses_after) {
+        return false;
+    }
+
+    int parenth_scope = 0;
+
+    for (size_t i = index; i + 1 < tokens.size(); i++) {
+        if (tokens[i] == "(") {
+            parenth_scope += 1;
+        }
+
+        if (tokens[i] == ")") {
+            parenth_scope -= 1;
+
+            if (parenth_scope <= 0 && tokens[i + 1] == "{") {
+                return true;
+            }
+        }
+    }
+
+    return false;
+};
+
+// Convert arguments and variables in function to IRs
+size_t convert_function(std::vector<std::string>& tokens, std::vector<NameIR> globals, size_t start)
+{
+    std::vector<NameFreq> arguments_freq;
+    std::vector<NameFreq> variables_freq;
+
     int counter_scope = 0;
+    int parenth_score = 0;
     bool is_string = false;
     bool is_inside = false;
 
-    // Iterate all tokens
-    for (index; index < tokens.size(); index++) {
-        // Get token
-        auto& token = tokens[index];
+    size_t end = tokens.size();
+
+    // Collect stats
+    for (size_t i = start; i < tokens.size(); i++) {
+        auto& token = tokens[i];
 
         // Check if in string
         if (token == "\"" || token == "\'") {
@@ -687,8 +759,16 @@ size_t rename_function_arguments(size_t index, std::vector<std::string>& tokens,
         }
 
         // Check if inside the function body
+        if (token == "(") {
+            parenth_score += 1;
+        }
+
         if (token == ")") {
-            is_inside = true;
+            parenth_score -= 1;
+
+            if (parenth_score <= 0) {
+                is_inside = true;
+            }
         }
 
         // Check scope
@@ -700,69 +780,170 @@ size_t rename_function_arguments(size_t index, std::vector<std::string>& tokens,
             counter_scope -= 1;
 
             if (counter_scope <= 0) {
+                end = i;
                 break;
             }
         }
 
         // Skip non word
-        if (!is_word_character(token.front()) || isdigit(token.front())) {
+        if (!is_name(token)) {
             continue;
         }
 
         // Skip special keyword
-        if (std::find(KEYWORDS.begin(), KEYWORDS.end(), token) != KEYWORDS.end()) {
+        if (is_in_list(KEYWORDS, token) || is_in_list(KEYWORDS_SKIP, token)) {
             continue;
         }
 
-        if (std::find(KEYWORDS_SKIP.begin(), KEYWORDS_SKIP.end(), token) != KEYWORDS_SKIP.end()) {
+        // Skip if this is a global variable
+        if (is_in_list(globals, token)) {
             continue;
         }
 
-        if (std::find(custom_types.begin(), custom_types.end(), token) != custom_types.end()) {
-            continue;
-        }
-
-        // Check if we're inside the function body
+        // Collect arguments
         if (!is_inside) {
-            auto new_ir = std::string("arg_") + std::to_string(map.size());
-
-            map.push_back(NameIR {
+            arguments_freq.push_back(NameFreq {
                 .name = token,
-                .ir = new_ir
+                .count = 1
             });
 
-            token = new_ir;
+            continue;
         }
-        else {
-            // Don't replace class method
-            if (tokens[index - 1] == ".") {
-                continue;
-            }
 
-            // Replace inside the function body
-            for (auto& name : map) {
-                if (token == name.name) {
-                    token = name.ir;
+        // Argument
+        bool is_argument = false;
+
+        for (auto& arg : arguments_freq) {
+            if (arg.name == token) {
+                arg.count += 1;
+                is_argument = true;
+                break;
+            }
+        }
+
+        if (is_argument) {
+            continue;
+        }
+
+        // Variable
+        variables_freq.push_back(NameFreq {
+            .name = token,
+            .count = 1
+        });
+    }
+
+    // Error
+    if (end >= tokens.size()) {
+        std::cout << "ERROR: function rename at " << start << std::endl;
+
+        return start;
+    }
+
+    // Sort
+    if (!arguments_freq.empty()) {
+        std::sort(
+            arguments_freq.begin(),
+            arguments_freq.end(),
+            [] (const NameFreq& a, const NameFreq& b) {
+                return a.count > b.count;
+            }
+        );
+    }
+
+    if (!variables_freq.empty()) {
+        std::sort(
+            variables_freq.begin(),
+            variables_freq.end(),
+            [] (const NameFreq& a, const NameFreq& b) {
+                return a.count > b.count;
+            }
+        );
+    }
+
+    // Add to list
+    std::vector<NameIR> arguments;
+    std::vector<NameIR> variables;
+
+    for (size_t i = 0; i < arguments_freq.size(); i++) {
+        arguments.push_back(NameIR {
+            .name = arguments_freq[i].name,
+            .ir = std::string("arg_") + std::to_string(i)
+        }); 
+    }
+
+    for (size_t i = 0; i < variables_freq.size(); i++) {
+        variables.push_back(NameIR {
+            .name = variables_freq[i].name,
+            .ir = std::string("var_") + std::to_string(i)
+        }); 
+    }
+
+    // Rename
+    is_string = false;
+
+    for (size_t i = start; i < end; i++) {
+        auto& token = tokens[i];
+
+        // Check if in string
+        if (token == "\"" || token == "\'") {
+            is_string = !is_string;
+        }
+
+        if (is_string) {
+            continue;
+        }
+
+        // Skip non word
+        if (!is_name(token)) {
+            continue;
+        }
+
+        // Skip special keyword
+        if (is_in_list(KEYWORDS, token) || is_in_list(KEYWORDS_SKIP, token)) {
+            continue;
+        }
+
+        // Global name
+        if (is_in_list(globals, token)) {
+            for (auto& g : globals) {
+                if (g.name == token) {
+                    token = g.ir;
+                    break;
+                }
+            }
+        }
+        // Argument
+        else if (is_in_list(arguments, token)) {
+            for (auto& a : arguments) {
+                if (a.name == token) {
+                    token = a.ir;
+                    break;
+                }
+            }
+        }
+        // Variable
+        else if (is_in_list(variables, token)) {
+            for (auto& v : variables) {
+                if (v.name == token) {
+                    token = v.ir;
                     break;
                 }
             }
         }
     }
 
-    return index;
+    return end;
 };
 
-// Rename functions' arguments
-void rename_arguments(std::vector<std::string>& tokens, std::vector<std::string> custom_types)
+void convert_global(std::vector<std::string>& tokens)
 {
-    // Checkers
-    int counter_scope = 0;
+    std::vector<NameIR> globals;
+
     bool is_string = false;
 
-    // Iterate all tokens
-    for (size_t index; index < tokens.size(); index++) {
+    for (size_t i = 0; i < tokens.size(); i++) {
         // Get token
-        auto& token = tokens[index];
+        auto& token = tokens[i];
 
         // Check if in string
         if (token == "\"" || token == "\'") {
@@ -774,149 +955,53 @@ void rename_arguments(std::vector<std::string>& tokens, std::vector<std::string>
         }
 
         // Skip non word
-        if (!is_word_character(token.front()) || isdigit(token.front())) {
+        if (!is_name(token)) {
             continue;
         }
 
-        // Skip special keyword
-        if (std::find(KEYWORDS.begin(), KEYWORDS.end(), token) != KEYWORDS.end()) {
+        // Skip special keyword except "main"
+        if ((is_in_list(KEYWORDS, token) || is_in_list(KEYWORDS_SKIP, token)) && token != "main") {
             continue;
         }
 
-        if (std::find(KEYWORDS_SKIP.begin(), KEYWORDS_SKIP.end(), token) != KEYWORDS_SKIP.end()) {
-            continue;
-        }
+        // Don't push new name if this is "main"
+        if (token != "main") {
+            // Check if this name exist
+            bool found = false;
 
-        // Skip custom types
-        if (std::find(custom_types.begin(), custom_types.end(), token) != custom_types.end()) {
-            continue;
-        }
+            for (auto& name : globals) {
+                if (token == name.name) {
+                    token = name.ir;
+                    found = true;
+                    break;
+                }
+            }
 
-        // Check if we're going into a function
-        bool is_parentheses_after = index + 1 < tokens.size() && tokens[index + 1] == "(";
-        bool is_identifier_before = index > 1 && is_word_character(tokens[index - 2].front()) && !isdigit(tokens[index - 2].front());
-        bool is_exist_body = false;
+            // Push new name
+            if (!found) {
+                auto new_ir = std::string("name_") + std::to_string(globals.size());
 
-        for (size_t k = index + 1; k < tokens.size(); k++) {
-            if (tokens[k - 1] == ")") {
-                is_exist_body = tokens[k] == "{";
-                break;
+                globals.push_back(NameIR {
+                    .name = token,
+                    .ir = new_ir
+                });
+
+                token = new_ir;
             }
         }
 
-        if (is_parentheses_after && is_identifier_before && is_exist_body && token != "main") {
-            index = rename_function_arguments(index + 1, tokens, custom_types);
+        // Check if this is a function
+        if (is_function(tokens, i)) {
+            i = convert_function(tokens, globals, i + 1);
+            continue;
         }
     }
-};
+}
 
-// Replace names with IR
-size_t rename_ir(size_t index, std::vector<NameIR> map, std::vector<std::string>& tokens, std::vector<std::string> custom_types)
-{
-    // Checker
-    int counter_scope = 1;
-    bool is_string = false;
-    bool is_function = false;
-
-    // Iterate all tokens
-    for (index; index < tokens.size(); index++) {
-        // Get token
-        auto& token = tokens[index];
-
-        // Check if in string
-        if (token == "\"" || token == "\'") {
-            is_string = !is_string;
-        }
-
-        if (is_string) {
-            continue;
-        }
-
-        // Check scope
-        if (token == "}") {
-            counter_scope -= 1;
-
-            if (counter_scope <= 0) {
-                break;
-            }
-        }
-
-        if (token == "{") {
-            counter_scope += 1;
-
-            // Only count entering a function as entering a scope
-            if (is_function) {
-                index = rename_ir(index + 1, map, tokens, custom_types);
-                is_function = false;
-            }
-        }
-
-        // Skip non word
-        if (!is_word_character(token.front()) || isdigit(token.front())) {
-            continue;
-        }
-
-        // Skip special keyword
-        if (std::find(KEYWORDS.begin(), KEYWORDS.end(), token) != KEYWORDS.end()) {
-            continue;
-        }
-
-        if (std::find(KEYWORDS_SKIP.begin(), KEYWORDS_SKIP.end(), token) != KEYWORDS_SKIP.end()) {
-            continue;
-        }
-
-        // Check if this name exist
-        bool found = false;
-
-        for (auto& name : map) {
-            if (token == name.name) {
-                token = name.ir;
-                found = true;
-                break;
-            }
-        }
-
-        // Push new ir
-        if (!found) {
-            auto new_ir = std::string("name_") + std::to_string(map.size());
-
-            map.push_back(NameIR {
-                .name = token,
-                .ir = new_ir
-            });
-
-            token = new_ir;
-        }
-
-        // Check if we're entering a new function
-        bool is_parentheses_after = index + 1 < tokens.size() && tokens[index + 1] == "(";
-        bool is_identifier_before = index > 1 && is_word_character(tokens[index - 2].front()) && !isdigit(tokens[index - 2].front());
-        bool is_exist_body = false;
-
-        for (size_t k = index + 1; k < tokens.size(); k++) {
-            if (tokens[k - 1] == ")") {
-                is_exist_body = tokens[k] == "{";
-                break;
-            }
-        }
-
-        is_function = is_parentheses_after && is_identifier_before && is_exist_body;
-    }
-
-    return index;
-};
-
-// Rename variable and struct
+// Rename
 std::vector<std::string> get_renamed(std::vector<std::string> tokens)
 {
-    // Name and frequency map
-    struct Name
-    {
-        std::string name;
-        int count;
-    };
-
-    std::vector<Name> names;
+    std::vector<NameFreq> names;
 
     // Iterate all tokens
     bool is_string = false;
@@ -928,16 +1013,12 @@ std::vector<std::string> get_renamed(std::vector<std::string> tokens)
         }
 
         // Skip non word or if in string
-        if (!is_word_character(token.front()) || isdigit(token.front()) || is_string) {
+        if (!is_name(token) || is_string) {
             continue;
         }
 
         // Skip special keyword
-        if (std::find(KEYWORDS.begin(), KEYWORDS.end(), token) != KEYWORDS.end()) {
-            continue;
-        }
-
-        if (std::find(KEYWORDS_SKIP.begin(), KEYWORDS_SKIP.end(), token) != KEYWORDS_SKIP.end()) {
+        if (is_in_list(KEYWORDS, token) || is_in_list(KEYWORDS_SKIP, token)) {
             continue;
         }
 
@@ -953,7 +1034,7 @@ std::vector<std::string> get_renamed(std::vector<std::string> tokens)
         }
 
         if (!found) {
-            names.push_back(Name {
+            names.push_back(NameFreq {
                 .name = token,
                 .count = 1
             });
@@ -965,7 +1046,7 @@ std::vector<std::string> get_renamed(std::vector<std::string> tokens)
         std::sort(
             names.begin(),
             names.end(),
-            [] (const Name& a, const Name& b) {
+            [] (const NameFreq& a, const NameFreq& b) {
                 return a.count > b.count;
             }
         );
@@ -981,7 +1062,7 @@ std::vector<std::string> get_renamed(std::vector<std::string> tokens)
         }
 
         // Skip non word or if in string
-        if (!is_word_character(token.front()) || is_string) {
+        if (!is_name(token) || is_string) {
             continue;
         }
 
@@ -1034,11 +1115,8 @@ int main()
     // Get custom types
     auto custom_types = get_custom_types(tokens);
 
-    // Rename function arguments
-    rename_arguments(tokens, custom_types);
-
-    // Rename to IR
-    auto index = rename_ir(0, {}, tokens, custom_types);
+    // Rename
+    convert_global(tokens);
 
     tokens = get_renamed(tokens);
 
