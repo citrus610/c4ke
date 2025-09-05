@@ -36,8 +36,8 @@ struct Thread {
     int visited_count;
 
     int search(Board& board, int alpha, int beta, int ply, int depth, int is_pv, int is_nmp = FALSE) {
-        // Check qsearch
-        int is_qsearch = depth <= 0;
+        // Clamp depth for qsearch
+        depth *= depth > 0;
 
         // Abort
         if (!(++nodes & 4095) && now() > LIMIT_HARD)
@@ -100,7 +100,7 @@ struct Thread {
             if (tt.hash && tt.bound != tt.score < eval)
                 eval = tt.score;
 
-            if (is_qsearch) {
+            if (!depth) {
                 // Standpat
                 best = eval;
 
@@ -137,7 +137,7 @@ struct Thread {
         // Generate move
         u16 move_list[MAX_MOVE];
         int move_scores[MAX_MOVE];
-        int move_count = board.movegen(move_list, !is_qsearch || board.is_checked);
+        int move_count = board.movegen(move_list, depth || board.is_checked);
 
         // Score move
         for (int i = 0; i < move_count; i++) {
@@ -178,11 +178,11 @@ struct Thread {
             int is_quiet = board.quiet(move);
 
             // Quiet pruning in qsearch
-            if (is_qsearch && best > -WIN && board.is_checked && is_quiet)
+            if (!depth && best > -WIN && board.is_checked && is_quiet)
                 break;
 
             // Delta pruning
-            if (is_qsearch && !board.is_checked && !move_promo(move) && eval + 100 + VALUE[board.board[move_to(move)] / 2] < alpha)
+            if (!depth && !board.is_checked && !move_promo(move) && eval + 100 + VALUE[board.board[move_to(move)] / 2] < alpha)
                 continue;
 
             // Late move pruning
@@ -206,7 +206,7 @@ struct Thread {
             int score;
 
             // Don't do zero window search for qsearch
-            if (is_qsearch)
+            if (!depth)
                 goto pvsearch;
 
             // Late move reduction
@@ -221,11 +221,10 @@ struct Thread {
                 score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next - reduction, FALSE);
 
                 if (score > alpha && reduction)
-                    goto zwsearch;
+                    score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next, FALSE);
             }
             // Zero window search
             else if (!is_pv || legals > 1)
-                zwsearch:
                 score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next, FALSE);
 
             // Principle variation search
@@ -263,7 +262,7 @@ struct Thread {
                 bound = BOUND_LOWER;
 
                 // Skip for qsearch
-                if (is_qsearch)
+                if (!depth)
                     break;
 
                 // History bonus
@@ -303,7 +302,7 @@ struct Thread {
         // Return mate score
         if (!legals) {
             if (board.is_checked) return ply - INF;
-            if (!is_qsearch) return DRAW;
+            if (depth) return DRAW;
         }
 
         // Update corrhist
@@ -316,7 +315,7 @@ struct Thread {
         }
 
         // Update transposition
-        slot = { u16(board.hash), best_move, i16(best), u8(!is_qsearch * depth), bound };
+        slot = { u16(board.hash), best_move, i16(best), u8(depth), bound };
 
         return best;
     }
