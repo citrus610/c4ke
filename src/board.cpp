@@ -226,10 +226,20 @@ struct Board {
                     mask &= mask - 1;
 
                     // Material + PST
-                    eval += MATERIAL[type] + (PST_RANK[type * 8 + square / 8] + PST_FILE[type * 8 + square % 8]) * 8;
+                    eval +=
+                        MATERIAL[type] +
+                        get_data(type * 8 + square / 8) +
+                        get_data(INDEX_PST_FILE + type * 8 + square % 8);
+
+                    // Update phase
                     phase += PHASE[type];
 
-                    if (type > PAWN) {
+                    if (type < KNIGHT) {
+                        // Passed pawn
+                        if (!(0x101010101010101ull << square & (pieces[PAWN] & colors[!color] | enemy_pawn_attacks)))
+                            eval += get_data(INDEX_PAWN_PASSED + square / 8);
+                    }
+                    else {
                         // Mobility
                         u64 mobility =
                             type < BISHOP ? knight(1ULL << square) :
@@ -237,7 +247,7 @@ struct Board {
                             (type != BISHOP) * rook(1ULL << square, colors[WHITE] | colors[BLACK]) |
                             (type != ROOK) * bishop(1ULL << square, colors[WHITE] | colors[BLACK]);
 
-                        eval += MOBILITY[type] * __builtin_popcountll(mobility & ~colors[color] & ~enemy_pawn_attacks);
+                        eval += get_data(INDEX_MOBILITY + type) * __builtin_popcountll(mobility & ~colors[color] & ~enemy_pawn_attacks);
                     }
                 }
             }

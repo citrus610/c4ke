@@ -225,3 +225,22 @@ u64 rook(u64 mask, u64 occupied) {
 u64 king(u64 mask, u64 occupied = 0) {
     return mask << 8 | mask >> 8 | (mask >> 1 | mask >> 9 | mask << 7) & 0x7f7f7f7f7f7f7f7full | (mask << 1 | mask << 9 | mask >> 7) & 0xfefefefefefefefeull;
 }
+
+#ifdef OB
+void print_bitboard(u64 bitboard) {
+
+    for (int rank = 7; rank >= 0; rank--) {
+        char line[] = ". . . . . . . .";
+
+        for (int file = 0; file < 8; file++) {
+            if (bitboard & 1ULL << (file | (rank << 3))) {
+                line[2 * file] = 'X';
+            }
+        }
+
+        printf("%s\n", line);
+    }
+
+    printf("\n");
+}
+#endif
