@@ -44,8 +44,8 @@ struct Board {
     int stm;
     int castled;
     int enpassant;
-    int is_checked;
     int halfmove;
+    u64 checkers;
     u64 hash;
     u64 hash_pawn;
     u64 hash_non_pawn[2];
@@ -80,17 +80,17 @@ struct Board {
         board[square] = piece;
     }
 
-    int attacked(int square, int enemy) {
+    u64 attackers(int square) {
         u64 mask = 1ull << square;
-        u64 pawns = pieces[PAWN] & colors[enemy];
         u64 occupied = colors[WHITE] | colors[BLACK];
 
         return
-            (enemy ? sw(pawns) | se(pawns) : nw(pawns) | ne(pawns)) & mask ||
-            knight(mask) & colors[enemy] & pieces[KNIGHT] ||
-            bishop(mask, occupied) & colors[enemy] & (pieces[BISHOP] | pieces[QUEEN]) ||
-            rook(mask, occupied) & colors[enemy] & (pieces[ROOK] | pieces[QUEEN]) ||
-            king(mask) & colors[enemy] & pieces[KING];
+            (nw(mask) | ne(mask)) & pieces[PAWN] & colors[BLACK] |
+            (sw(mask) | se(mask)) & pieces[PAWN] & colors[WHITE] |
+            knight(mask) & pieces[KNIGHT] |
+            bishop(mask, occupied) & (pieces[BISHOP] | pieces[QUEEN]) |
+            rook(mask, occupied) & (pieces[ROOK] | pieces[QUEEN]) |
+            king(mask) & pieces[KING];
     }
 
     int quiet(u16 move) {
@@ -143,7 +143,7 @@ struct Board {
             if (abs(from - to) == 2) {
                 int dt = to > from ? 1 : -1;
 
-                if (attacked(from + dt, !stm) || attacked(from + dt * 2, !stm))
+                if ((attackers(from + dt) | attackers(from + dt * 2)) & colors[!stm])
                     return FALSE;
 
                 edit(to + (to > from ? 1 : -2), PIECE_NONE);
@@ -165,10 +165,10 @@ struct Board {
         hash ^= KEYS[PIECE_NONE][0];
 
         // In check
-        is_checked = attacked(__builtin_ctzll(pieces[KING] & colors[stm]), !stm);
+        checkers = attackers(__builtin_ctzll(pieces[KING] & colors[stm])) & colors[!stm];
 
         // Check if legal
-        return !attacked(__builtin_ctzll(pieces[KING] & colors[!stm]), stm);
+        return !(attackers(__builtin_ctzll(pieces[KING] & colors[!stm])) & colors[stm]);
     }
 
     int movegen(u16 list[], int is_all) {
@@ -200,7 +200,7 @@ struct Board {
         add_moves(list, count, pieces[KING] & colors[stm], targets, occupied, king);
 
         // Castling
-        if (is_all && !is_checked) {
+        if (is_all && !checkers) {
             int castling_rights = ~castled >> stm * 2;
 
             if (castling_rights & 1 && !(occupied & 0x60ull << stm * 56)) list[count++] = move_make(E1 + stm * 56, G1 + stm * 56);
@@ -339,7 +339,7 @@ struct Board {
         fen >> token;
 
         // Check
-        is_checked = attacked(__builtin_ctzll(pieces[KING] & colors[stm]), !stm);
+        checkers = attackers(__builtin_ctzll(pieces[KING] & colors[stm])) & colors[!stm];
     }
 #endif
 

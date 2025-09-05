@@ -90,7 +90,7 @@ struct Thread {
         u8 bound = BOUND_UPPER;
         
         // Pruning
-        if (!board.is_checked) {
+        if (!board.checkers) {
             // Get eval
             eval = stack_eval[ply] = board.eval() +
                 corrhist[board.stm][board.hash_pawn % CORRHIST_SIZE] / 128 +
@@ -134,7 +134,7 @@ struct Thread {
         // Generate move
         u16 move_list[MAX_MOVE];
         int move_scores[MAX_MOVE];
-        int move_count = board.movegen(move_list, depth || board.is_checked);
+        int move_count = board.movegen(move_list, depth || board.checkers);
 
         // Score move
         for (int i = 0; i < move_count; i++) {
@@ -175,15 +175,15 @@ struct Thread {
             int is_quiet = board.quiet(move);
 
             // Quiet pruning in qsearch
-            if (!depth && best > -WIN && board.is_checked && is_quiet)
+            if (!depth && best > -WIN && board.checkers && is_quiet)
                 break;
 
             // Delta pruning
-            if (!depth && !board.is_checked && !move_promo(move) && eval + 100 + VALUE[board.board[move_to(move)] / 2] < alpha)
+            if (!depth && !board.checkers && !move_promo(move) && eval + 100 + VALUE[board.board[move_to(move)] / 2] < alpha)
                 continue;
 
             // Late move pruning
-            if (!is_pv && !board.is_checked && quiet_count > depth * depth + 1)
+            if (!is_pv && !board.checkers && quiet_count > depth * depth + 1)
                 break;
 
             // Make
@@ -294,12 +294,12 @@ struct Thread {
 
         // Return mate score
         if (!legals) {
-            if (board.is_checked) return ply - INF;
+            if (board.checkers) return ply - INF;
             if (depth) return DRAW;
         }
 
         // Update corrhist
-        if (!board.is_checked && (!best_move || board.quiet(best_move)) && bound != best < stack_eval[ply]) {
+        if (!board.checkers && (!best_move || board.quiet(best_move)) && bound != best < stack_eval[ply]) {
             int bonus = clamp((best - stack_eval[ply]) * depth, -CORRHIST_BONUS_MAX, CORRHIST_BONUS_MAX) * CORRHIST_BONUS_SCALE;
 
             update_history(corrhist[board.stm][board.hash_pawn % CORRHIST_SIZE], bonus);
