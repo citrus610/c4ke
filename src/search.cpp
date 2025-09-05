@@ -221,11 +221,10 @@ struct Thread {
                 score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next - reduction, FALSE);
 
                 if (score > alpha && reduction)
-                    goto zwsearch;
+                    score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next, FALSE);
             }
             // Zero window search
             else if (!is_pv || legals > 1)
-                zwsearch:
                 score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next, FALSE);
 
             // Principle variation search
