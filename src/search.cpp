@@ -48,7 +48,7 @@ struct Thread {
 
         // Oracle
         if (ply) {
-            // Draw
+            // Draw by repetition
             int before_root = FALSE;
 
             for (int i = 4; i <= min(board.halfmove, visited_count); i += 2) {
@@ -60,6 +60,7 @@ struct Thread {
                 }
             }
 
+            // Draw by 50mr
             if (board.halfmove > 99)
                 return DRAW;
         }
@@ -102,12 +103,10 @@ struct Thread {
 
             if (!depth) {
                 // Standpat
-                best = eval;
+                if (eval >= beta)
+                    return eval;
 
-                if (best >= beta)
-                    return best;
-
-                alpha = max(alpha, best);
+                alpha = max(alpha, best = eval);
             }
             else if (!is_pv) {
                 // Reverse futility pruning
@@ -116,8 +115,6 @@ struct Thread {
 
                 // Null move pruning
                 if (depth > 2 && eval >= beta && !is_nmp && board.colors[board.stm] & ~board.pieces[PAWN] & ~board.pieces[KING]) {
-                    int reduction = 5 + depth / 3;
-
                     Board child = board;
 
                     child.stm ^= 1;
@@ -126,7 +123,7 @@ struct Thread {
 
                     stack_conthist[ply + 2] = conthist[WHITE_PAWN];
 
-                    int score = -search(child, -beta, -beta + 1, ply + 1, depth - reduction, FALSE, TRUE);
+                    int score = -search(child, -beta, -beta + 1, ply + 1, depth - 5 - depth / 3, FALSE, TRUE);
 
                     if (score >= beta)
                         return score < WIN ? score : beta;
@@ -198,7 +195,6 @@ struct Thread {
             legals++;
 
             stack_conthist[ply + 2] = &conthist[board.board[move_from(move)]][move_to(move)];
-
             visited[visited_count++] = board.hash;
 
             // Search
@@ -206,15 +202,13 @@ struct Thread {
             int score;
 
             // Don't do zero window search for qsearch
-            if (!depth)
-                goto pvsearch;
-
             // Late move reduction
             if (depth > 2 && legals > 1 + !!ply * 2) {
-                int reduction = log(depth) * log(legals) * 0.3 + 1;
-
-                if (is_quiet)
-                    reduction -= move_scores[i] / 8192;
+                int reduction =
+                    // Base reduction
+                    log(depth) * log(legals) * 0.3 + 1 -
+                    // History reduction
+                    is_quiet * move_scores[i] / 8192;
 
                 reduction *= reduction > 0;
 
@@ -224,12 +218,11 @@ struct Thread {
                     score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next, FALSE);
             }
             // Zero window search
-            else if (!is_pv || legals > 1)
+            else if (depth && (!is_pv || legals > 1))
                 score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next, FALSE);
 
-            // Principle variation search
-            if (is_pv && (legals == 1 || score > alpha))
-                pvsearch:
+            // Principle variation search and qsearch
+            if (!depth || (is_pv && (legals == 1 || score > alpha)))
                 score = -search(child, -beta, -alpha, ply + 1, depth_next, is_pv);
 
             // Unmake
