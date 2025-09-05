@@ -229,7 +229,11 @@ struct Board {
                     eval += MATERIAL[type] + (PST_RANK[type * 8 + square / 8] + PST_FILE[type * 8 + square % 8]) * 8;
                     phase += PHASE[type];
 
-                    if (type > PAWN) {
+                    if (type < KNIGHT)
+                        // Passed pawns
+                        if (!(0x101010101010101ull << square & (pieces[PAWN] & colors[!color] | enemy_pawn_attacks)))
+                            eval += PASSER[square / 8];
+                    else {
                         // Mobility
                         u64 mobility =
                             type < BISHOP ? knight(1ULL << square) :

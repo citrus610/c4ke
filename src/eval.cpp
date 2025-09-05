@@ -28,4 +28,6 @@ int PST_FILE[] = {
 
 int MOBILITY[] = { 0, S(8, 5), S(7, 7), S(3, 5), S(3, 2), S(-5, -1) };
 
+int PASSER[] = { 0, S(0, 0), S(5, 25), S(10, 50), S(25, 100), S(50, 150), S(100, 200) };
+
 #define TEMPO 20
