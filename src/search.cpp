@@ -313,7 +313,7 @@ struct Thread {
         return best;
     }
 
-#ifdef OB
+#ifdef OB_MINI
     void start(Board board, u64* pre_visited, int pre_visited_count, int MAX_DEPTH = 256, int BENCH = FALSE) {
 #else
     void start(Board board, u64* pre_visited, int pre_visited_count) {
@@ -349,12 +349,12 @@ struct Thread {
             }
 
             // Print info
-#ifdef OB
+#ifdef OB_MINI
             if (!BENCH) {
 #endif
                 cout << "info depth " << depth << " score cp " << score << " pv ";
                 move_print(pv);
-#ifdef OB
+#ifdef OB_MINI
             }
 #endif
 
