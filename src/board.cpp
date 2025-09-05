@@ -41,9 +41,9 @@ struct Board {
     u64 pieces[6];
     u64 colors[2];
     u8 board[64];
-    u8 stm;
-    u8 castled;
-    u8 enpassant;
+    int stm;
+    int castled;
+    int enpassant;
     int is_checked;
     int halfmove;
     u64 hash;
@@ -107,7 +107,7 @@ struct Board {
         int is_enpassant = to == enpassant;
 
         // Update halfmove
-        halfmove += board[to] == PIECE_NONE;
+        halfmove += board[to] > BLACK_KING;
 
         // Update enpassant square
         if (enpassant < SQUARE_NONE)
@@ -201,7 +201,7 @@ struct Board {
 
         // Castling
         if (is_all && !is_checked) {
-            u8 castling_rights = ~castled >> stm * 2;
+            int castling_rights = ~castled >> stm * 2;
 
             if (castling_rights & 1 && !(occupied & 0x60ull << stm * 56)) list[count++] = move_make(E1 + stm * 56, G1 + stm * 56);
             if (castling_rights & 2 && !(occupied & 0xeull << stm * 56)) list[count++] = move_make(E1 + stm * 56, C1 + stm * 56);
