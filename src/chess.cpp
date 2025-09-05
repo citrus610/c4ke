@@ -8,6 +8,7 @@ typedef uint16_t u16;
 typedef uint64_t u64;
 
 #define OB
+#define OB_MINI
 
 // Constants
 #define TRUE 1

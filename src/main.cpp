@@ -209,7 +209,9 @@ void test_perft() {
         }
     }
 }
+#endif
 
+#ifdef OB_MINI
 void bench()
 {
     // Fens from Iris
@@ -272,7 +274,7 @@ void bench()
 
 #endif
 
-#ifdef OB
+#ifdef OB_MINI
 int main(int argc, char *argv[]) {
 #else
 int main() {
@@ -290,13 +292,15 @@ int main() {
     int visited_count = 0;
     TTABLE = (TTEntry*)calloc(1ull << TT_BITS, 8);
 
-#ifdef OB
+#ifdef OB_MINI
     // Bench
     if (argc > 1 && std::string(argv[1]) == "bench") {
         bench();
         return 0;
     }
+#endif
 
+#ifdef OB
     // Perft
     if (argc > 2 && std::string(argv[1]) == "perft") {
         if (std::string(argv[2]) == "test") {

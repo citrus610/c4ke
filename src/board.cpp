@@ -257,7 +257,7 @@ struct Board {
         return (stm ? -eval : eval) + TEMPO;
     }
 
-#ifdef OB
+#ifdef OB_MINI
     void from_fen(istream& fen) {
         memset(this, 0, sizeof(Board));
         memset(board, PIECE_NONE, 64);

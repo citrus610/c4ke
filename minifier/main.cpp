@@ -261,7 +261,7 @@ std::string get_unified()
 };
 
 // Remove the OB code
-std::string get_removed_ob(std::string str)
+std::string get_removed_ob(std::string str, bool bench)
 {
     std::string result;
 
@@ -270,6 +270,8 @@ std::string get_removed_ob(std::string str)
     std::string line;
 
     bool is_ob = false;
+    bool is_ob_mini = false;
+    bool is_ob_mini_else = false;
 
     while (std::getline(ss, line)) {
         // Find the OB declaration
@@ -283,21 +285,53 @@ std::string get_removed_ob(std::string str)
         auto found_ifdef = line.find("#ifdef OB");
 
         if (found_ifdef != std::string::npos) {
-            is_ob = true;
+            if (line.find("#ifdef OB_MINI") != std::string::npos && bench) {
+                is_ob = false;
+                is_ob_mini = true;
+                is_ob_mini_else = false;
+            }
+            else {
+                is_ob = true;
+                is_ob_mini = false;
+                is_ob_mini_else = false;
+            }
+
             continue;
         }
 
         // Find the end of OB code
-        auto found_else = line.find("#else");
-        auto found_endif = line.find("#endif");
+        bool found_else = line.find("#else") != std::string::npos;
+        bool found_endif = line.find("#endif") != std::string::npos;
 
-        if (found_else != std::string::npos || found_endif != std::string::npos) {
-            is_ob = false;
+        // If we don't allow bench
+        if (is_ob) {
+            if (found_else || found_endif) {
+                is_ob = false;
+            }
+
             continue;
         }
 
-        // Skip OB codes
-        if (is_ob) {
+        // If we allow bench
+        if (is_ob_mini) {
+            if (found_else) {
+                is_ob_mini_else = true;
+                continue;
+            }
+
+            if (found_endif) {
+                is_ob_mini = false;
+                is_ob_mini_else = false;
+                continue;
+            }
+
+            if (is_ob_mini_else) {
+                continue;
+            }
+        }
+
+        // Skip #else and #endif
+        if (found_else || found_endif) {
             continue;
         }
 
@@ -732,6 +766,13 @@ bool is_function(const std::vector<std::string>& tokens, size_t index)
     return false;
 };
 
+bool is_in_string(const std::vector<std::string>& tokens, size_t index) {
+    return
+        (index > 0 && tokens[index] == "\"" && tokens[index - 1] != "L") ||
+        (index > 0 && tokens[index] == "\'" && tokens[index - 1] != "L") ||
+        (index + 1 < tokens.size() && tokens[index] == "L" && tokens[index + 1] == "\"");
+}
+
 // Convert arguments and variables in function to IRs
 size_t convert_function(std::vector<std::string>& tokens, std::vector<NameIR> globals, size_t start)
 {
@@ -750,7 +791,7 @@ size_t convert_function(std::vector<std::string>& tokens, std::vector<NameIR> gl
         auto& token = tokens[i];
 
         // Check if in string
-        if (token == "\"" || token == "\'") {
+        if (is_in_string(tokens, i)) {
             is_string = !is_string;
         }
 
@@ -946,7 +987,7 @@ void convert_global(std::vector<std::string>& tokens)
         auto& token = tokens[i];
 
         // Check if in string
-        if (token == "\"" || token == "\'") {
+        if (is_in_string(tokens, i)) {
             is_string = !is_string;
         }
 
@@ -1006,9 +1047,11 @@ std::vector<std::string> get_renamed(std::vector<std::string> tokens)
     // Iterate all tokens
     bool is_string = false;
 
-    for (auto& token : tokens) {
+    for (size_t i = 0; i < tokens.size(); i++) {
+        auto& token = tokens[i];
+
         // Check if in string
-        if (token == "\"" || token == "\'") {
+        if (is_in_string(tokens, i)) {
             is_string = !is_string;
         }
 
@@ -1078,8 +1121,11 @@ std::vector<std::string> get_renamed(std::vector<std::string> tokens)
     return tokens;
 };
 
-int main()
+int main(int argc, char *argv[])
 {
+    // Check if we allow bench in minified code
+    bool is_bench = argc > 1 && std::string(argv[1]) == "bench";
+
     // Create output file
     std::string output;
 
@@ -1089,7 +1135,12 @@ int main()
     auto str = get_unified();
 
     // Remove OpenBench codes
-    str = get_removed_ob(str);
+    if (is_bench) {
+        str = get_removed_ob(str, true);
+    }
+    else {
+        str = get_removed_ob(str, false);
+    }
 
     // Remove comments
     str = get_removed_comments(str);
@@ -1126,7 +1177,9 @@ int main()
     }
 
     // Print to stdout
-    std::cout << output;
+    if (!is_bench) {
+        std::cout << output;
+    }
 
     auto file = std::ofstream("mini.cpp", std::ios::out);
 
