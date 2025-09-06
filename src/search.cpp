@@ -179,8 +179,8 @@ struct Thread {
                 continue;
 
             // Delta pruning
-            if (!depth && !board.checkers && !move_promo(move) && eval + 100 + VALUE[board.board[move_to(move)] / 2] < alpha)
-                continue;
+            // if (!depth && !board.checkers && !move_promo(move) && eval + 100 + VALUE[board.board[move_to(move)] / 2] < alpha)
+            //     continue;
 
             // Late move pruning
             if (!is_pv && !board.checkers && quiet_count > depth * depth + 1 && is_quiet)
