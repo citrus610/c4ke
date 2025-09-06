@@ -204,9 +204,12 @@ u64 se(u64 bitboard) {
 u64 ray(u64 mask, u64 occupied, u64 (*func)(u64)) {
     mask = func(mask);
 
-    for (int i = 0; i < 6; i++) {
-        mask |= func(mask & ~occupied);
-    }
+    mask |= func(mask & ~occupied);
+    mask |= func(mask & ~occupied);
+    mask |= func(mask & ~occupied);
+    mask |= func(mask & ~occupied);
+    mask |= func(mask & ~occupied);
+    mask |= func(mask & ~occupied);
 
     return mask;
 }

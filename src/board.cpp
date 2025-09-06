@@ -120,7 +120,7 @@ struct Board {
         edit(from, PIECE_NONE);
 
         // Pawn move
-        if (piece / 2 == PAWN) {
+        if (piece < WHITE_KNIGHT) {
             halfmove = 0;
 
             // Enpassant
@@ -139,7 +139,7 @@ struct Board {
         // Castling
         hash ^= KEYS[PIECE_NONE][castled];
 
-        if (piece / 2 == KING) {
+        if (piece > BLACK_QUEEN) {
             if (abs(from - to) == 2) {
                 int dt = to > from ? 1 : -1;
 
