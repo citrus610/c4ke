@@ -218,6 +218,9 @@ struct Board {
             // Enemy pawn attacks
             u64 enemy_pawn_attacks = se(pieces[PAWN] & colors[!color]) | sw(pieces[PAWN] & colors[!color]);
 
+            // Bishop pair
+            eval += (__builtin_popcountll(pieces[BISHOP] & colors[color]) > 1) * BISHOP_PAIR;
+
             for (int type = PAWN; type < TYPE_NONE; type++) {
                 u64 mask = pieces[type] & colors[color];
 
