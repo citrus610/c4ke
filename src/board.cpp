@@ -97,6 +97,47 @@ struct Board {
         return board[move_to(move)] > BLACK_KING && !move_promo(move) && !(board[move_from(move)] < WHITE_KNIGHT && move_to(move) == enpassant);
     }
 
+    int see(u16 move, int threshold) {
+        int from = move_from(move);
+        int to = move_to(move);
+
+        if (move_promo(move) || to == enpassant)
+            return TRUE;
+
+        if ((threshold -= VALUE[board[to] / 2]) > 0)
+            return FALSE;
+
+        if ((threshold += VALUE[board[from] / 2]) <= 0)
+            return TRUE;
+
+        u64 colors_original[] = { colors[WHITE], colors[BLACK] };
+        colors[stm] ^= 1ull << from;
+        int side = !stm;
+
+        while (u64 threats = attackers(to) & colors[side]) {
+            int type;
+
+            for (type = PAWN; type < KING; type++)
+                if (pieces[type] & threats)
+                    break;
+
+            side ^= 1;
+
+            if ((threshold = -threshold + 1 + VALUE[type]) <= 0) {
+                side ^= type == KING && attackers(to) & colors[side];
+
+                break;
+            }
+
+            colors[!side] ^= 1ull << __builtin_ctzll(pieces[type] & threats);
+        }
+        
+        colors[WHITE] = colors_original[WHITE];
+        colors[BLACK] = colors_original[BLACK];
+
+        return side != stm;
+    }
+
     int make(u16 move) {
         // Get move data
         int from = move_from(move);
@@ -240,10 +281,10 @@ struct Board {
                     else {
                         // Mobility
                         u64 mobility =
-                            type < BISHOP ? knight(1ULL << square) :
-                            type > QUEEN ? king(1ULL << square) :
-                            (type != BISHOP) * rook(1ULL << square, colors[WHITE] | colors[BLACK]) |
-                            (type != ROOK) * bishop(1ULL << square, colors[WHITE] | colors[BLACK]);
+                            type < BISHOP ? knight(1ull << square) :
+                            type > QUEEN ? king(1ull << square) :
+                            (type != BISHOP) * rook(1ull << square, colors[WHITE] | colors[BLACK]) |
+                            (type != ROOK) * bishop(1ull << square, colors[WHITE] | colors[BLACK]);
 
                         eval += MOBILITY[type] * __builtin_popcountll(mobility & ~colors[color] & ~enemy_pawn_attacks);
                     }

@@ -148,7 +148,7 @@ struct Thread {
                 // Quiet moves
                 board.quiet(move) ? qhist[board.stm][move & 4095] + (*stack_conthist[ply])[piece][move_to(move)] + (*stack_conthist[ply + 1])[piece][move_to(move)] :
                 // Noisy moves
-                VALUE[victim] * 16 + VALUE[move_promo(move)] + nhist[victim][piece][move_to(move)] + 1e6;
+                VALUE[victim] * 16 + VALUE[move_promo(move)] + nhist[victim][piece][move_to(move)] + board.see(move, 0) * 2e6 - 1e6;
         }
 
         // Iterate moves
@@ -176,15 +176,15 @@ struct Thread {
 
             // Quiet pruning in qsearch
             if (!depth && best > -WIN && board.checkers && is_quiet)
-                break;
+                continue;
 
             // Delta pruning
             if (!depth && !board.checkers && !move_promo(move) && eval + 100 + VALUE[board.board[move_to(move)] / 2] < alpha)
                 continue;
 
             // Late move pruning
-            if (!is_pv && !board.checkers && quiet_count > depth * depth + 1)
-                break;
+            if (!is_pv && !board.checkers && quiet_count > depth * depth + 1 && is_quiet)
+                continue;
 
             // Make
             Board child = board;
