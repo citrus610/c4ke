@@ -52,7 +52,7 @@ void test_perft() {
         u64 result;
     };
 
-    Test tests[] = {
+    std::vector<Test> tests = {
         Test { "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", 6, 119060324 },
         Test { "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1", 5, 193690690 },
         Test { "4k3/8/8/8/8/8/8/4K2R w K - 0 1", 6, 764643 },
@@ -205,7 +205,7 @@ void test_perft() {
         else {
             passed += 1;
 
-            cout << "PASSED: " << passed << "/" << _countof(tests) << "\n";
+            cout << "PASSED: " << passed << "/" << tests.size() << "\n";
         }
     }
 }
