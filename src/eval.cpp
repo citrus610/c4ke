@@ -30,4 +30,6 @@ int MOBILITY[] = { 0, S(8, 5), S(7, 7), S(3, 5), S(3, 2), S(-5, -1) };
 
 int PASSER[] = { 0, S(0, 10), S(-5, 20), S(-10, 30), S(10, 50), S(15, 100), S(25, 150), 0 };
 
+#define BISHOP_PAIR S(25, 55)
+
 #define TEMPO 20
