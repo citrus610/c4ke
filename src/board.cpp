@@ -286,11 +286,11 @@ struct Board {
 
                         // Open file
                         if (!(0x101010101010101ull << square % 8 & pieces[PAWN]))
-                            eval += (type > QUEEN) * KING_OPEN;
+                            eval += (type > QUEEN) * KING_OPEN + (type == ROOK) * ROOK_OPEN;
 
                         // Semi open file
                         if (!(0x101010101010101ull << square % 8 & pieces[PAWN] & colors[color]))
-                            eval += (type > QUEEN) * KING_SEMI_OPEN;
+                            eval += (type > QUEEN) * KING_SEMI_OPEN + (type == ROOK) * ROOK_SEMI_OPEN;
                     }
                 }
             }
