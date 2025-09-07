@@ -15,9 +15,8 @@ void add_pawn_moves(u16 list[], int& count, u64 targets, int offset) {
             list[count++] = move_make(from, to, ROOK);
             list[count++] = move_make(from, to, QUEEN);
         }
-        else {
+        else
             list[count++] = move_make(from, to);
-        }
     }
 }
 
@@ -81,23 +80,61 @@ struct Board {
     }
 
     u64 attackers(int square) {
-        u64 mask = 1ull << square;
-        u64 occupied = colors[WHITE] | colors[BLACK];
-
         return
-            (nw(mask) | ne(mask)) & pieces[PAWN] & colors[BLACK] |
-            (sw(mask) | se(mask)) & pieces[PAWN] & colors[WHITE] |
-            knight(mask) & pieces[KNIGHT] |
-            bishop(mask, occupied) & (pieces[BISHOP] | pieces[QUEEN]) |
-            rook(mask, occupied) & (pieces[ROOK] | pieces[QUEEN]) |
-            king(mask) & pieces[KING];
+            (nw(1ull << square) | ne(1ull << square)) & pieces[PAWN] & colors[BLACK] |
+            (sw(1ull << square) | se(1ull << square)) & pieces[PAWN] & colors[WHITE] |
+            knight(1ull << square) & pieces[KNIGHT] |
+            bishop(1ull << square, colors[WHITE] | colors[BLACK]) & (pieces[BISHOP] | pieces[QUEEN]) |
+            rook(1ull << square, colors[WHITE] | colors[BLACK]) & (pieces[ROOK] | pieces[QUEEN]) |
+            king(1ull << square) & pieces[KING];
     }
 
     int quiet(u16 move) {
         return board[move_to(move)] > BLACK_KING && !move_promo(move) && !(board[move_from(move)] < WHITE_KNIGHT && move_to(move) == enpassant);
     }
 
-    int make(u16 move) {
+    int see(u16 move, int threshold) {
+        int from = move_from(move);
+        int to = move_to(move);
+
+        if (move_promo(move) || (board[from] < WHITE_KNIGHT && to == enpassant))
+            return TRUE;
+
+        if ((threshold -= VALUE[board[to] / 2]) > 0)
+            return FALSE;
+
+        if ((threshold += VALUE[board[from] / 2]) <= 0)
+            return TRUE;
+
+        u64 colors_original[] = { colors[WHITE], colors[BLACK] };
+        colors[stm] ^= 1ull << from;
+        int side = !stm;
+
+        while (u64 threats = attackers(to) & colors[side]) {
+            int type = PAWN;
+
+            for (; type < KING; type++)
+                if (pieces[type] & threats)
+                    break;
+
+            side ^= 1;
+
+            if ((threshold = VALUE[type] - threshold) < 0) {
+                side ^= type == KING && attackers(to) & colors[side];
+
+                break;
+            }
+
+            colors[!side] ^= 1ull << __builtin_ctzll(pieces[type] & threats);
+        }
+        
+        colors[WHITE] = colors_original[WHITE];
+        colors[BLACK] = colors_original[BLACK];
+
+        return side != stm;
+    }
+
+    u64 make(u16 move) {
         // Get move data
         int from = move_from(move);
         int to = move_to(move);
@@ -144,7 +181,7 @@ struct Board {
                 int dt = to > from ? 1 : -1;
 
                 if ((attackers(from + dt) | attackers(from + dt * 2)) & colors[!stm])
-                    return FALSE;
+                    return TRUE;
 
                 edit(to + (to > from ? 1 : -2), PIECE_NONE);
                 edit(from + dt, ROOK * 2 + stm);
@@ -167,8 +204,8 @@ struct Board {
         // In check
         checkers = attackers(__builtin_ctzll(pieces[KING] & colors[stm])) & colors[!stm];
 
-        // Check if legal
-        return !(attackers(__builtin_ctzll(pieces[KING] & colors[!stm])) & colors[stm]);
+        // Check if not legal
+        return attackers(__builtin_ctzll(pieces[KING] & colors[!stm])) & colors[stm];
     }
 
     int movegen(u16 list[], int is_all) {
@@ -183,7 +220,7 @@ struct Board {
         u64 pawns_targets = colors[!stm] | u64(enpassant < SQUARE_NONE) << enpassant;
 
         add_pawn_moves(list, count, pawns_push, stm ? -8 : 8);
-        add_pawn_moves(list, count, (stm ? south(pawns_push & 0xffull << 40) : north(pawns_push & 0xff0000ull)) & ~occupied, stm ? -16 : 16);
+        add_pawn_moves(list, count, (stm ? south(pawns_push & 0xff0000000000ull) : north(pawns_push & 0xff0000ull)) & ~occupied, stm ? -16 : 16);
         add_pawn_moves(list, count, (stm ? se(pawns) : nw(pawns)) & pawns_targets, stm ? -7 : 7);
         add_pawn_moves(list, count, (stm ? sw(pawns) : ne(pawns)) & pawns_targets, stm ? -9 : 9);
 
@@ -240,10 +277,10 @@ struct Board {
                     else {
                         // Mobility
                         u64 mobility =
-                            type < BISHOP ? knight(1ULL << square) :
-                            type > QUEEN ? king(1ULL << square) :
-                            (type != BISHOP) * rook(1ULL << square, colors[WHITE] | colors[BLACK]) |
-                            (type != ROOK) * bishop(1ULL << square, colors[WHITE] | colors[BLACK]);
+                            type < BISHOP ? knight(1ull << square) :
+                            type > QUEEN ? king(1ull << square) :
+                            (type != BISHOP) * rook(1ull << square, colors[WHITE] | colors[BLACK]) |
+                            (type != ROOK) * bishop(1ull << square, colors[WHITE] | colors[BLACK]);
 
                         eval += MOBILITY[type] * __builtin_popcountll(mobility & ~colors[color] & ~enemy_pawn_attacks);
                     }

@@ -237,7 +237,7 @@ void print_bitboard(u64 bitboard) {
         char line[] = ". . . . . . . .";
 
         for (int file = 0; file < 8; file++) {
-            if (bitboard & 1ULL << (file | (rank << 3))) {
+            if (bitboard & 1ull << (file | (rank << 3))) {
                 line[2 * file] = 'X';
             }
         }
