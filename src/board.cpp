@@ -266,13 +266,18 @@ struct Board {
                     mask &= mask - 1;
 
                     // Material + PST
-                    eval += MATERIAL[type] + (PST_RANK[type * 8 + square / 8] + PST_FILE[type * 8 + square % 8]) * 8;
+                    eval +=
+                        MATERIAL[type] + 
+                        (get_data(type * 8 + square / 8) + OFFSET_PST_RANK) * SCALE_PST +
+                        (get_data(type * 8 + square % 8 + INDEX_PST_FILE) + OFFSET_PST_FILE) * SCALE_PST;
+
+                    // Update phase
                     phase += PHASE[type];
 
                     if (!type) {
                         // Passed pawns
                         if (!(0x101010101010101ull << square & (pieces[PAWN] & colors[!color] | enemy_pawn_attacks)))
-                            eval += PASSER[square / 8];
+                            eval += (get_data(square / 8 + INDEX_PASSER) + OFFSET_PASSER) * SCALE_PASSER;
                     }
                     else {
                         // Mobility
@@ -282,7 +287,7 @@ struct Board {
                             (type != BISHOP) * rook(1ull << square, colors[WHITE] | colors[BLACK]) |
                             (type != ROOK) * bishop(1ull << square, colors[WHITE] | colors[BLACK]);
 
-                        eval += MOBILITY[type] * __builtin_popcountll(mobility & ~colors[color] & ~enemy_pawn_attacks);
+                        eval += (get_data(type + INDEX_MOBILITY) + OFFSET_MOBILITY) * __builtin_popcountll(mobility & ~colors[color] & ~enemy_pawn_attacks);
 
                         // Open file
                         if (!(0x101010101010101ull << square % 8 & pieces[PAWN]))
