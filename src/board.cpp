@@ -101,7 +101,7 @@ struct Board {
         int from = move_from(move);
         int to = move_to(move);
 
-        if (move_promo(move) || to == enpassant)
+        if (move_promo(move) || (board[from] < WHITE_KNIGHT && to == enpassant))
             return TRUE;
 
         if ((threshold -= VALUE[board[to] / 2]) > 0)
