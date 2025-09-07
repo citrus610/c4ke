@@ -33,5 +33,7 @@ int PASSER[] = { 0, S(0, 10), S(-5, 20), S(-10, 30), S(10, 50), S(15, 100), S(25
 #define BISHOP_PAIR S(25, 55)
 #define KING_OPEN S(-75, 5)
 #define KING_SEMI_OPEN S(-30, 15)
+#define ROOK_OPEN S(25, 5)
+#define ROOK_SEMI_OPEN S(10, 15)
 
 #define TEMPO 20
