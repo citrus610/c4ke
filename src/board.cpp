@@ -15,9 +15,8 @@ void add_pawn_moves(u16 list[], int& count, u64 targets, int offset) {
             list[count++] = move_make(from, to, ROOK);
             list[count++] = move_make(from, to, QUEEN);
         }
-        else {
+        else
             list[count++] = move_make(from, to);
-        }
     }
 }
 
@@ -81,16 +80,13 @@ struct Board {
     }
 
     u64 attackers(int square) {
-        u64 mask = 1ull << square;
-        u64 occupied = colors[WHITE] | colors[BLACK];
-
         return
-            (nw(mask) | ne(mask)) & pieces[PAWN] & colors[BLACK] |
-            (sw(mask) | se(mask)) & pieces[PAWN] & colors[WHITE] |
-            knight(mask) & pieces[KNIGHT] |
-            bishop(mask, occupied) & (pieces[BISHOP] | pieces[QUEEN]) |
-            rook(mask, occupied) & (pieces[ROOK] | pieces[QUEEN]) |
-            king(mask) & pieces[KING];
+            (nw(1ull << square) | ne(1ull << square)) & pieces[PAWN] & colors[BLACK] |
+            (sw(1ull << square) | se(1ull << square)) & pieces[PAWN] & colors[WHITE] |
+            knight(1ull << square) & pieces[KNIGHT] |
+            bishop(1ull << square, colors[WHITE] | colors[BLACK]) & (pieces[BISHOP] | pieces[QUEEN]) |
+            rook(1ull << square, colors[WHITE] | colors[BLACK]) & (pieces[ROOK] | pieces[QUEEN]) |
+            king(1ull << square) & pieces[KING];
     }
 
     int quiet(u16 move) {
@@ -123,7 +119,7 @@ struct Board {
 
             side ^= 1;
 
-            if ((threshold = -threshold + VALUE[type]) < 0) {
+            if ((threshold = VALUE[type] - threshold) < 0) {
                 side ^= type == KING && attackers(to) & colors[side];
 
                 break;
