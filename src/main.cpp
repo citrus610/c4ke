@@ -424,17 +424,17 @@ int main() {
         tokens >> token;
 
         // Uci isready
-        if (token[0] == 'i')
+        if (token[0] == 'i') {
             cout << "readyok\n";
-
+        }
 #ifdef OB
         // Uci ucinewgame
-        if (token[0] == 'u')
+        else if (token[0] == 'u') {
             memset(TTABLE, 0, sizeof(TTEntry) * (1ull << TT_BITS));
+        }
 #endif
-
         // Uci position
-        if (token[0] == 'p') {
+        else if (token[0] == 'p') {
             board = Board();
             visited_count = 0;
 
@@ -455,9 +455,8 @@ int main() {
                 board.make(move_make(token[0] + token[1] * 8 - 489, token[2] + token[3] * 8 - 489, token[4] % 35 * 5 % 6));
             }
         }
-
         // Uci go
-        if (token[0] == 'g') {
+        else if (token[0] == 'g') {
             u64 time;
 
             tokens >> token >> time;
@@ -478,10 +477,10 @@ int main() {
             cout << "bestmove ";
             move_print(BEST_MOVE);
         }
-
         // Uci quit
-        if (token[0] == 'q')
+        else if (token[0] == 'q') {
             break;
+        }
     }
 
     free(TTABLE);
