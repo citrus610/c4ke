@@ -178,10 +178,6 @@ struct Thread {
             if (!depth && best > -WIN && (board.checkers && is_quiet || move_scores[i] < -1e6))
                 break;
 
-            // Delta pruning
-            // if (!depth && !board.checkers && !move_promo(move) && eval + 100 + VALUE[board.board[move_to(move)] / 2] < alpha)
-            //     continue;
-
             // Late move pruning
             if (!is_pv && !board.checkers && quiet_count > depth * depth + 1 && is_quiet)
                 continue;
@@ -193,7 +189,7 @@ struct Thread {
             // Make
             Board child = board;
 
-            if (!child.make(move))
+            if (child.make(move))
                 continue;
 
             legals++;

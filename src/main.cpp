@@ -29,7 +29,7 @@ u64 perft(Board& board, int depth, bool is_root = FALSE) {
     for (int i = 0; i < count; i++) {
         Board child = board;
 
-        if (!child.make(moves[i])) {
+        if (child.make(moves[i])) {
             continue;
         }
 
@@ -424,17 +424,17 @@ int main() {
         tokens >> token;
 
         // Uci isready
-        if (token[0] == 'i') {
+        if (token[0] == 'i')
             cout << "readyok\n";
-        }
+
 #ifdef OB
         // Uci ucinewgame
-        else if (token[0] == 'u') {
+        if (token[0] == 'u')
             memset(TTABLE, 0, sizeof(TTEntry) * (1ull << TT_BITS));
-        }
 #endif
+
         // Uci position
-        else if (token[0] == 'p') {
+        if (token[0] == 'p') {
             board = Board();
             visited_count = 0;
 
@@ -455,8 +455,9 @@ int main() {
                 board.make(move_make(token[0] + token[1] * 8 - 489, token[2] + token[3] * 8 - 489, token[4] % 35 * 5 % 6));
             }
         }
+
         // Uci go
-        else if (token[0] == 'g') {
+        if (token[0] == 'g') {
             u64 time;
 
             tokens >> token >> time;
@@ -477,10 +478,10 @@ int main() {
             cout << "bestmove ";
             move_print(BEST_MOVE);
         }
+
         // Uci quit
-        else if (token[0] == 'q') {
+        if (token[0] == 'q')
             break;
-        }
     }
 
     free(TTABLE);

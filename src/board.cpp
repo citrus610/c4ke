@@ -111,9 +111,9 @@ struct Board {
         int side = !stm;
 
         while (u64 threats = attackers(to) & colors[side]) {
-            int type;
+            int type = PAWN;
 
-            for (type = PAWN; type < KING; type++)
+            for (; type < KING; type++)
                 if (pieces[type] & threats)
                     break;
 
@@ -134,7 +134,7 @@ struct Board {
         return side != stm;
     }
 
-    int make(u16 move) {
+    u64 make(u16 move) {
         // Get move data
         int from = move_from(move);
         int to = move_to(move);
@@ -181,7 +181,7 @@ struct Board {
                 int dt = to > from ? 1 : -1;
 
                 if ((attackers(from + dt) | attackers(from + dt * 2)) & colors[!stm])
-                    return FALSE;
+                    return TRUE;
 
                 edit(to + (to > from ? 1 : -2), PIECE_NONE);
                 edit(from + dt, ROOK * 2 + stm);
@@ -204,8 +204,8 @@ struct Board {
         // In check
         checkers = attackers(__builtin_ctzll(pieces[KING] & colors[stm])) & colors[!stm];
 
-        // Check if legal
-        return !(attackers(__builtin_ctzll(pieces[KING] & colors[!stm])) & colors[stm]);
+        // Check if not legal
+        return attackers(__builtin_ctzll(pieces[KING] & colors[!stm])) & colors[stm];
     }
 
     int movegen(u16 list[], int is_all) {
@@ -220,7 +220,7 @@ struct Board {
         u64 pawns_targets = colors[!stm] | u64(enpassant < SQUARE_NONE) << enpassant;
 
         add_pawn_moves(list, count, pawns_push, stm ? -8 : 8);
-        add_pawn_moves(list, count, (stm ? south(pawns_push & 0xffull << 40) : north(pawns_push & 0xff0000ull)) & ~occupied, stm ? -16 : 16);
+        add_pawn_moves(list, count, (stm ? south(pawns_push & 0xff0000000000ull) : north(pawns_push & 0xff0000ull)) & ~occupied, stm ? -16 : 16);
         add_pawn_moves(list, count, (stm ? se(pawns) : nw(pawns)) & pawns_targets, stm ? -7 : 7);
         add_pawn_moves(list, count, (stm ? sw(pawns) : ne(pawns)) & pawns_targets, stm ? -9 : 9);
 
