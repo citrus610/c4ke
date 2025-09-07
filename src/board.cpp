@@ -123,7 +123,7 @@ struct Board {
 
             side ^= 1;
 
-            if ((threshold = -threshold + 1 + VALUE[type]) <= 0) {
+            if ((threshold = -threshold + VALUE[type]) < 0) {
                 side ^= type == KING && attackers(to) & colors[side];
 
                 break;

@@ -144,11 +144,11 @@ struct Thread {
 
             move_scores[i] =
                 // Hash move
-                move == tt.move ? 1e7 :
+                move == tt.move ? 1e8 :
                 // Quiet moves
                 board.quiet(move) ? qhist[board.stm][move & 4095] + (*stack_conthist[ply])[piece][move_to(move)] + (*stack_conthist[ply + 1])[piece][move_to(move)] :
                 // Noisy moves
-                VALUE[victim] * 16 + VALUE[move_promo(move)] + nhist[victim][piece][move_to(move)] + board.see(move, 0) * 2e6 - 1e6;
+                VALUE[victim] * 16 + VALUE[move_promo(move)] + nhist[victim][piece][move_to(move)] + board.see(move, 0) * 2e7 - 1e7;
         }
 
         // Iterate moves
@@ -174,9 +174,9 @@ struct Thread {
             // Check if quiet
             int is_quiet = board.quiet(move);
 
-            // Quiet pruning in qsearch
-            if (!depth && best > -WIN && board.checkers && is_quiet)
-                continue;
+            // Quiet and bad noisies pruning in qsearch
+            if (!depth && best > -WIN && (board.checkers && is_quiet || move_scores[i] < -1e6))
+                break;
 
             // Delta pruning
             // if (!depth && !board.checkers && !move_promo(move) && eval + 100 + VALUE[board.board[move_to(move)] / 2] < alpha)
