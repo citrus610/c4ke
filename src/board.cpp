@@ -283,6 +283,14 @@ struct Board {
                             (type != ROOK) * bishop(1ull << square, colors[WHITE] | colors[BLACK]);
 
                         eval += MOBILITY[type] * __builtin_popcountll(mobility & ~colors[color] & ~enemy_pawn_attacks);
+
+                        // Open file
+                        if (!(0x101010101010101ull << square % 8 & pieces[PAWN]))
+                            eval += (type > QUEEN) * KING_OPEN;
+
+                        // Semi open file
+                        if (!(0x101010101010101ull << square % 8 & pieces[PAWN] & colors[color]))
+                            eval += (type > QUEEN) * KING_SEMI_OPEN;
                     }
                 }
             }
