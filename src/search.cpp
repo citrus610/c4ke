@@ -84,6 +84,9 @@ struct Thread {
         int eval;
         stack_eval[ply] = INF;
 
+        // Improving
+        int is_improving = FALSE;
+
         // Best score
         int best = -INF;
         u16 best_move = MOVE_NONE;
@@ -100,6 +103,9 @@ struct Thread {
             // Use tt score as better eval
             if (tt.hash && tt.bound != tt.score < eval)
                 eval = tt.score;
+
+            // Improving
+            is_improving = ply > 1 && stack_eval[ply] > stack_eval[ply - 2];
 
             if (!depth) {
                 // Standpat
@@ -179,7 +185,7 @@ struct Thread {
                 break;
 
             // Late move pruning
-            if (!is_pv && !board.checkers && quiet_count > depth * depth + 1 && is_quiet)
+            if (!is_pv && !board.checkers && quiet_count > 1 + depth * depth >> !is_improving && is_quiet)
                 continue;
 
             // SEE pruning
