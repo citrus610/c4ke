@@ -169,6 +169,10 @@ void move_print(u16 move) {
 }
 
 // Bitboard
+#define LSB __builtin_ctzll
+#define POPCNT __builtin_popcountll
+#define BSWAP __builtin_bswap64
+
 u64 north(u64 bitboard) {
     return bitboard << 8;
 }

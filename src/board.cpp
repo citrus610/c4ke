@@ -4,7 +4,7 @@ int LAYOUT[] = { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK };
 
 void add_pawn_moves(u16 list[], int& count, u64 targets, int offset) {
     while (targets) {
-        int to = __builtin_ctzll(targets);
+        int to = LSB(targets);
         int from = to - offset;
 
         targets &= targets - 1;
@@ -22,13 +22,13 @@ void add_pawn_moves(u16 list[], int& count, u64 targets, int offset) {
 
 void add_moves(u16 list[], int& count, u64 mask, u64 targets, u64 occupied, u64 (*func)(u64, u64)) {
     while (mask) {
-        int from = __builtin_ctzll(mask);
+        int from = LSB(mask);
         mask &= mask - 1;
 
         u64 attack = func(1ull << from, occupied) & targets;
 
         while (attack) {
-            int to = __builtin_ctzll(attack);
+            int to = LSB(attack);
             attack &= attack - 1;
 
             list[count++] = move_make(from, to);
@@ -125,7 +125,7 @@ struct Board {
                 break;
             }
 
-            colors[!side] ^= 1ull << __builtin_ctzll(pieces[type] & threats);
+            colors[!side] ^= 1ull << LSB(pieces[type] & threats);
         }
         
         colors[WHITE] = colors_original[WHITE];
@@ -202,10 +202,10 @@ struct Board {
         hash ^= KEYS[PIECE_NONE][0];
 
         // In check
-        checkers = attackers(__builtin_ctzll(pieces[KING] & colors[stm])) & colors[!stm];
+        checkers = attackers(LSB(pieces[KING] & colors[stm])) & colors[!stm];
 
         // Check if not legal
-        return attackers(__builtin_ctzll(pieces[KING] & colors[!stm])) & colors[stm];
+        return attackers(LSB(pieces[KING] & colors[!stm])) & colors[stm];
     }
 
     int movegen(u16 list[], int is_all) {
@@ -252,17 +252,18 @@ struct Board {
         int phase = 0;
 
         for (int color = WHITE; color < 2; color++) {
-            // Enemy pawn attacks
-            u64 enemy_pawn_attacks = se(pieces[PAWN] & colors[!color]) | sw(pieces[PAWN] & colors[!color]);
+            u64 pawns[] = { pieces[PAWN] & colors[WHITE], pieces[PAWN] & colors[BLACK] };
+            u64 pawns_threats = se(pawns[!color]) | sw(pawns[!color]);
+            u64 pawns_phalanx = west(pawns[color]) & pawns[color];
 
             // Bishop pair
-            eval += (__builtin_popcountll(pieces[BISHOP] & colors[color]) > 1) * BISHOP_PAIR;
+            eval += (POPCNT(pieces[BISHOP] & colors[color]) > 1) * BISHOP_PAIR;
 
             for (int type = PAWN; type < TYPE_NONE; type++) {
                 u64 mask = pieces[type] & colors[color];
 
                 while (mask) {
-                    int square = __builtin_ctzll(mask);
+                    int square = LSB(mask);
                     mask &= mask - 1;
 
                     // Material + PST
@@ -275,8 +276,12 @@ struct Board {
                     phase += PHASE[type];
 
                     if (!type) {
+                        // Pawn phalanx
+                        if (pawns_phalanx & 1ull << square)
+                            eval += (get_data(square / 8 + INDEX_PHALANX) + OFFSET_PHALANX) * SCALE_PHALANX;
+
                         // Passed pawns
-                        if (!(0x101010101010101ull << square & (pieces[PAWN] & colors[!color] | enemy_pawn_attacks)))
+                        if (!(0x101010101010101ull << square & (pawns[!color] | pawns_threats)))
                             eval += (get_data(square / 8 + INDEX_PASSER) + OFFSET_PASSER) * SCALE_PASSER;
                     }
                     else {
@@ -287,25 +292,25 @@ struct Board {
                             (type != BISHOP) * rook(1ull << square, colors[WHITE] | colors[BLACK]) |
                             (type != ROOK) * bishop(1ull << square, colors[WHITE] | colors[BLACK]);
 
-                        eval += (get_data(type + INDEX_MOBILITY) + OFFSET_MOBILITY) * __builtin_popcountll(mobility & ~colors[color] & ~enemy_pawn_attacks);
+                        eval += (get_data(type + INDEX_MOBILITY) + OFFSET_MOBILITY) * POPCNT(mobility & ~colors[color] & ~pawns_threats);
 
                         // Open file
                         if (!(0x101010101010101ull << square % 8 & pieces[PAWN]))
                             eval += (type > QUEEN) * KING_OPEN + (type == ROOK) * ROOK_OPEN;
 
                         // Semi open file
-                        if (!(0x101010101010101ull << square % 8 & pieces[PAWN] & colors[color]))
+                        if (!(0x101010101010101ull << square % 8 & pawns[color]))
                             eval += (type > QUEEN) * KING_SEMI_OPEN + (type == ROOK) * ROOK_SEMI_OPEN;
                     }
                 }
             }
 
             // Flip board
-            colors[WHITE] = __builtin_bswap64(colors[WHITE]);
-            colors[BLACK] = __builtin_bswap64(colors[BLACK]);
+            colors[WHITE] = BSWAP(colors[WHITE]);
+            colors[BLACK] = BSWAP(colors[BLACK]);
 
             for (u64& type : pieces)
-                type = __builtin_bswap64(type);
+                type = BSWAP(type);
 
             eval = -eval;
         }
@@ -397,7 +402,7 @@ struct Board {
         fen >> token;
 
         // Check
-        checkers = attackers(__builtin_ctzll(pieces[KING] & colors[stm])) & colors[!stm];
+        checkers = attackers(LSB(pieces[KING] & colors[stm])) & colors[!stm];
     }
 #endif
 
