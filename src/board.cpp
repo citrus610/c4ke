@@ -315,7 +315,10 @@ struct Board {
             eval = -eval;
         }
 
-        eval = (i16(eval) * phase + (eval + 0x8000 >> 16) * (24 - phase)) / 24;
+        // Scaling
+        int x = 8 - POPCNT(pieces[PAWN] & colors[eval < 0]);
+
+        eval = (i16(eval) * phase + (eval + 0x8000 >> 16) * (128 - x * x) / 128 * (24 - phase)) / 24;
 
         return (stm ? -eval : eval) + TEMPO;
     }
