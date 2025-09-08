@@ -10,6 +10,7 @@ int MATERIAL[] = { S(89, 147), S(350, 521), S(361, 521), S(479, 956), S(1046, 17
 
 #define SCALE_PST 8
 #define SCALE_PASSER 5
+#define SCALE_PHALANX 8
 
 #define BISHOP_PAIR S(25, 55)
 #define KING_OPEN S(-75, 5)
@@ -19,19 +20,21 @@ int MATERIAL[] = { S(89, 147), S(350, 521), S(361, 521), S(479, 956), S(1046, 17
 
 #define TEMPO 20
 
-#define DATA_STR "/,,.04//-/02341 /11111.%/.--/101121//.+-.0.+.444#\"#$%&&# #$&&&%#\"$%$%$&#\"#$%&%%#\"##$$%&%\"&#  \"&$%-,(( \"\"! $%'++**+.++&(*./,+,)*+++++-(()+--., #(-002/%)+.0/-%&&%$%%%%\"$&((%$\"$%%&&&%$%&&%$%%$\"$%&''%$ $&'''$ !&(&#  \"$&*4>"
+#define DATA_STR "/,,.04//-/02341 /11111.%/.--/101121//.+-.0.+.444#\"#$%&&# #$&&&%#\"$%$%$&#\"#$%&%%#\"##$$%&%\"&#  \"&$%-,(( \"\"! $%' !\"#%*/++**+.++&(*./,+,)*+++++-(()+--., #(-002/%)+.0/-%&&%$%%%%\"$&((%$\"$%%&&&%$%&&%$%%$\"$%&''%$ $&'''$ !&(&#  \"$&*4>  !\"*/4"
 
-#define INDEX_EG 109
+#define INDEX_EG 116
 
 #define INDEX_PST_RANK 0
 #define INDEX_PST_FILE 48
 #define INDEX_MOBILITY 96
 #define INDEX_PASSER 102
+#define INDEX_PHALANX 109
 
 #define OFFSET_PST_RANK S(-15, -11)
 #define OFFSET_PST_FILE S(-4, -5)
 #define OFFSET_MOBILITY S(-5, -1)
 #define OFFSET_PASSER S(-2, 0)
+#define OFFSET_PHALANX S(0, 0)
 
 int get_data(int index) {
     auto data = DATA_STR;

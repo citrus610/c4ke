@@ -64,6 +64,12 @@ inline const std::vector<Param> PARAMS = {
             0, S(0, 2), S(-1, 4), S(-2, 6), S(2, 10), S(3, 20), S(5, 30)
         }
     },
+    Param {
+        .name = "PHALANX",
+        .data = {
+            0, S(1, 0), S(2, 1), S(3, 2), S(5, 10), S(10, 15), S(15, 20)
+        }
+    },
 };
 
 inline Compressed get_compressed_data(std::vector<int> data)
