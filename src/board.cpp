@@ -252,8 +252,9 @@ struct Board {
         int phase = 0;
 
         for (int color = WHITE; color < 2; color++) {
-            // Enemy pawn attacks
-            u64 enemy_pawn_attacks = se(pieces[PAWN] & colors[!color]) | sw(pieces[PAWN] & colors[!color]);
+            u64 pawns[] = { pieces[PAWN] & colors[WHITE], pieces[PAWN] & colors[BLACK] };
+            u64 pawns_threats = se(pawns[!color]) | sw(pawns[!color]);
+            u64 pawns_phalanx = west(pawns[color]) & pawns[color];
 
             // Bishop pair
             eval += (POPCNT(pieces[BISHOP] & colors[color]) > 1) * BISHOP_PAIR;
@@ -276,11 +277,11 @@ struct Board {
 
                     if (!type) {
                         // Pawn phalanx
-                        if (west(1ull << square) & pieces[PAWN] & colors[color])
+                        if (pawns_phalanx & 1ull << square)
                             eval += (get_data(square / 8 + INDEX_PHALANX) + OFFSET_PHALANX) * SCALE_PHALANX;
 
                         // Passed pawns
-                        if (!(0x101010101010101ull << square & (pieces[PAWN] & colors[!color] | enemy_pawn_attacks)))
+                        if (!(0x101010101010101ull << square & (pawns[!color] | pawns_threats)))
                             eval += (get_data(square / 8 + INDEX_PASSER) + OFFSET_PASSER) * SCALE_PASSER;
                     }
                     else {
@@ -291,14 +292,14 @@ struct Board {
                             (type != BISHOP) * rook(1ull << square, colors[WHITE] | colors[BLACK]) |
                             (type != ROOK) * bishop(1ull << square, colors[WHITE] | colors[BLACK]);
 
-                        eval += (get_data(type + INDEX_MOBILITY) + OFFSET_MOBILITY) * POPCNT(mobility & ~colors[color] & ~enemy_pawn_attacks);
+                        eval += (get_data(type + INDEX_MOBILITY) + OFFSET_MOBILITY) * POPCNT(mobility & ~colors[color] & ~pawns_threats);
 
                         // Open file
                         if (!(0x101010101010101ull << square % 8 & pieces[PAWN]))
                             eval += (type > QUEEN) * KING_OPEN + (type == ROOK) * ROOK_OPEN;
 
                         // Semi open file
-                        if (!(0x101010101010101ull << square % 8 & pieces[PAWN] & colors[color]))
+                        if (!(0x101010101010101ull << square % 8 & pawns[color]))
                             eval += (type > QUEEN) * KING_SEMI_OPEN + (type == ROOK) * ROOK_SEMI_OPEN;
                     }
                 }
