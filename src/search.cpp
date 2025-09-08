@@ -181,7 +181,7 @@ struct Thread {
             int is_quiet = board.quiet(move);
 
             // Quiet pruning and SEE pruning in qsearch
-            if (!depth && best > -WIN && (board.checkers && is_quiet || move_scores[i] < -1e6))
+            if (!depth && best > -WIN && (is_quiet || move_scores[i] < -1e6))
                 break;
 
             // Late move pruning
