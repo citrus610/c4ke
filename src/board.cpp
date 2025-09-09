@@ -254,10 +254,14 @@ struct Board {
         for (int color = WHITE; color < 2; color++) {
             u64 pawns[] = { pieces[PAWN] & colors[WHITE], pieces[PAWN] & colors[BLACK] };
             u64 pawns_threats = se(pawns[!color]) | sw(pawns[!color]);
+            u64 pawns_attacks = ne(pawns[color]) | nw(pawns[color]);
             u64 pawns_phalanx = west(pawns[color]) & pawns[color];
 
             // Bishop pair
             eval += (POPCNT(pieces[BISHOP] & colors[color]) > 1) * BISHOP_PAIR;
+
+            // Pawn protected
+            eval += POPCNT(pawns[color] & pawns_attacks) * PAWN_PROTECTED;
 
             for (int type = PAWN; type < TYPE_NONE; type++) {
                 u64 mask = pieces[type] & colors[color];
