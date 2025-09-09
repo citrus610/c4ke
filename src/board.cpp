@@ -305,6 +305,10 @@ struct Board {
                         // Semi open file
                         if (!(0x101010101010101ull << square % 8 & pawns[color]))
                             eval += (type > QUEEN) * KING_SEMI_OPEN + (type == ROOK) * ROOK_SEMI_OPEN;
+
+                        // Pawn shield
+                        if (type > QUEEN && square < A2)
+                            eval += POPCNT(pawns[color] & 0x70700ull << 5 * (square % 8 > 2)) * PAWN_SHIELD;
                     }
                 }
             }
