@@ -35,7 +35,7 @@ struct Thread {
     u64 visited[VISIT_SIZE];
     int visited_count;
 
-    int search(Board& board, int alpha, int beta, int ply, int depth, int is_pv, int is_nmp = FALSE) {
+    int search(Board& board, int alpha, int beta, int ply, int depth, int is_pv, int is_nmp = FALSE, u16 excluded = MOVE_NONE) {
         // Clamp depth for qsearch
         depth *= depth > 0;
 
@@ -73,7 +73,7 @@ struct Thread {
             tt = slot;
 
             // Cutoff
-            if (!is_pv && depth <= tt.depth && tt.bound != tt.score < beta)
+            if (!is_pv && !excluded && depth <= tt.depth && tt.bound != tt.score < beta)
                 return tt.score;
         }
         else
@@ -101,7 +101,7 @@ struct Thread {
                 corrhist[board.stm][board.hash_non_pawn[BLACK] % CORRHIST_SIZE] / 256;
 
             // Use tt score as better eval
-            if (tt.hash && tt.bound != tt.score < eval)
+            if (tt.hash && !excluded && tt.bound != tt.score < eval)
                 eval = tt.score;
 
             // Improving
@@ -114,7 +114,7 @@ struct Thread {
 
                 alpha = max(alpha, best = eval);
             }
-            else if (!is_pv) {
+            else if (!is_pv && !excluded) {
                 // Reverse futility pruning
                 if (depth < 9 && eval < WIN && eval > beta + 70 * depth)
                     return eval;
@@ -177,6 +177,9 @@ struct Thread {
 
             u16 move = move_list[i];
 
+            if (move == excluded)
+                continue;
+
             // Check if quiet
             int is_quiet = board.quiet(move);
 
@@ -192,6 +195,13 @@ struct Thread {
             if (ply && best > -WIN && move_scores[i] < 1e6 && !board.see(move, -80 * depth))
                 continue;
 
+            int extension = 0;
+
+            if (ply && depth > 7 && !excluded && move == tt.move && tt.depth >= depth - 3 && tt.bound) {
+                int singular_beta = tt.score - depth * 2;
+                extension = search(board, singular_beta - 1, singular_beta, ply, (depth - 1) / 2, FALSE, FALSE, move) < singular_beta;
+            }
+
             // Make
             Board child = board;
 
@@ -204,7 +214,7 @@ struct Thread {
             visited[visited_count++] = board.hash;
 
             // Search
-            int depth_next = depth - 1;
+            int depth_next = depth - 1 + extension;
             int score;
 
             // Don't do zero window search for qsearch
@@ -314,7 +324,8 @@ struct Thread {
         }
 
         // Update transposition
-        slot = { u16(board.hash), best_move, i16(best), u8(depth), bound };
+        if (!excluded)
+            slot = { u16(board.hash), best_move, i16(best), u8(depth), bound };
 
         return best;
     }
