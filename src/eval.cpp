@@ -18,6 +18,7 @@ int MATERIAL[] = { S(89, 147), S(350, 521), S(361, 521), S(479, 956), S(1046, 17
 #define ROOK_OPEN S(25, 5)
 #define ROOK_SEMI_OPEN S(10, 15)
 #define PAWN_PROTECTED S(12, 16)
+#define PAWN_SHIELD S(30, -10)
 
 #define TEMPO 20
 
