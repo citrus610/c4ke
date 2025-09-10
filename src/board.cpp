@@ -141,7 +141,7 @@ struct Board {
         int piece = board[from];
 
         // Update halfmove
-        halfmove += board[to] > BLACK_KING || piece < WHITE_KNIGHT;
+        halfmove += board[to] > BLACK_KING && piece > BLACK_PAWN;
 
         // Move piece
         edit(to, move_promo(move) ? move_promo(move) * 2 + stm : piece);
