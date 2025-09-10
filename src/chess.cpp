@@ -124,8 +124,13 @@ typedef uint64_t u64;
 
 #define MOVE_NONE 0
 
-#define TT_BITS 20
-#define TT_SHIFT 44
+#ifdef OB
+    int TT_BITS = 20;
+    int TT_SHIFT = 64 - TT_BITS;
+#else
+    #define TT_BITS 20
+    #define TT_SHIFT 44
+#endif
 
 #define HIST_MAX 16384
 
