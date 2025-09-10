@@ -145,7 +145,7 @@ u64 now() {
 }
 
 // Zobrist
-u64 KEYS[13][64];
+u64 KEYS[13][65]{};
 
 // Move
 u16 move_make(int from, int to, int promo = PAWN) {
