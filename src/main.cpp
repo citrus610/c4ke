@@ -413,6 +413,12 @@ int main() {
     // Uci
     string token;
 
+#ifdef OB
+    cout << "id name c4ke" << endl;
+    cout << "id author citrus610" << endl;
+    cout << "option name Hash type spin default 8 min 1 max 67108864" << endl;
+#endif
+
     cin >> token;
     cout << "uciok\n";
 
