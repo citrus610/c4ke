@@ -340,15 +340,14 @@ void bench()
 
         Thread engine {};
 
-        u64 visited[VISIT_SIZE];
-
         RUNNING = TRUE;
         LIMIT_SOFT = UINT64_MAX;
         LIMIT_HARD = UINT64_MAX;
+        VISITED_COUNT = 0;
 
         u64 time_1 = now();
 
-        engine.start(board, visited, 0, 15, TRUE);
+        engine.start(board, 15, TRUE);
 
         u64 time_2 = now();
 
@@ -375,8 +374,6 @@ int main() {
 
     // Search data
     Board board;
-    u64 visited[VISIT_SIZE];
-    int visited_count = 0;
     TTABLE = (TTEntry*)calloc(1ull << TT_BITS, 8);
 
 #ifdef OB_MINI
@@ -436,7 +433,7 @@ int main() {
         // Uci position
         else if (token[0] == 'p') {
             board = Board();
-            visited_count = 0;
+            VISITED_COUNT = 0;
 
 #ifdef OB
             tokens >> token;
@@ -451,8 +448,10 @@ int main() {
 #endif
 
             while (tokens >> token) {
-                visited[visited_count++] = board.hash;
-                board.make(move_make(token[0] + token[1] * 8 - 489, token[2] + token[3] * 8 - 489, token[4] % 35 * 5 % 6));
+                BEST_MOVE = move_make(token[0] + token[1] * 8 - 489, token[2] + token[3] * 8 - 489, token[4] % 35 * 5 % 6);
+                VISITED[VISITED_COUNT++] = board.hash;
+                VISITED_COUNT *= board.board[move_from(BEST_MOVE)] > BLACK_PAWN && board.board[move_to(BEST_MOVE)] > BLACK_KING;
+                board.make(BEST_MOVE);
             }
         }
         // Uci go
@@ -469,7 +468,7 @@ int main() {
             LIMIT_HARD = now() + time / 2;
 
             thread t([&] () {
-                Thread().start(board, visited, visited_count);
+                Thread().start(board);
             });
 
             t.join();

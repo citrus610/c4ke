@@ -317,8 +317,8 @@ struct Board {
             colors[WHITE] = BSWAP(colors[WHITE]);
             colors[BLACK] = BSWAP(colors[BLACK]);
 
-            for (u64& type : pieces)
-                type = BSWAP(type);
+            for (int type = PAWN; type < TYPE_NONE; type++)
+                pieces[type] = BSWAP(pieces[type]);
 
             eval = -eval;
         }

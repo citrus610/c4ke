@@ -21,6 +21,8 @@ int RUNNING;
 u64 LIMIT_SOFT;
 u64 LIMIT_HARD;
 u16 BEST_MOVE;
+u64 VISITED[STACK_SIZE];
+int VISITED_COUNT;
 
 // Search thread
 struct Thread {
@@ -32,7 +34,7 @@ struct Thread {
     i16 corrhist[2][CORRHIST_SIZE] {};
     int stack_eval[STACK_SIZE];
     HTable* stack_conthist[STACK_SIZE];
-    u64 visited[VISIT_SIZE];
+    u64 visited[STACK_SIZE];
     int visited_count;
 
     int search(Board& board, int alpha, int beta, int ply, int depth, int is_pv, int is_nmp = FALSE, u16 excluded = MOVE_NONE) {
@@ -48,17 +50,14 @@ struct Thread {
 
         // Oracle
         if (ply) {
-            // Draw by repetition
-            int before_root = FALSE;
+            // Repetiion
+            for (int i = 4; i <= visited_count; i += 2)
+                if (board.hash == visited[visited_count - i])
+                    return DRAW;
 
-            for (int i = 4; i <= min(board.halfmove, visited_count); i += 2) {
-                if (board.hash == visited[visited_count - i]) {
-                    if (ply >= i || before_root)
-                        return DRAW;
-
-                    before_root = TRUE;
-                }
-            }
+            for (int i = 0; i <= VISITED_COUNT; i++)
+                if (board.hash == VISITED[VISITED_COUNT - i])
+                    return DRAW;
 
             // Draw by 50mr
             if (board.halfmove > 99)
@@ -294,7 +293,7 @@ struct Thread {
                     // Update noisy history
                     update_history(nhist[board.board[move_to(move)] / 2 % TYPE_NONE][board.board[move_from(move)]][move_to(move)], bonus);
 
-                // Add pelnaty to visited noisy moves
+                // Add penalty to visited noisy moves
                 for (int k = 0; k < noisy_count; k++)
                     update_history(nhist[board.board[move_to(noisy_list[k])] / 2 % TYPE_NONE][board.board[move_from(noisy_list[k])]][move_to(noisy_list[k])], -bonus);
 
@@ -331,15 +330,11 @@ struct Thread {
     }
 
 #ifdef OB_MINI
-    void start(Board board, u64* pre_visited, int pre_visited_count, int MAX_DEPTH = 256, int BENCH = FALSE) {
+    void start(Board board, int MAX_DEPTH = 256, int BENCH = FALSE) {
 #else
-    void start(Board board, u64* pre_visited, int pre_visited_count) {
+    void start(Board board, ) {
         #define MAX_DEPTH 256
 #endif
-        // Set data
-        memcpy(visited, pre_visited, VISIT_BYTES);
-        visited_count = pre_visited_count;
-
         int score = 0;
 
         // Iterative deepening
