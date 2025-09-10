@@ -140,38 +140,24 @@ struct Board {
         int to = move_to(move);
         int piece = board[from];
 
-        // Check enpassant
-        int is_enpassant = to == enpassant;
-
         // Update halfmove
-        halfmove += board[to] > BLACK_KING;
-
-        // Update enpassant square
-        if (enpassant < SQUARE_NONE)
-            hash ^= KEYS[PIECE_NONE][enpassant];
-        
-        enpassant = SQUARE_NONE;
+        halfmove += board[to] > BLACK_KING || piece < WHITE_KNIGHT;
 
         // Move piece
         edit(to, move_promo(move) ? move_promo(move) * 2 + stm : piece);
         edit(from, PIECE_NONE);
 
-        // Pawn move
-        if (piece < WHITE_KNIGHT) {
-            halfmove = 0;
+        // Enpassant
+        hash ^= KEYS[PIECE_NONE][enpassant];
 
-            // Enpassant
-            if (is_enpassant) {
-                edit(to ^ 8, PIECE_NONE);
-                hash ^= KEYS[PIECE_NONE][to];
-            }
-
-            // Double push
-            if (abs(from - to) == 16) {
-                enpassant = to ^ 8;
-                hash ^= KEYS[PIECE_NONE][enpassant];
-            }
+        if (piece < WHITE_KNIGHT && to == enpassant) {
+            edit(to ^ 8, PIECE_NONE);
+            hash ^= KEYS[PIECE_NONE][to];
         }
+
+        enpassant = piece < WHITE_KNIGHT ? abs(from - to) == 16 ? to ^ 8 : SQUARE_NONE : SQUARE_NONE;
+
+        hash ^= KEYS[PIECE_NONE][enpassant];
 
         // Castling
         hash ^= KEYS[PIECE_NONE][castled];

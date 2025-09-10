@@ -55,8 +55,8 @@ struct Thread {
                 if (board.hash == visited[visited_count - i])
                     return DRAW;
 
-            for (int i = 0; i <= VISITED_COUNT; i++)
-                if (board.hash == VISITED[VISITED_COUNT - i])
+            for (int i = 0; i < VISITED_COUNT; i++)
+                if (board.hash == VISITED[i])
                     return DRAW;
 
             // Draw by 50mr
