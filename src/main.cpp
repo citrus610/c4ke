@@ -429,6 +429,24 @@ int main() {
         else if (token[0] == 'u') {
             memset(TTABLE, 0, sizeof(TTEntry) * (1ull << TT_BITS));
         }
+        // Uci setoption
+        else if (token[0] == 's') {
+            tokens >> token >> token;
+
+            if (token == "Hash") {
+                u64 tt_size;
+
+                tokens >> token >> tt_size;
+
+                tt_size *= 1024 * 1024 / sizeof(TTEntry);
+
+                TT_BITS = 63 - __builtin_clzll(tt_size);
+                TT_SHIFT = 64 - TT_BITS;
+
+                free(TTABLE);
+                TTABLE = (TTEntry*)calloc(1ull << TT_BITS, sizeof(TTEntry));
+            }
+        }
 #endif
         // Uci position
         else if (token[0] == 'p') {

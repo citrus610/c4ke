@@ -332,7 +332,7 @@ struct Thread {
 #ifdef OB_MINI
     void start(Board board, int MAX_DEPTH = 256, int BENCH = FALSE) {
 #else
-    void start(Board board, ) {
+    void start(Board board) {
         #define MAX_DEPTH 256
 #endif
         int score = 0;
