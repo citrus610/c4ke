@@ -218,7 +218,7 @@ struct Thread {
 
             // Don't do zero window search for qsearch
             // Late move reduction
-            if (depth > 2 && legals > 1 + !!ply * 2) {
+            if (depth > 2 && legals > 3) {
                 int reduction =
                     // Base reduction
                     log(depth) * log(legals) * 0.3 + 1 -
