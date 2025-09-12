@@ -69,6 +69,12 @@ inline const std::vector<Param> PARAMS = {
         .data = {
             0, S(1, 0), S(2, 1), S(3, 2), S(5, 10), S(10, 15), S(15, 20)
         }
+    },
+    Param {
+        .name = "THREAT",
+        .data = {
+            0, S(50, 25), S(50, 50), S(80, 25), S(75, 0)
+        }
     }
 };
 
