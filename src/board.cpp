@@ -265,10 +265,6 @@ struct Board {
                     // Update phase
                     phase += PHASE[type];
 
-                    // Pawn threats
-                    if (1ull << square & pawns_threats)
-                        eval -= get_data(type + INDEX_THREAT) + OFFSET_THREAT;
-
                     if (!type) {
                         // Pawn phalanx
                         if (pawns_phalanx & 1ull << square)
@@ -299,6 +295,10 @@ struct Board {
                         // Pawn shield
                         if (type > QUEEN && square < A2)
                             eval += POPCNT(pawns[color] & 0x70700ull << 5 * (square % 8 > 2)) * PAWN_SHIELD;
+
+                        // Pawn threats
+                        if (1ull << square & pawns_threats)
+                            eval -= get_data(type + INDEX_THREAT);
                     }
                 }
             }
