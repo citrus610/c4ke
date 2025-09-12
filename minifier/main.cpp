@@ -64,12 +64,29 @@ int main(int argc, char *argv[])
     // Remove white space
     tokens = get_removed_spaces(tokens);
 
-    // Get custom types
-    auto custom_types = get_custom_types(tokens);
+    // Get scopes stats
+    std::vector<Scope> dummy;
+    auto global_scope = get_scope(ScopeType::GLOBAL, "global", {}, dummy, 0, tokens).first;
+    auto stat_str = print_scope(global_scope, 0);
+
+    // For debuging purpose
+    // auto file_stat = std::ofstream("stat.txt", std::ios::out);
+    // file_stat << stat_str;
+    // file_stat.close();
+
+    // Transform from stats to names' ids
+    auto scope_id = get_scope_id(global_scope, {});
+    auto id_str = print_scope_id(scope_id, 0);
+
+    // For debuging purpose
+    // auto file_id = std::ofstream("id.txt", std::ios::out);
+    // file_id << id_str;
+    // file_id.close();
+
+    // Replace with ir names
+    auto end = get_replace_ir(scope_id, {}, scope_id.children, tokens, 0);
 
     // Rename
-    convert_global(tokens);
-
     tokens = get_renamed(tokens);
 
     // Add to output

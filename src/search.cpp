@@ -9,7 +9,7 @@ void update_history(i16& entry, int bonus) {
 
 // Shared states
 struct TTEntry {
-    u16 hash;
+    u16 key;
     u16 move;
     i16 score;
     u8 depth;
@@ -68,7 +68,7 @@ struct Thread {
         TTEntry& slot = TTABLE[board.hash >> TT_SHIFT];
         TTEntry tt {};
 
-        if (slot.hash == u16(board.hash)) {
+        if (slot.key == u16(board.hash)) {
             tt = slot;
 
             // Cutoff
@@ -100,7 +100,7 @@ struct Thread {
                 corrhist[board.stm][board.hash_non_pawn[BLACK] % CORRHIST_SIZE] / 256;
 
             // Use tt score as better eval
-            if (tt.hash && !excluded && tt.bound != tt.score < eval)
+            if (tt.key && !excluded && tt.bound != tt.score < eval)
                 eval = tt.score;
 
             // Improving
@@ -194,6 +194,7 @@ struct Thread {
             if (ply && best > -WIN && move_scores[i] < 1e6 && !board.see(move, -80 * depth))
                 continue;
 
+            // Singular extension
             int extension = 0;
 
             if (ply && depth > 7 && !excluded && move == tt.move && tt.depth > depth - 4 && tt.bound) {

@@ -153,6 +153,49 @@ const inline std::vector<std::string> KEYWORDS_SKIP = {
     "free"
 };
 
+const inline std::vector<std::string> KEYWORDS_STATEMENT = {
+    "if",
+    "for",
+    "while"
+};
+
+enum class ScopeType
+{
+    GLOBAL,
+    STRUCT,
+    FUNCTION,
+    STATEMENT,
+};
+
+struct Name
+{
+    std::string name;
+    size_t count;
+};
+
+struct NameID
+{
+    std::string name;
+    size_t id;
+};
+
+struct Scope
+{
+    ScopeType type;
+    std::string name;
+    std::vector<Name> names;
+    std::vector<Name> toplevels;
+    std::vector<Scope> children;
+};
+
+struct ScopeIR
+{
+    ScopeType type;
+    std::string name;
+    std::vector<NameID> names;
+    std::vector<ScopeIR> children;
+};
+
 // Check if is a word character
 inline bool is_word_character(char c)
 {
@@ -177,9 +220,89 @@ inline bool is_space(char c)
     return c == ' ' || c == '\t' || c == '\n' || c == '\r';
 };
 
+// Check if we're inside a string literal
 inline bool is_in_string(const std::vector<std::string>& tokens, size_t index) {
     return (tokens[index] == "\"" || tokens[index] == "\'") && (index < 1 || tokens[index - 1] != "\\");
 }
+
+// Check if a token is a name
+inline bool is_name(std::string token)
+{
+    return is_word_character(token.front()) && !isdigit(token.front());
+};
+
+// Check if it's in a list
+inline bool is_in_list(const std::vector<std::string>& list, std::string token)
+{
+    return std::find(list.begin(), list.end(), token) != list.end();
+};
+
+inline bool is_in_list(const std::vector<Name>& list, std::string token)
+{
+    for (auto& i : list) {
+        if (i.name == token) {
+            return true;
+        }
+    }
+
+    return false;
+};
+
+inline bool is_in_list(const std::vector<NameID>& list, std::string token)
+{
+    for (auto& i : list) {
+        if (i.name == token) {
+            return true;
+        }
+    }
+
+    return false;
+};
+
+// Check if it's a field from another struct
+inline bool is_field(const std::vector<std::string>& tokens, size_t index) {
+    return index > 0 && tokens[index - 1] == ".";
+}
+
+// Check if it's a statement
+inline bool is_statement(const std::vector<std::string>& tokens, size_t index)
+{
+    return is_in_list(KEYWORDS_STATEMENT, tokens[index]);
+};
+
+// Check if it's a struct
+inline bool is_struct(const std::vector<std::string>& tokens, size_t index)
+{
+    return index > 1 && tokens[index - 2] == "struct";
+};
+
+// Check if it's a function
+inline bool is_function(const std::vector<std::string>& tokens, size_t index)
+{
+    bool is_parentheses_after = index + 1 < tokens.size() && tokens[index + 1] == "(";
+
+    if (!is_parentheses_after) {
+        return false;
+    }
+
+    int parenth_scope = 0;
+
+    for (size_t i = index; i + 1 < tokens.size(); i++) {
+        if (tokens[i] == "(") {
+            parenth_scope += 1;
+        }
+
+        if (tokens[i] == ")") {
+            parenth_scope -= 1;
+
+            if (parenth_scope <= 0) {
+                return tokens[i + 1] == "{";
+            }
+        }
+    }
+
+    return false;
+};
 
 // Get name
 inline std::string get_name(size_t index)
@@ -195,14 +318,12 @@ inline std::string get_name(size_t index)
         CHARACTERS.push_back('A' + i);
     }
 
-    CHARACTERS.push_back('_');
-
     for (int i = 0; i < 10; i++) {
         CHARACTERS.push_back('0' + i);
     }
 
-    const size_t FIRST_CHAR_COUNT = 26 + 26 + 1;
-    const size_t REMAIN_CHAR_COUNT = 26 + 26 + 1 + 10;
+    const size_t FIRST_CHAR_COUNT = 26 + 26;
+    const size_t REMAIN_CHAR_COUNT = 26 + 26 + 10;
 
     // Init all 1 letter, 2 letters names
     std::vector<std::string> NAMES;
@@ -656,150 +777,61 @@ inline std::vector<std::string> get_removed_spaces(std::vector<std::string> toke
     return result;
 };
 
-// Get custom types defined by user
-inline std::vector<std::string> get_custom_types(std::vector<std::string> tokens)
+// Get all the names in the parent scope and this scope
+inline std::vector<Name> get_globals(Scope& scope, std::vector<Name> parent_globals)
 {
-    std::vector<std::string> result;
+    for (auto& name : scope.names) {
+        parent_globals.push_back(name);
+    }
 
-    // Iterate tokens
-    for (size_t index = 0; index < tokens.size(); index++) {
-        // Get token
-        auto& token = tokens[index];
+    return parent_globals;
+};
 
-        // Skip non word
-        if (!is_word_character(token.front()) || isdigit(token.front())) {
-            continue;
-        }
-
-        // Find new types
-        std::optional<std::string> new_type = {};
-
-        // Case struct
-        if (token == "struct") {
-            new_type = tokens[index + 2];
-        }
-
-        // Case typedef
-        if (token == "typedef") {
-            new_type = tokens[index + 4];
-        }
-
-        // Failed to find new type
-        if (!new_type.has_value()) {
-            continue;
-        }
-
-        // Check if exist
+// Push top level names used in the child scope to this scope
+inline void push_child_toplevels(Scope& scope, Scope& child)
+{
+    for (auto& child_toplevel : child.toplevels) {
         bool found = false;
 
-        for (auto& type : result) {
-            if (type == new_type.value()) {
+        for (auto& toplevel : scope.toplevels) {
+            if (toplevel.name == child_toplevel.name) {
+                toplevel.count += child_toplevel.count;
+                found = true;
+                break;
+            }
+        }
+
+        for (auto& name : scope.names) {
+            if (name.name == child_toplevel.name) {
+                name.count += child_toplevel.count;
                 found = true;
                 break;
             }
         }
 
         if (!found) {
-            result.push_back(new_type.value());
+            scope.toplevels.push_back(child_toplevel);
         }
     }
-
-    return result;
 };
 
-// Map name to frequency
-struct NameFreq
+// Get the scope tree of the c++ source file
+inline std::pair<Scope, size_t> get_scope(ScopeType type, std::string name, std::vector<Name> globals, std::vector<Scope>& structs, size_t index, std::vector<std::string> tokens)
 {
-    std::string name;
-    size_t count;
-};
+    Scope scope;
+    size_t end;
 
-// Map name to IR
-struct NameIR
-{
-    std::string name;
-    std::string ir;
-};
+    scope.type = type;
+    scope.name = name;
+    scope.names.clear();
+    scope.toplevels.clear();
+    scope.children.clear();
 
-// Check if a token is a name
-inline bool is_name(std::string token)
-{
-    return is_word_character(token.front()) && !isdigit(token.front());
-};
-
-// Check if it's in a list
-inline bool is_in_list(const std::vector<std::string>& list, std::string token)
-{
-    return std::find(list.begin(), list.end(), token) != list.end();
-};
-
-inline bool is_in_list(const std::vector<NameFreq>& list, std::string token)
-{
-    for (auto& i : list) {
-        if (i.name == token) {
-            return true;
-        }
-    }
-
-    return false;
-};
-
-inline bool is_in_list(const std::vector<NameIR>& list, std::string token)
-{
-    for (auto& i : list) {
-        if (i.name == token) {
-            return true;
-        }
-    }
-
-    return false;
-};
-
-// Check if it's a function
-inline bool is_function(const std::vector<std::string>& tokens, size_t index)
-{
-    // bool is_identifier_before = index > 1 && is_name(tokens[index - 2]);
-    bool is_parentheses_after = index + 1 < tokens.size() && tokens[index + 1] == "(";
-
-    // if (!is_identifier_before || !is_parentheses_after) {
-    if (!is_parentheses_after) {
-        return false;
-    }
-
-    int parenth_scope = 0;
-
-    for (size_t i = index; i + 1 < tokens.size(); i++) {
-        if (tokens[i] == "(") {
-            parenth_scope += 1;
-        }
-
-        if (tokens[i] == ")") {
-            parenth_scope -= 1;
-
-            if (parenth_scope <= 0 && tokens[i + 1] == "{") {
-                return true;
-            }
-        }
-    }
-
-    return false;
-};
-
-// Convert arguments and variables in function to IRs
-inline size_t convert_function(std::vector<std::string>& tokens, std::vector<NameIR> globals, size_t start)
-{
-    std::vector<NameFreq> arguments_freq;
-    std::vector<NameFreq> variables_freq;
-
-    int counter_scope = 0;
-    int parenth_score = 0;
+    int scope_counter = 0;
     bool is_string = false;
-    bool is_inside = false;
 
-    size_t end = tokens.size();
-
-    // Collect stats
-    for (size_t i = start; i < tokens.size(); i++) {
+    // Iterate token
+    for (size_t i = index; i < tokens.size(); ++i) {
         auto& token = tokens[i];
 
         // Check if in string
@@ -811,203 +843,21 @@ inline size_t convert_function(std::vector<std::string>& tokens, std::vector<Nam
             continue;
         }
 
-        // Check if inside the function body
-        if (token == "(") {
-            parenth_score += 1;
-        }
-
-        if (token == ")") {
-            parenth_score -= 1;
-
-            if (parenth_score <= 0) {
-                is_inside = true;
-            }
-        }
-
         // Check scope
         if (token == "{") {
-            counter_scope += 1;
+            scope_counter += 1;
         }
 
         if (token == "}") {
-            counter_scope -= 1;
+            scope_counter -= 1;
 
-            if (counter_scope <= 0) {
+            if (scope_counter <= 0 && type != ScopeType::GLOBAL) {
                 end = i;
                 break;
             }
         }
 
-        // Skip non word
-        if (!is_name(token)) {
-            continue;
-        }
-
-        // Skip special keyword
-        if (is_in_list(KEYWORDS, token) || is_in_list(KEYWORDS_SKIP, token)) {
-            continue;
-        }
-
-        // Skip if this is a global variable
-        if (is_in_list(globals, token)) {
-            continue;
-        }
-
-        // Collect arguments
-        if (!is_inside) {
-            arguments_freq.push_back(NameFreq {
-                .name = token,
-                .count = 1
-            });
-
-            continue;
-        }
-
-        // Argument
-        bool is_argument = false;
-
-        for (auto& arg : arguments_freq) {
-            if (arg.name == token) {
-                arg.count += 1;
-                is_argument = true;
-                break;
-            }
-        }
-
-        if (is_argument) {
-            continue;
-        }
-
-        // Variable
-        variables_freq.push_back(NameFreq {
-            .name = token,
-            .count = 1
-        });
-    }
-
-    // Error
-    if (end >= tokens.size()) {
-        std::cout << "ERROR: function rename at " << start << std::endl;
-
-        return start;
-    }
-
-    // Sort
-    if (!arguments_freq.empty()) {
-        std::sort(
-            arguments_freq.begin(),
-            arguments_freq.end(),
-            [] (const NameFreq& a, const NameFreq& b) {
-                return a.count > b.count;
-            }
-        );
-    }
-
-    if (!variables_freq.empty()) {
-        std::sort(
-            variables_freq.begin(),
-            variables_freq.end(),
-            [] (const NameFreq& a, const NameFreq& b) {
-                return a.count > b.count;
-            }
-        );
-    }
-
-    // Add to list
-    std::vector<NameIR> arguments;
-    std::vector<NameIR> variables;
-
-    for (size_t i = 0; i < arguments_freq.size(); i++) {
-        arguments.push_back(NameIR {
-            .name = arguments_freq[i].name,
-            .ir = std::string("arg_") + std::to_string(i)
-        }); 
-    }
-
-    for (size_t i = 0; i < variables_freq.size(); i++) {
-        variables.push_back(NameIR {
-            .name = variables_freq[i].name,
-            .ir = std::string("var_") + std::to_string(i)
-        }); 
-    }
-
-    // Rename
-    is_string = false;
-
-    for (size_t i = start; i < end; i++) {
-        auto& token = tokens[i];
-
-        // Check if in string
-        if (is_in_string(tokens, i)) {
-            is_string = !is_string;
-        }
-
-        if (is_string) {
-            continue;
-        }
-
-        // Skip non word
-        if (!is_name(token)) {
-            continue;
-        }
-
-        // Skip special keyword
-        if (is_in_list(KEYWORDS, token) || is_in_list(KEYWORDS_SKIP, token)) {
-            continue;
-        }
-
-        // Global name
-        if (is_in_list(globals, token)) {
-            for (auto& g : globals) {
-                if (g.name == token) {
-                    token = g.ir;
-                    break;
-                }
-            }
-        }
-        // Argument
-        else if (is_in_list(arguments, token)) {
-            for (auto& a : arguments) {
-                if (a.name == token) {
-                    token = a.ir;
-                    break;
-                }
-            }
-        }
-        // Variable
-        else if (is_in_list(variables, token)) {
-            for (auto& v : variables) {
-                if (v.name == token) {
-                    token = v.ir;
-                    break;
-                }
-            }
-        }
-    }
-
-    return end;
-};
-
-inline void convert_global(std::vector<std::string>& tokens)
-{
-    std::vector<NameIR> globals;
-
-    bool is_string = false;
-
-    for (size_t i = 0; i < tokens.size(); i++) {
-        // Get token
-        auto& token = tokens[i];
-
-        // Check if in string
-        if (is_in_string(tokens, i)) {
-            is_string = !is_string;
-        }
-
-        if (is_string) {
-            continue;
-        }
-
-        // Skip non word
+        // Skip non word or if in string
         if (!is_name(token)) {
             continue;
         }
@@ -1017,44 +867,401 @@ inline void convert_global(std::vector<std::string>& tokens)
             continue;
         }
 
-        // Don't push new name if this is "main"
-        if (token != "main") {
-            // Check if this name exist
+        // Check if this is a global name
+        if (is_in_list(globals, token)) {
             bool found = false;
 
-            for (auto& name : globals) {
-                if (token == name.name) {
-                    token = name.ir;
+            for (auto& toplevel : scope.toplevels) {
+                if (toplevel.name == token) {
+                    toplevel.count += 1;
                     found = true;
                     break;
                 }
             }
 
-            // Push new name
             if (!found) {
-                auto new_ir = std::string("name_") + std::to_string(globals.size());
-
-                globals.push_back(NameIR {
+                scope.toplevels.push_back(Name {
                     .name = token,
-                    .ir = new_ir
+                    .count = 1
                 });
+            }
+        }
+        // Check if we've found this name before in this scope
+        else if (is_in_list(scope.names, token)) {
+            for (auto& variable : scope.names) {
+                if (variable.name == token) {
+                    variable.count += 1;
+                    break;
+                }
+            }
+        }
+        // Check if this is another struct's field or method
+        else if (is_field(tokens, i)) {
+            auto& structs_list = type == ScopeType::GLOBAL ? scope.children : structs;
 
-                token = new_ir;
+            for (auto& a_struct : structs_list) {
+                if (a_struct.type != ScopeType::STRUCT) {
+                    continue;
+                }
+
+                bool found = false;
+
+                for (auto& field : a_struct.names) {
+                    if (field.name == token) {
+                        field.count += 1;
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (found) {
+                    break;
+                }
+            }
+        }
+        // New name
+        else {
+            scope.names.push_back(Name {
+                .name = token,
+                .count = 1
+            });
+        }
+
+        // Check if this is a statement: if, for, while
+        if (is_statement(tokens, i)) {
+            auto& structs_list = type == ScopeType::GLOBAL ? scope.children : structs;
+
+            auto [child, child_end] = get_scope(ScopeType::STATEMENT, "", get_globals(scope, globals), structs_list, i + 1, tokens);
+
+            push_child_toplevels(scope, child);
+
+            scope.children.push_back(child);
+
+            i = child_end;
+        }
+        // Check if this is a function
+        else if (is_function(tokens, i)) {
+            auto& structs_list = type == ScopeType::GLOBAL ? scope.children : structs;
+
+            auto [child, child_end] = get_scope(ScopeType::FUNCTION, token, get_globals(scope, globals), structs_list, i + 1, tokens);
+
+            push_child_toplevels(scope, child);
+
+            scope.children.push_back(child);
+
+            i = child_end;
+        }
+        // Check if this a struct
+        else if (is_struct(tokens, i)) {
+            auto& structs_list = type == ScopeType::GLOBAL ? scope.children : structs;
+
+            auto [child, child_end] = get_scope(ScopeType::STRUCT, token, get_globals(scope, globals), structs_list, i + 1, tokens);
+
+            push_child_toplevels(scope, child);
+
+            scope.children.push_back(child);
+
+            i = child_end;
+        }
+    }
+
+    return { scope, end };
+};
+
+// Print the scope tree to a string
+std::string print_scope(Scope& scope, int level)
+{
+    std::string str;
+
+    std::string indent;
+
+    for (int i = 0; i < level; ++i) {
+        indent += "    ";
+    }
+
+    str += indent + "type: " + std::to_string(int(scope.type)) + "\n";
+
+    str += indent + "name: " + scope.name + "\n";
+
+    str += indent + "names: {\n";
+
+    for (auto& name : scope.names) {
+        str += indent + "    " + name.name + ": " + std::to_string(name.count) + "\n";
+    }
+
+    str += indent + "}\n";
+    
+    str += indent + "child: {\n";
+    
+    for (auto& child : scope.children) {
+        str += print_scope(child, level + 1);
+    }
+
+    str += indent + "}\n";
+
+    str += indent + "top lvl: {\n";
+
+    for (auto& toplvl : scope.toplevels) {
+        str += indent + "    " + toplvl.name + ": " + std::to_string(toplvl.count) + "\n";
+    }
+    
+    str += indent + "}\n\n";
+
+    return str;
+};
+
+// Get all the names' id in the scope tree
+ScopeIR get_scope_id(Scope& scope, std::vector<NameID> toplevels)
+{
+    ScopeIR result;
+
+    result.type = scope.type;
+    result.name = scope.name;
+    result.names.clear();
+    result.children.clear();
+
+    // Sort the names of this scope based on how many times they're used
+    if (!scope.names.empty()) {
+        std::stable_sort(
+            scope.names.begin(),
+            scope.names.end(),
+            [] (const Name& a, const Name& b) {
+                return a.count > b.count;
+            }
+        );
+    }
+
+    // Get all the used ids that are used by top level names
+    std::vector<size_t> used_ids;
+
+    for (auto& toplvl_used : scope.toplevels) {
+        for (auto& toplvl_id : toplevels) {
+            if (toplvl_used.name == toplvl_id.name) {
+                used_ids.push_back(toplvl_id.id);
+                break;
+            }
+        }
+    }
+
+    // Get id
+    size_t id = 0;
+
+    for (auto& name : scope.names) {
+        // Find new id
+        while (true)
+        {
+            bool found = false;
+
+            // Check if this id is used before
+            for (auto used : used_ids) {
+                if (used == id) {
+                    found = true;
+                    id += 1;
+                    break;
+                }
+            }
+
+            if (!found) {
+                break;
             }
         }
 
-        // Check if this is a function
-        if (is_function(tokens, i)) {
-            i = convert_function(tokens, globals, i + 1);
+        // Push new id
+        result.names.push_back(NameID {
+            .name = name.name,
+            .id = id
+        });
+
+        // Update new id
+        id += 1;
+    }
+
+    // Get the child scope top levels
+    auto child_toplevels = toplevels;
+
+    for (auto& name : result.names) {
+        child_toplevels.push_back(name);
+    }
+
+    // Push new child scope
+    for (auto& child : scope.children) {
+        result.children.push_back(get_scope_id(child, child_toplevels));
+    }
+
+    return result;
+};
+
+std::string print_scope_id(ScopeIR& scope_id, int level)
+{
+    std::string str;
+
+    std::string indent;
+
+    for (int i = 0; i < level; ++i) {
+        indent += "    ";
+    }
+
+    str += indent + "type: " + std::to_string(int(scope_id.type)) + "\n";
+    str += indent + "name: " + scope_id.name + "\n";
+
+    str += indent + "names: {\n";
+
+    for (auto& name : scope_id.names) {
+        str += indent + "    " + name.name + ": " + std::to_string(name.id) + "\n";
+    }
+
+    str += indent + "}\n";
+    
+    str += indent + "child: {\n";
+    
+    for (auto& child : scope_id.children) {
+        str += print_scope_id(child, level + 1);
+    }
+    
+    str += indent + "}\n\n";
+
+    return str;
+};
+
+// Replace names with intermediate representation
+size_t get_replace_ir(ScopeIR& scope_id, std::vector<NameID> globals, std::vector<ScopeIR>& structs, std::vector<std::string>& tokens, size_t index)
+{
+    size_t end;
+
+    // Get all the names from previous scope and this scope
+    auto child_globals = globals;
+
+    for (auto& name : scope_id.names) {
+        child_globals.push_back(name);
+    }
+
+    // Iterate tokens
+    int scope_counter = 0;
+    int scope_index = 0;
+    bool is_string = false;
+
+    for (size_t i = index; i < tokens.size(); ++i) {
+        auto& token = tokens[i];
+
+        // Check if in string
+        if (is_in_string(tokens, i)) {
+            is_string = !is_string;
+        }
+
+        if (is_string) {
             continue;
         }
-    }
-}
 
-// Rename
+        // Check scope
+        if (token == "{") {
+            scope_counter += 1;
+        }
+
+        if (token == "}") {
+            scope_counter -= 1;
+
+            if (scope_counter <= 0 && scope_id.type != ScopeType::GLOBAL) {
+                end = i;
+                break;
+            }
+        }
+
+        // Skip non word or if in string
+        if (!is_name(token)) {
+            continue;
+        }
+
+        // Skip special keyword except "main"
+        if ((is_in_list(KEYWORDS, token) || is_in_list(KEYWORDS_SKIP, token)) && token != "main") {
+            continue;
+        }
+
+        // Check if this is another struct's field or method
+        if (is_field(tokens, i)) {
+            for (auto& a_struct : structs) {
+                if (a_struct.type != ScopeType::STRUCT) {
+                    continue;
+                }
+
+                bool found = false;
+
+                for (auto& field : a_struct.names) {
+                    if (field.name == token) {
+                        token = std::string("name_") + std::to_string(field.id);
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (found) {
+                    break;
+                }
+            }
+        }
+        // Check if this is a top level name
+        else if (is_in_list(globals, token) && token != "main") {
+            for (auto& name : globals) {
+                if (name.name == token) {
+                    token = std::string("name_") + std::to_string(name.id);
+                    break;
+                }
+            }
+        }
+        // Check if we've found this name before in this scope
+        else if (is_in_list(scope_id.names, token) && token != "main") {
+            for (auto& name : scope_id.names) {
+                if (name.name == token) {
+                    token = std::string("name_") + std::to_string(name.id);
+                    break;
+                }
+            }
+        }
+        // New name
+        else if (token != "main") {
+            std::cout << "ERROR: Unknown indentifier " << token << std::endl;
+        }
+
+        // Check if this is a statement: if, for, while
+        if (is_statement(tokens, i)) {
+            if (scope_id.children[scope_index].type != ScopeType::STATEMENT) {
+                std::cout << "ERROR: Wrong scope type " << int(scope_id.children[scope_index].type) << ", expected " << int(ScopeType::STATEMENT) << std::endl;
+            }
+
+            auto child_end = get_replace_ir(scope_id.children[scope_index], child_globals, structs, tokens, i + 1);
+
+            scope_index += 1;
+            i = child_end;
+        }
+        // Check if this is a function
+        else if (is_function(tokens, i)) {
+            if (scope_id.children[scope_index].type != ScopeType::FUNCTION) {
+                std::cout << "ERROR: Wrong scope type " << int(scope_id.children[scope_index].type) << ", expected " << int(ScopeType::FUNCTION) << std::endl;
+            }
+
+            auto child_end = get_replace_ir(scope_id.children[scope_index], child_globals, structs, tokens, i + 1);
+
+            scope_index += 1;
+            i = child_end;
+        }
+        // Check if this a struct
+        else if (is_struct(tokens, i)) {
+            if (scope_id.children[scope_index].type != ScopeType::STRUCT) {
+                std::cout << "ERROR: Wrong scope type " << int(scope_id.children[scope_index].type) << ", expected " << int(ScopeType::STRUCT) << std::endl;
+            }
+
+            auto child_end = get_replace_ir(scope_id.children[scope_index], child_globals, structs, tokens, i + 1);
+
+            scope_index += 1;
+            i = child_end;
+        }
+    }
+
+    return end;
+};
+
 inline std::vector<std::string> get_renamed(std::vector<std::string> tokens)
 {
-    std::vector<NameFreq> names;
+    std::vector<Name> names;
 
     // Iterate all tokens
     bool is_string = false;
@@ -1089,7 +1296,7 @@ inline std::vector<std::string> get_renamed(std::vector<std::string> tokens)
         }
 
         if (!found) {
-            names.push_back(NameFreq {
+            names.push_back(Name {
                 .name = token,
                 .count = 1
             });
@@ -1101,7 +1308,7 @@ inline std::vector<std::string> get_renamed(std::vector<std::string> tokens)
         std::sort(
             names.begin(),
             names.end(),
-            [] (const NameFreq& a, const NameFreq& b) {
+            [] (const Name& a, const Name& b) {
                 return a.count > b.count;
             }
         );
