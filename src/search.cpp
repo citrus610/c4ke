@@ -199,7 +199,9 @@ struct Thread {
 
             if (ply && depth > 7 && !excluded && move == tt.move && tt.depth > depth - 4 && tt.bound) {
                 int singular_beta = tt.score - depth * 2;
-                extension = search(board, singular_beta - 1, singular_beta, ply, (depth - 1) / 2, FALSE, FALSE, move) < singular_beta;
+                int singular_score = search(board, singular_beta - 1, singular_beta, ply, (depth - 1) / 2, FALSE, FALSE, move);
+
+                extension = (singular_score < singular_beta) + (!is_pv && singular_score + 16 < singular_beta);
             }
 
             // Make
