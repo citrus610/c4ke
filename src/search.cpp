@@ -124,6 +124,7 @@ struct Thread {
 
                     child.stm ^= 1;
                     child.hash ^= KEYS[PIECE_NONE][0];
+                    child.hash ^= KEYS[PIECE_NONE][board.enpassant];
                     child.enpassant = SQUARE_NONE;
 
                     stack_conthist[ply + 2] = conthist[WHITE_PAWN];
