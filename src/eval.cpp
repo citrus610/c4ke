@@ -22,9 +22,9 @@ int MATERIAL[] = { S(89, 147), S(350, 521), S(361, 521), S(479, 956), S(1046, 17
 
 #define TEMPO 20
 
-#define DATA_STR "/,,.04//-/02341 /11111.%/.--/101121//.+-.0.+.444#\"#$%&&# #$&&&%#\"$%$%$&#\"#$%&%%#\"##$$%&%\"&#  \"&$%-,(( \"\"! $%' !\"#%*/ RRpk++**+.++&(*./,+,)*+++++-(()+--., #(-002/%)+.0/-%&&%$%%%%\"$&((%$\"$%%&&&%$%&&%$%%$\"$%&''%$ $&'''$ !&(&#  \"$&*4>  !\"*/4 9R9 "
+#define DATA_STR "/,,.04//-/02341 /11111.%/.--/101121//.+-.0.+.444#\"#$%&&# #$&&&%#\"$%$%$&#\"#$%&%%#\"##$$%&%\"&#  \"&$%-,(( \"\"! $%' !\"#%*/ RRpk 4999++**+.++&(*./,+,)*+++++-(()+--., #(-002/%)+.0/-%&&%$%%%%\"$&((%$\"$%%&&&%$%&&%$%%$\"$%&''%$ $&'''$ !&(&#  \"$&*4>  !\"*/4 9R9      "
 
-#define INDEX_EG 121
+#define INDEX_EG 126
 
 #define INDEX_PST_RANK 0
 #define INDEX_PST_FILE 48
@@ -32,6 +32,7 @@ int MATERIAL[] = { S(89, 147), S(350, 521), S(361, 521), S(479, 956), S(1046, 17
 #define INDEX_PASSER 102
 #define INDEX_PHALANX 109
 #define INDEX_THREAT 116
+#define INDEX_KING_ATTACK 121
 
 #define OFFSET_PST_RANK S(-15, -11)
 #define OFFSET_PST_FILE S(-4, -5)
@@ -39,6 +40,7 @@ int MATERIAL[] = { S(89, 147), S(350, 521), S(361, 521), S(479, 956), S(1046, 17
 #define OFFSET_PASSER S(-2, 0)
 #define OFFSET_PHALANX S(0, 0)
 #define OFFSET_THREAT S(0, 0)
+#define OFFSET_KING_ATTACK S(0, 0)
 
 int get_data(int index) {
     auto data = DATA_STR;
