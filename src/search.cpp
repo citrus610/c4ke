@@ -176,6 +176,7 @@ struct Thread {
 
             u16 move = move_list[i];
 
+            // Skip excluded move in singularity search
             if (move == excluded)
                 continue;
 

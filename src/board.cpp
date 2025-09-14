@@ -1,40 +1,6 @@
 #include "eval.cpp"
 
-int LAYOUT[] = { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK };
-
-void add_pawn_moves(u16 list[], int& count, u64 targets, int offset) {
-    while (targets) {
-        int to = LSB(targets);
-        int from = to - offset;
-
-        targets &= targets - 1;
-
-        if (to < 8 || to > 55) {
-            list[count++] = move_make(from, to, KNIGHT);
-            list[count++] = move_make(from, to, BISHOP);
-            list[count++] = move_make(from, to, ROOK);
-            list[count++] = move_make(from, to, QUEEN);
-        }
-        else
-            list[count++] = move_make(from, to);
-    }
-}
-
-void add_moves(u16 list[], int& count, u64 mask, u64 targets, u64 occupied, u64 (*func)(u64, u64)) {
-    while (mask) {
-        int from = LSB(mask);
-        mask &= mask - 1;
-
-        u64 attack = func(1ull << from, occupied) & targets;
-
-        while (attack) {
-            int to = LSB(attack);
-            attack &= attack - 1;
-
-            list[count++] = move_make(from, to);
-        }
-    }
-}
+int LAYOUT[] { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK };
 
 struct Board {
     u64 pieces[6];
@@ -152,7 +118,7 @@ struct Board {
 
         if (piece < WHITE_KNIGHT && to == enpassant) {
             edit(to ^ 8, PIECE_NONE);
-            hash ^= KEYS[PIECE_NONE][to];
+            hash ^= KEYS[PIECE_NONE][enpassant];
         }
 
         enpassant = piece < WHITE_KNIGHT ? abs(from - to) == 16 ? to ^ 8 : SQUARE_NONE : SQUARE_NONE;
@@ -192,6 +158,38 @@ struct Board {
 
         // Check if not legal
         return attackers(LSB(pieces[KING] & colors[!stm])) & colors[stm];
+    }
+
+    void add_pawn_moves(u16 list[], int& count, u64 targets, int offset) {
+        while (targets) {
+            int to = LSB(targets);
+            targets &= targets - 1;
+
+            if (to < 8 || to > 55) {
+                list[count++] = move_make(to - offset, to, KNIGHT);
+                list[count++] = move_make(to - offset, to, BISHOP);
+                list[count++] = move_make(to - offset, to, ROOK);
+                list[count++] = move_make(to - offset, to, QUEEN);
+            }
+            else
+                list[count++] = move_make(to - offset, to);
+        }
+    }
+
+    void add_moves(u16 list[], int& count, u64 mask, u64 targets, u64 occupied, u64 (*func)(u64, u64)) {
+        while (mask) {
+            int from = LSB(mask);
+            mask &= mask - 1;
+
+            u64 attack = func(1ull << from, occupied) & targets;
+
+            while (attack) {
+                int to = LSB(attack);
+                attack &= attack - 1;
+
+                list[count++] = move_make(from, to);
+            }
+        }
     }
 
     int movegen(u16 list[], int is_all) {
