@@ -183,7 +183,7 @@ struct Thread {
             int is_quiet = board.quiet(move);
 
             // Quiet pruning and SEE pruning in qsearch
-            if (!depth && best > -WIN && (is_quiet || move_scores[i] < -1e6))
+            if (!depth && best > -WIN && move_scores[i] < 1e6)
                 break;
 
             // Late move pruning
@@ -201,7 +201,10 @@ struct Thread {
                 int singular_beta = tt.score - depth * 2;
                 int singular_score = search(board, singular_beta - 1, singular_beta, ply, (depth - 1) / 2, FALSE, FALSE, move);
 
-                extension = (singular_score < singular_beta) + (!is_pv && singular_score + 16 < singular_beta);
+                if (singular_score < singular_beta)
+                    extension = 1 + (!is_pv && singular_score + 16 < singular_beta);
+                else if (singular_score >= beta)
+                    return singular_score;
             }
 
             // Make
