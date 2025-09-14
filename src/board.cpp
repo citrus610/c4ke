@@ -249,6 +249,9 @@ struct Board {
             // Pawn protected
             eval += POPCNT(pawns[color] & pawns_attacks) * PAWN_PROTECTED;
 
+            // Pawn doubled
+            eval -= POPCNT(pawns[color] & (north(pawns[color]) | north(north(pawns[color])))) * PAWN_DOUBLED;
+
             for (int type = PAWN; type < TYPE_NONE; type++) {
                 u64 mask = pieces[type] & colors[color];
 
