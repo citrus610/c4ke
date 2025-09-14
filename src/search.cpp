@@ -179,8 +179,10 @@ struct Thread {
             if (move == excluded)
                 continue;
 
-            // Check if quiet
+            // Search data
             int is_quiet = board.quiet(move);
+            int depth_next = depth - 1;
+            int score;
 
             // Quiet pruning and SEE pruning in qsearch
             if (!depth && best > -WIN && move_scores[i] < 1e6)
@@ -195,14 +197,12 @@ struct Thread {
                 continue;
 
             // Singular extension
-            int extension = 0;
-
             if (ply && depth > 7 && !excluded && move == tt.move && tt.depth > depth - 4 && tt.bound) {
                 int singular_beta = tt.score - depth * 2;
                 int singular_score = search(board, singular_beta - 1, singular_beta, ply, (depth - 1) / 2, FALSE, FALSE, move);
 
                 if (singular_score < singular_beta)
-                    extension = 1 + (!is_pv && singular_score + 16 < singular_beta);
+                    depth_next += 1 + (!is_pv && singular_score + 16 < singular_beta);
                 else if (singular_score >= beta)
                     return singular_score;
             }
@@ -217,10 +217,6 @@ struct Thread {
 
             stack_conthist[ply + 2] = &conthist[board.board[move_from(move)]][move_to(move)];
             visited[visited_count++] = board.hash;
-
-            // Search
-            int depth_next = depth - 1 + extension;
-            int score;
 
             // Don't do zero window search for qsearch
             // Late move reduction
