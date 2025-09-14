@@ -222,10 +222,8 @@ struct Board {
 
         // Castling
         if (is_all && !checkers) {
-            int castling_rights = ~castled >> stm * 2;
-
-            if (castling_rights & 1 && !(occupied & 0x60ull << stm * 56)) list[count++] = move_make(E1 + stm * 56, G1 + stm * 56);
-            if (castling_rights & 2 && !(occupied & 0xeull << stm * 56)) list[count++] = move_make(E1 + stm * 56, C1 + stm * 56);
+            if (~castled >> stm * 2 & 1 && !(occupied & 0x60ull << stm * 56)) list[count++] = move_make(E1 + stm * 56, G1 + stm * 56);
+            if (~castled >> stm * 2 & 2 && !(occupied & 0xeull << stm * 56)) list[count++] = move_make(E1 + stm * 56, C1 + stm * 56);
         }
 
         return count;
