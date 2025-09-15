@@ -201,11 +201,11 @@ struct Board {
 
         // Pawn
         u64 pawns = pieces[PAWN] & colors[stm];
-        u64 pawns_push = (stm ? south(pawns) : north(pawns)) & ~occupied & (is_all ? ~0ull : 0xff000000000000ffull);
+        u64 pawns_push = (stm ? south(pawns) : north(pawns)) & ~occupied & (is_all ? ~0ull : 0xff000000000000ff);
         u64 pawns_targets = colors[!stm] | u64(enpassant < SQUARE_NONE) << enpassant;
 
         add_pawn_moves(list, count, pawns_push, stm ? -8 : 8);
-        add_pawn_moves(list, count, (stm ? south(pawns_push & 0xff0000000000ull) : north(pawns_push & 0xff0000ull)) & ~occupied, stm ? -16 : 16);
+        add_pawn_moves(list, count, (stm ? south(pawns_push & 0xff0000000000) : north(pawns_push & 0xff0000ull)) & ~occupied, stm ? -16 : 16);
         add_pawn_moves(list, count, (stm ? se(pawns) : nw(pawns)) & pawns_targets, stm ? -7 : 7);
         add_pawn_moves(list, count, (stm ? sw(pawns) : ne(pawns)) & pawns_targets, stm ? -9 : 9);
 
@@ -271,7 +271,7 @@ struct Board {
                             eval += (get_data(square / 8 + INDEX_PHALANX) + OFFSET_PHALANX) * SCALE_PHALANX;
 
                         // Passed pawns
-                        if (!(0x101010101010101ull << square & (pawns_them | pawns_threats)))
+                        if (!(0x101010101010101 << square & (pawns_them | pawns_threats)))
                             eval += (get_data(square / 8 + INDEX_PASSER) + OFFSET_PASSER) * SCALE_PASSER;
                     }
                     else {
@@ -285,11 +285,11 @@ struct Board {
                         eval += (get_data(type + INDEX_MOBILITY) + OFFSET_MOBILITY) * POPCNT(mobility & ~colors[color] & ~pawns_threats);
 
                         // Open file
-                        if (!(0x101010101010101ull << square % 8 & pieces[PAWN]))
+                        if (!(0x101010101010101 << square % 8 & pieces[PAWN]))
                             eval += (type > QUEEN) * KING_OPEN + (type == ROOK) * ROOK_OPEN;
 
                         // Semi open file
-                        if (!(0x101010101010101ull << square % 8 & pawns_us))
+                        if (!(0x101010101010101 << square % 8 & pawns_us))
                             eval += (type > QUEEN) * KING_SEMI_OPEN + (type == ROOK) * ROOK_SEMI_OPEN;
 
                         // Pawn shield
