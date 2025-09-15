@@ -318,12 +318,14 @@ inline std::string get_name(size_t index)
         CHARACTERS.push_back('A' + i);
     }
 
+    CHARACTERS.push_back('_');
+
     for (int i = 0; i < 10; i++) {
         CHARACTERS.push_back('0' + i);
     }
 
-    const size_t FIRST_CHAR_COUNT = 26 + 26;
-    const size_t REMAIN_CHAR_COUNT = 26 + 26 + 10;
+    const size_t FIRST_CHAR_COUNT = 26 + 26 + 1;
+    const size_t REMAIN_CHAR_COUNT = 26 + 26 + 1 + 10;
 
     // Init all 1 letter, 2 letters names
     std::vector<std::string> NAMES;
@@ -928,19 +930,20 @@ inline std::pair<Scope, size_t> get_scope(ScopeType type, std::string name, std:
         }
 
         // Check if this is a statement: if, for, while
-        if (is_statement(tokens, i)) {
-            auto& structs_list = type == ScopeType::GLOBAL ? scope.children : structs;
+        // if (is_statement(tokens, i)) {
+        //     auto& structs_list = type == ScopeType::GLOBAL ? scope.children : structs;
 
-            auto [child, child_end] = get_scope(ScopeType::STATEMENT, "", get_globals(scope, globals), structs_list, i + 1, tokens);
+        //     auto [child, child_end] = get_scope(ScopeType::STATEMENT, "", get_globals(scope, globals), structs_list, i + 1, tokens);
 
-            push_child_toplevels(scope, child);
+        //     push_child_toplevels(scope, child);
 
-            scope.children.push_back(child);
+        //     scope.children.push_back(child);
 
-            i = child_end;
-        }
+        //     i = child_end;
+        // }
         // Check if this is a function
-        else if (is_function(tokens, i)) {
+        // else if (is_function(tokens, i)) {
+        if (is_function(tokens, i)) {
             auto& structs_list = type == ScopeType::GLOBAL ? scope.children : structs;
 
             auto [child, child_end] = get_scope(ScopeType::FUNCTION, token, get_globals(scope, globals), structs_list, i + 1, tokens);
@@ -1222,18 +1225,19 @@ size_t get_replace_ir(ScopeIR& scope_id, std::vector<NameID> globals, std::vecto
         }
 
         // Check if this is a statement: if, for, while
-        if (is_statement(tokens, i)) {
-            if (scope_id.children[scope_index].type != ScopeType::STATEMENT) {
-                std::cout << "ERROR: Wrong scope type " << int(scope_id.children[scope_index].type) << ", expected " << int(ScopeType::STATEMENT) << std::endl;
-            }
+        // if (is_statement(tokens, i)) {
+        //     if (scope_id.children[scope_index].type != ScopeType::STATEMENT) {
+        //         std::cout << "ERROR: Wrong scope type " << int(scope_id.children[scope_index].type) << ", expected " << int(ScopeType::STATEMENT) << std::endl;
+        //     }
 
-            auto child_end = get_replace_ir(scope_id.children[scope_index], child_globals, structs, tokens, i + 1);
+        //     auto child_end = get_replace_ir(scope_id.children[scope_index], child_globals, structs, tokens, i + 1);
 
-            scope_index += 1;
-            i = child_end;
-        }
+        //     scope_index += 1;
+        //     i = child_end;
+        // }
         // Check if this is a function
-        else if (is_function(tokens, i)) {
+        // else if (is_function(tokens, i)) {
+        if (is_function(tokens, i)) {
             if (scope_id.children[scope_index].type != ScopeType::FUNCTION) {
                 std::cout << "ERROR: Wrong scope type " << int(scope_id.children[scope_index].type) << ", expected " << int(ScopeType::FUNCTION) << std::endl;
             }
