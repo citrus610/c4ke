@@ -72,7 +72,8 @@ struct Board {
         if ((threshold += VALUE[board[from] / 2]) <= 0)
             return TRUE;
 
-        u64 colors_original[] = { colors[WHITE], colors[BLACK] };
+        u64 whites = colors[WHITE];
+        u64 blacks = colors[BLACK];
         colors[stm] ^= 1ull << from;
         int side = !stm;
 
@@ -94,8 +95,8 @@ struct Board {
             colors[!side] ^= 1ull << LSB(pieces[type] & threats);
         }
         
-        colors[WHITE] = colors_original[WHITE];
-        colors[BLACK] = colors_original[BLACK];
+        colors[WHITE] = whites;
+        colors[BLACK] = blacks;
 
         return side != stm;
     }
@@ -234,19 +235,19 @@ struct Board {
         int phase = 0;
 
         for (int color = WHITE; color < 2; color++) {
-            u64 pawns[] = { pieces[PAWN] & colors[WHITE], pieces[PAWN] & colors[BLACK] };
-            u64 pawns_threats = se(pawns[!color]) | sw(pawns[!color]);
-            u64 pawns_attacks = ne(pawns[color]) | nw(pawns[color]);
-            u64 pawns_phalanx = west(pawns[color]) & pawns[color];
+            u64 pawns_us = pieces[PAWN] & colors[color];
+            u64 pawns_them = pieces[PAWN] & colors[!color];
+            u64 pawns_threats = se(pawns_them) | sw(pawns_them);
+            u64 pawns_attacks = ne(pawns_us) | nw(pawns_us);
+            u64 pawns_phalanx = west(pawns_us) & pawns_us;
 
-            // Bishop pair
-            eval += (POPCNT(pieces[BISHOP] & colors[color]) > 1) * BISHOP_PAIR;
-
-            // Pawn protected
-            eval += POPCNT(pawns[color] & pawns_attacks) * PAWN_PROTECTED;
-
-            // Pawn doubled
-            eval -= POPCNT(pawns[color] & (north(pawns[color]) | north(north(pawns[color])))) * PAWN_DOUBLED;
+            eval +=
+                // Bishop pair
+                (POPCNT(pieces[BISHOP] & colors[color]) > 1) * BISHOP_PAIR +
+                // Pawn protected
+                POPCNT(pawns_us & pawns_attacks) * PAWN_PROTECTED -
+                // Pawn doubled
+                POPCNT(pawns_us & (north(pawns_us) | north(north(pawns_us)))) * PAWN_DOUBLED;
 
             for (int type = PAWN; type < TYPE_NONE; type++) {
                 u64 mask = pieces[type] & colors[color];
@@ -270,7 +271,7 @@ struct Board {
                             eval += (get_data(square / 8 + INDEX_PHALANX) + OFFSET_PHALANX) * SCALE_PHALANX;
 
                         // Passed pawns
-                        if (!(0x101010101010101ull << square & (pawns[!color] | pawns_threats)))
+                        if (!(0x101010101010101ull << square & (pawns_them | pawns_threats)))
                             eval += (get_data(square / 8 + INDEX_PASSER) + OFFSET_PASSER) * SCALE_PASSER;
                     }
                     else {
@@ -288,12 +289,12 @@ struct Board {
                             eval += (type > QUEEN) * KING_OPEN + (type == ROOK) * ROOK_OPEN;
 
                         // Semi open file
-                        if (!(0x101010101010101ull << square % 8 & pawns[color]))
+                        if (!(0x101010101010101ull << square % 8 & pawns_us))
                             eval += (type > QUEEN) * KING_SEMI_OPEN + (type == ROOK) * ROOK_SEMI_OPEN;
 
                         // Pawn shield
                         if (type > QUEEN && square < A2)
-                            eval += POPCNT(pawns[color] & 0x70700ull << 5 * (square % 8 > 2)) * PAWN_SHIELD;
+                            eval += POPCNT(pawns_us & 0x70700ull << 5 * (square % 8 > 2)) * PAWN_SHIELD;
 
                         // Pawn threats
                         if (1ull << square & pawns_threats)
