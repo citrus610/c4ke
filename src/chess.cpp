@@ -124,14 +124,6 @@ typedef uint64_t u64;
 
 #define MOVE_NONE 0
 
-#ifdef OB
-    int TT_BITS = 20;
-    int TT_SHIFT = 64 - TT_BITS;
-#else
-    #define TT_BITS 20
-    #define TT_SHIFT 44
-#endif
-
 #define HIST_MAX 16384
 
 #define CORRHIST_SIZE 16384
@@ -141,6 +133,20 @@ typedef uint64_t u64;
 #define STACK_SIZE 264
 #define VISIT_SIZE 2048
 #define VISIT_BYTES 16384
+
+#ifdef OB
+    int TT_BITS = 20;
+    int TT_SHIFT = 64 - TT_BITS;
+#else
+    #define TT_BITS 20
+    #define TT_SHIFT 44
+#endif
+
+#ifdef OB
+    int THREADS = 1;
+#else
+    #define THREADS 1
+#endif
 
 // Time
 u64 now() {

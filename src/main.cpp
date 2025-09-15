@@ -347,7 +347,7 @@ void bench()
 
         u64 time_1 = now();
 
-        engine.start(board, 15, TRUE);
+        engine.start(board, 0, 15, TRUE);
 
         u64 time_2 = now();
 
@@ -417,6 +417,7 @@ int main() {
     cout << "id name c4ke" << endl;
     cout << "id author citrus610" << endl;
     cout << "option name Hash type spin default 8 min 1 max 67108864" << endl;
+    cout << "option name Threads type spin default 1 min 1 max 2048" << endl;
 #endif
 
     cin >> token;
@@ -451,6 +452,10 @@ int main() {
 
                 free(TTABLE);
                 TTABLE = (TTEntry*)calloc(1ull << TT_BITS, sizeof(TTEntry));
+            }
+
+            if (token == "Threads") {
+                tokens >> token >> THREADS;
             }
         }
 #endif
@@ -491,11 +496,19 @@ int main() {
             LIMIT_SOFT = now() + time / 50;
             LIMIT_HARD = now() + time / 2;
 
-            thread t([&] () {
-                Thread().start(board);
-            });
+#ifdef OB
+            vector<thread> threads(THREADS);
+#else
+            thread threads[THREADS];
+#endif
 
-            t.join();
+            int id = 0;
+
+            for (thread& t : threads)
+                t = thread([&] () { Thread().start(board, id++); });
+
+            for (thread& t : threads)
+                t.join();
 
             cout << "bestmove ";
             move_print(BEST_MOVE);

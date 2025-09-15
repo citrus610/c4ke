@@ -36,13 +36,14 @@ struct Thread {
     HTable* stack_conthist[STACK_SIZE];
     u64 visited[STACK_SIZE];
     int visited_count;
+    int id;
 
     int search(Board& board, int alpha, int beta, int ply, int depth, int is_pv, int is_nmp = FALSE, u16 excluded = MOVE_NONE) {
         // Clamp depth for qsearch
         depth *= depth > 0;
 
         // Abort
-        if (!(++nodes & 4095) && now() > LIMIT_HARD)
+        if (!(++nodes & 4095) && now() > LIMIT_HARD && !id)
             RUNNING = FALSE;
 
         if (!RUNNING || ply >= MAX_PLY)
@@ -333,11 +334,12 @@ struct Thread {
     }
 
 #ifdef OB_MINI
-    void start(Board board, int MAX_DEPTH = 256, int BENCH = FALSE) {
+    void start(Board board, int ID = 0, int MAX_DEPTH = 256, int BENCH = FALSE) {
 #else
-    void start(Board board) {
+    void start(Board board, int ID) {
         #define MAX_DEPTH 256
 #endif
+        id = ID;
         int score = 0;
 
         // Iterative deepening
@@ -365,7 +367,7 @@ struct Thread {
 
             // Print info
 #ifdef OB_MINI
-            if (!BENCH) {
+            if (!BENCH && !id) {
 #endif
                 cout << "info depth " << depth << " score cp " << score << " pv ";
                 move_print(pv);
@@ -374,7 +376,7 @@ struct Thread {
 #endif
 
             // Check time
-            if (now() > LIMIT_SOFT)
+            if (now() > LIMIT_SOFT && !id)
                 RUNNING = FALSE;
 
             if (!RUNNING)
@@ -382,6 +384,7 @@ struct Thread {
         }
 
         // Return best move
-        BEST_MOVE = pv;
+        if (!id)
+            BEST_MOVE = pv;
     }
 };
