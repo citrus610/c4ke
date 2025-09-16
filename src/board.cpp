@@ -1,7 +1,5 @@
 #include "eval.cpp"
 
-int LAYOUT[] { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK };
-
 struct Board {
     u64 pieces[6];
     u64 colors[2];
@@ -256,11 +254,8 @@ struct Board {
                     int square = LSB(mask);
                     mask &= mask - 1;
 
-                    // Material + PST
-                    eval +=
-                        MATERIAL[type] + 
-                        (get_data(type * 8 + square / 8) + OFFSET_PST_RANK) * SCALE_PST +
-                        (get_data(type * 8 + square % 8 + INDEX_PST_FILE) + OFFSET_PST_FILE) * SCALE_PST;
+                    // PST
+                    eval += MATERIAL[type] + (get_data(type * 8 + square / 8) + get_data(type * 8 + square % 8 + INDEX_PST_FILE) + OFFSET_PST) * SCALE_PST;
 
                     // Update phase
                     phase += PHASE[type];
@@ -279,7 +274,7 @@ struct Board {
                         u64 mobility =
                             type < BISHOP ? knight(1ull << square) :
                             type > QUEEN ? king(1ull << square) :
-                            (type != BISHOP) * rook(1ull << square, colors[WHITE] | colors[BLACK]) |
+                            (type > BISHOP) * rook(1ull << square, colors[WHITE] | colors[BLACK]) |
                             (type != ROOK) * bishop(1ull << square, colors[WHITE] | colors[BLACK]);
 
                         eval += (get_data(type + INDEX_MOBILITY) + OFFSET_MOBILITY) * POPCNT(mobility & ~colors[color] & ~pawns_threats);
