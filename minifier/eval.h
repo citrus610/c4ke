@@ -19,6 +19,7 @@ struct Param
 {
     std::string name;
     std::vector<int> data;
+    int index_offset;
 };
 
 struct Compressed
@@ -39,7 +40,8 @@ inline const std::vector<Param> PARAMS = {
             S(0, -3), S(-1, -3), S(-2, -2), S(-2, 0), S(0, 2), S(2, 2), S(1, 3), S(2, 1),
             S(2, -11), S(3, -8), S(2, -3), S(0, 2), S(0, 5), S(-1, 5), S(-4, 7), S(-2, 4),
             S(-1, -6), S(1, -2), S(-1, 0), S(-4, 3), S(-1, 5), S(5, 4), S(5, 2), S(5, -6),
-        }
+        },
+        .index_offset = 0
     },
     Param {
         .name = "PST_FILE",
@@ -50,37 +52,43 @@ inline const std::vector<Param> PARAMS = {
             S(-2, 0), S(-1, 1), S(0, 1), S(1, 0), S(2, -1), S(1, 0), S(1, 0), S(-1, -1),
             S(-2, -3), S(-1, -1), S(-1, 0), S(0, 1), S(0, 2), S(1, 2), S(2, 0), S(1, -1),
             S(-2, -5), S(2, -1), S(-1, 1), S(-4, 2), S(-4, 2), S(-2, 2), S(2, -1), S(0, -5),
-        }
+        },
+        .index_offset = 0
     },
     Param {
         .name = "MOBILITY",
         .data = {
-            0, S(8, 5), S(7, 7), S(3, 5), S(3, 2), S(-5, -1)
-        }
+            S(8, 5), S(7, 7), S(3, 5), S(3, 2), S(-5, -1)
+        },
+        .index_offset = -1
     },
     Param {
         .name = "PASSER",
         .data = {
-            0, S(0, 2), S(-1, 4), S(-2, 6), S(2, 10), S(3, 20), S(5, 30)
-        }
+            S(0, 2), S(-1, 4), S(-2, 6), S(2, 10), S(3, 20), S(5, 30)
+        },
+        .index_offset = -1
     },
     Param {
         .name = "PHALANX",
         .data = {
-            0, S(1, 0), S(2, 1), S(3, 2), S(5, 10), S(10, 15), S(15, 20)
-        }
+            S(1, 0), S(2, 1), S(3, 2), S(5, 10), S(10, 15), S(15, 20)
+        },
+        .index_offset = -1
     },
     Param {
         .name = "THREAT",
         .data = {
-            0, S(50, 25), S(50, 50), S(80, 25), S(75, 0)
-        }
+            S(50, 25), S(50, 50), S(80, 25), S(75, 0)
+        },
+        .index_offset = -1
     },
     Param {
         .name = "KING_ATTACK",
         .data = {
-            0, S(20, 0), S(25, 0), S(25, 0), S(25, 0)
-        }
+            S(20, 0), S(25, 0), S(25, 0), S(25, 0)
+        },
+        .index_offset = -1
     },
 };
 
@@ -122,7 +130,7 @@ inline std::string get_eval_str()
 
         mg += compressed.str_mg;
         eg += compressed.str_eg;
-        index += "#define INDEX_" + param.name + " " + std::to_string(index_eg) + "\n";
+        index += "#define INDEX_" + param.name + " " + std::to_string(index_eg + param.index_offset) + "\n";
         offset += "#define OFFSET_" + param.name + " S(" + std::to_string(compressed.min_mg) + ", " + std::to_string(compressed.min_eg) + ")\n";
 
         index_eg += param.data.size();
