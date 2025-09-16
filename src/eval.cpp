@@ -4,6 +4,7 @@
 
 int PHASE[] { 0, 1, 1, 2, 4, 0 };
 int VALUE[] { 100, 320, 330, 500, 900, 2000, 0 };
+int LAYOUT[] { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK };
 
 // Values copied from 4ku, will replace later
 int MATERIAL[] { S(89, 147), S(350, 521), S(361, 521), S(479, 956), S(1046, 1782), 0 };
@@ -35,13 +36,12 @@ int MATERIAL[] { S(89, 147), S(350, 521), S(361, 521), S(479, 956), S(1046, 1782
 #define INDEX_THREAT 112
 #define INDEX_KING_ATTACK 116
 
-#define OFFSET_PST_RANK S(-15, -11)
-#define OFFSET_PST_FILE S(-4, -5)
 #define OFFSET_MOBILITY S(-5, -1)
 #define OFFSET_PASSER S(-2, 2)
 #define OFFSET_PHALANX S(1, 0)
 #define OFFSET_THREAT S(50, 0)
 #define OFFSET_KING_ATTACK S(20, 0)
+#define OFFSET_PST S(-19, -16)
 
 int get_data(int index) {
     auto data = DATA_STR;

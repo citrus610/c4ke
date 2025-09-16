@@ -125,16 +125,28 @@ inline std::string get_eval_str()
 
     int index_eg = 0;
 
+    int offset_pst_mg = 0;
+    int offset_pst_eg = 0;
+
     for (auto& param : PARAMS) {
         auto compressed = get_compressed_data(param.data);
 
         mg += compressed.str_mg;
         eg += compressed.str_eg;
         index += "#define INDEX_" + param.name + " " + std::to_string(index_eg + param.index_offset) + "\n";
-        offset += "#define OFFSET_" + param.name + " S(" + std::to_string(compressed.min_mg) + ", " + std::to_string(compressed.min_eg) + ")\n";
+
+        if (param.name == "PST_FILE" || param.name == "PST_RANK") {
+            offset_pst_mg += compressed.min_mg;
+            offset_pst_eg += compressed.min_eg;
+        }
+        else {
+            offset += "#define OFFSET_" + param.name + " S(" + std::to_string(compressed.min_mg) + ", " + std::to_string(compressed.min_eg) + ")\n";
+        }
 
         index_eg += param.data.size();
     }
+
+    offset += "#define OFFSET_PST S(" + std::to_string(offset_pst_mg) + ", " + std::to_string(offset_pst_eg) + ")\n";
 
     result += "#define DATA_STR \"";
 
