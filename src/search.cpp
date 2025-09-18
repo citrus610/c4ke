@@ -118,7 +118,7 @@ struct Thread {
 
                     stack_conthist[ply + 2] = conthist[WHITE_PAWN];
 
-                    int score = -search(child, -beta, -beta + 1, ply + 1, depth - 5 - depth / 3 - (eval - beta) / 256, FALSE, TRUE);
+                    int score = -search(child, -beta, -alpha, ply + 1, depth - 5 - depth / 3, FALSE, TRUE);
 
                     if (score >= beta)
                         return score < WIN ? score : beta;
