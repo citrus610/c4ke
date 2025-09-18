@@ -335,14 +335,14 @@ struct Thread {
             stack_conthist[1] = &conthist[WHITE_PAWN][B1];
 
             // Aspiration window
-            int delta = 25;
+            int delta = 10;
             int alpha = score;
             int beta = score;
 
             while (score <= alpha || score >= beta) {
                 // Update window
-                alpha = score <= alpha ? score - delta : alpha;
-                beta = score >= beta ? score + delta : beta;
+                if (score <= alpha) alpha = score - delta;
+                if (score >= beta) beta = score + delta;
 
                 // Search
                 score = search(board, alpha, beta, 0, depth, TRUE);
