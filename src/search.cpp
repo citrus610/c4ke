@@ -83,7 +83,8 @@ struct Thread {
             eval = stack_eval[ply] = board.eval() +
                 corrhist[board.stm][board.hash_pawn % CORRHIST_SIZE] / 128 +
                 corrhist[board.stm][board.hash_non_pawn[WHITE] % CORRHIST_SIZE] / 256 +
-                corrhist[board.stm][board.hash_non_pawn[BLACK] % CORRHIST_SIZE] / 256;
+                corrhist[board.stm][board.hash_non_pawn[BLACK] % CORRHIST_SIZE] / 256 +
+                (*stack_conthist[ply + 1])[0][0] / 128;
 
             // Use tt score as better eval
             if (tt.key && !excluded && tt.bound != tt.score < eval)
@@ -308,6 +309,7 @@ struct Thread {
             update_history(corrhist[board.stm][board.hash_pawn % CORRHIST_SIZE], bonus);
             update_history(corrhist[board.stm][board.hash_non_pawn[WHITE] % CORRHIST_SIZE], bonus);
             update_history(corrhist[board.stm][board.hash_non_pawn[BLACK] % CORRHIST_SIZE], bonus);
+            update_history((*stack_conthist[ply + 1])[0][0], bonus);
         }
 
         // Update transposition
