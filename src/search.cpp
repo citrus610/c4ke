@@ -18,7 +18,6 @@ struct Thread {
     u64 nodes {};
     u64 visited[STACK_SIZE];
     int stack_eval[STACK_SIZE];
-    int visited_count;
     int id;
 
     int search(Board& board, int alpha, int beta, int ply, int depth, int is_pv, int is_nmp = FALSE, u16 excluded = MOVE_NONE) {
@@ -35,8 +34,8 @@ struct Thread {
         // Oracle
         if (ply) {
             // Repetiion
-            for (int i = 4; i <= visited_count; i += 2)
-                if (board.hash == visited[visited_count - i])
+            for (int i = 4; i <= ply; i += 2)
+                if (board.hash == visited[ply - i])
                     return DRAW;
 
             for (int i = 0; i < VISITED_COUNT; i++)
@@ -47,6 +46,9 @@ struct Thread {
             if (board.halfmove > 99)
                 return DRAW;
         }
+
+        // Update hash history
+        visited[ply] = board.hash;
 
         // Probe transposition table
         TTEntry& slot = TTABLE[board.hash >> TT_SHIFT];
@@ -115,7 +117,7 @@ struct Thread {
 
                     stack_conthist[ply + 2] = conthist[WHITE_PAWN];
 
-                    int score = -search(child, -beta, -beta + 1, ply + 1, depth - 5 - depth / 3, FALSE, TRUE);
+                    int score = -search(child, -beta, -beta + 1, ply + 1, depth - 5 - depth / 3 - (eval - beta) / 256, FALSE, TRUE);
 
                     if (score >= beta)
                         return score < WIN ? score : beta;
@@ -204,7 +206,6 @@ struct Thread {
             legals++;
 
             stack_conthist[ply + 2] = &conthist[board.board[move_from(move)]][move_to(move)];
-            visited[visited_count++] = board.hash;
 
             // Don't do zero window search for qsearch
             // Late move reduction
@@ -229,9 +230,6 @@ struct Thread {
             // Principle variation search and qsearch
             if (!depth || (is_pv && (legals == 1 || score > alpha)))
                 score = -search(child, -beta, -alpha, ply + 1, depth_next, is_pv);
-
-            // Unmake
-            visited_count--;
 
             // Abort
             if (!RUNNING)
