@@ -106,6 +106,9 @@ struct Thread {
                 if (depth > 2 && eval >= beta && !is_nmp && board.colors[board.stm] & ~board.pieces[PAWN] & ~board.pieces[KING]) {
                     Board child = board;
 
+                    if (child.enpassant < SQUARE_NONE)
+                        child.hash ^= KEYS[PIECE_NONE][child.enpassant];
+
                     child.stm ^= 1;
                     child.hash ^= KEYS[PIECE_NONE][0];
                     child.enpassant = SQUARE_NONE;
