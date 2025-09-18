@@ -147,10 +147,12 @@ struct Board {
         if (from == A8 || to == A8) castled |= CASTLED_BQ;
 
         hash ^= KEYS[PIECE_NONE][castled];
+        hash ^= KEYS[PIECE_NONE][0];
+
+        __builtin_prefetch(&TTABLE[hash >> TT_SHIFT]);
 
         // Update side to move
         stm ^= 1;
-        hash ^= KEYS[PIECE_NONE][0];
 
         // In check
         checkers = attackers(LSB(pieces[KING] & colors[stm])) & colors[!stm];

@@ -122,6 +122,7 @@ const inline std::vector<std::string> KEYWORDS_SKIP = {
     "__builtin_ctzll",
     "__builtin_popcountll",
     "__builtin_bswap64",
+    "__builtin_prefetch",
     "vector",
     "abs",
     "istream",

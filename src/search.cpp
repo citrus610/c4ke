@@ -7,34 +7,17 @@ void update_history(i16& entry, int bonus) {
     entry += bonus - entry * abs(bonus) / HIST_MAX;
 }
 
-// Shared states
-struct TTEntry {
-    u16 key;
-    u16 move;
-    i16 score;
-    u8 depth;
-    u8 bound;
-};
-
-TTEntry* TTABLE;
-int RUNNING;
-u64 LIMIT_SOFT;
-u64 LIMIT_HARD;
-u16 BEST_MOVE;
-u64 VISITED[STACK_SIZE];
-int VISITED_COUNT;
-
 // Search thread
 struct Thread {
-    u64 nodes {};
     u16 pv;
     i16 qhist[2][4096] {};
+    i16 corrhist[2][CORRHIST_SIZE] {};
     HTable nhist[6] {};
     HTable conthist[12][64] {};
-    i16 corrhist[2][CORRHIST_SIZE] {};
-    int stack_eval[STACK_SIZE];
     HTable* stack_conthist[STACK_SIZE];
+    u64 nodes {};
     u64 visited[STACK_SIZE];
+    int stack_eval[STACK_SIZE];
     int visited_count;
     int id;
 
