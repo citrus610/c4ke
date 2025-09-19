@@ -15,7 +15,7 @@ struct Thread {
     u64 nodes {}, visited[STACK_SIZE];
     int id, stack_eval[STACK_SIZE];
 
-    int search(Board& board, int alpha, int beta, int ply, int depth, int is_pv, u16 excluded = MOVE_NONE) {
+    int search(Board& board, int alpha, int beta, int ply, int depth, int is_pv = FALSE, u16 excluded = MOVE_NONE) {
         // All search variables
         int eval,
             best = -INF,
@@ -120,7 +120,7 @@ struct Thread {
 
                     stack_conthist[ply + 2] = conthist[WHITE_PAWN];
 
-                    int score = -search(child, -beta, -alpha, ply + 1, depth - 5 - depth / 3, FALSE);
+                    int score = -search(child, -beta, -alpha, ply + 1, depth - 5 - depth / 3);
 
                     if (score >= beta)
                         return score < WIN ? score : beta;
@@ -213,14 +213,14 @@ struct Thread {
 
                 reduction *= reduction > 0;
 
-                score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next - reduction, FALSE);
+                score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next - reduction);
 
                 if (score > alpha && reduction)
-                    score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next, FALSE);
+                    score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next);
             }
             // Zero window search
             else if (depth && (!is_pv || legals > 1))
-                score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next, FALSE);
+                score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next);
 
             // Principle variation search and qsearch
             if (!depth || (is_pv && (legals == 1 || score > alpha)))
