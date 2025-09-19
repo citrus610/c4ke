@@ -247,9 +247,11 @@ u64 king(u64 mask, u64 occupied = 0) {
 
 // Shared states
 struct TTEntry {
-    u16 key, move;
+    u16 key,
+        move;
     i16 score;
-    u8 depth, bound;
+    u8 depth,
+        bound;
 };
 
 TTEntry* TTABLE;
