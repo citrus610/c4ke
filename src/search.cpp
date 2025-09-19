@@ -10,17 +10,28 @@ void update_history(i16& entry, int bonus) {
 // Search thread
 struct Thread {
     u16 pv;
-    i16 qhist[2][4096] {};
-    i16 corrhist[2][CORRHIST_SIZE] {};
-    HTable nhist[6] {};
-    HTable conthist[12][64] {};
-    HTable* stack_conthist[STACK_SIZE];
-    u64 nodes {};
-    u64 visited[STACK_SIZE];
-    int stack_eval[STACK_SIZE];
-    int id;
+    i16 qhist[2][4096] {}, corrhist[2][CORRHIST_SIZE] {};
+    HTable nhist[6] {}, conthist[12][64] {}, *stack_conthist[STACK_SIZE];
+    u64 nodes {}, visited[STACK_SIZE];
+    int id, stack_eval[STACK_SIZE];
 
     int search(Board& board, int alpha, int beta, int ply, int depth, int is_pv, u16 excluded = MOVE_NONE) {
+        // All search variables
+        int eval,
+            best = -INF,
+            is_improving = FALSE,
+            quiet_count = 0,
+            noisy_count = 0,
+            legals = 0,
+            move_scores[MAX_MOVE];
+
+        u16 best_move = MOVE_NONE,
+            move_list[MAX_MOVE],
+            quiet_list[MAX_MOVE],
+            noisy_list[MAX_MOVE];
+
+        u8 bound = BOUND_UPPER;
+
         // Clamp depth for qsearch
         depth *= depth > 0;
 
@@ -66,16 +77,7 @@ struct Thread {
             depth -= depth > 3;
 
         // Static eval
-        int eval;
         stack_eval[ply] = INF;
-
-        // Improving
-        int is_improving = FALSE;
-
-        // Best score
-        int best = -INF;
-        u16 best_move = MOVE_NONE;
-        u8 bound = BOUND_UPPER;
         
         // Pruning
         if (!board.checkers) {
@@ -127,15 +129,13 @@ struct Thread {
         }
 
         // Generate move
-        u16 move_list[MAX_MOVE];
-        int move_scores[MAX_MOVE];
         int move_count = board.movegen(move_list, depth || board.checkers);
 
         // Score move
         for (int i = 0; i < move_count; i++) {
-            int move = move_list[i];
-            int piece = board.board[move_from(move)];
-            int victim = board.board[move_to(move)] / 2 % TYPE_NONE;
+            int move = move_list[i],
+                piece = board.board[move_from(move)],
+                victim = board.board[move_to(move)] / 2 % TYPE_NONE;
 
             move_scores[i] =
                 // Hash move
@@ -147,12 +147,6 @@ struct Thread {
         }
 
         // Iterate moves
-        u16 quiet_list[MAX_MOVE];
-        u16 noisy_list[MAX_MOVE];
-        int quiet_count = 0;
-        int noisy_count = 0;
-        int legals = 0;
-
         for (int i = 0; i < move_count; i++) {
             // Sort next move
             int next_index = i;
@@ -171,9 +165,9 @@ struct Thread {
                 continue;
 
             // Search data
-            int is_quiet = board.quiet(move);
-            int depth_next = depth - 1;
-            int score;
+            int is_quiet = board.quiet(move),
+                depth_next = depth - 1,
+                score;
 
             // Quiet pruning and SEE pruning in qsearch
             if (!depth && best > -WIN && move_scores[i] < 1e6)
@@ -189,8 +183,8 @@ struct Thread {
 
             // Singular extension
             if (ply && depth > 7 && !excluded && move == tt.move && tt.depth > depth - 4 && tt.bound) {
-                int singular_beta = tt.score - depth * 2;
-                int singular_score = search(board, singular_beta - 1, singular_beta, ply, (depth - 1) / 2, FALSE, move);
+                int singular_beta = tt.score - depth * 2,
+                    singular_score = search(board, singular_beta - 1, singular_beta, ply, (depth - 1) / 2, FALSE, move);
 
                 if (singular_score < singular_beta)
                     depth_next += 1 + (!is_pv && singular_score + 16 < singular_beta);
@@ -331,13 +325,12 @@ struct Thread {
         // Iterative deepening
         for (int depth = 1; depth < MAX_DEPTH; ++depth) {
             // Clear stack
-            stack_conthist[0] = &conthist[WHITE_PAWN][B1];
-            stack_conthist[1] = &conthist[WHITE_PAWN][B1];
+            stack_conthist[0] = stack_conthist[1] = &conthist[WHITE_PAWN][B1];
 
             // Aspiration window
-            int delta = 10;
-            int alpha = score;
-            int beta = score;
+            int delta = 10,
+                alpha = score,
+                beta = score;
 
             while (score <= alpha || score >= beta) {
                 // Update window

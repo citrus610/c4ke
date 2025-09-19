@@ -1,17 +1,17 @@
 #include "eval.cpp"
 
 struct Board {
-    u64 pieces[6];
-    u64 colors[2];
+    u64 pieces[6],
+        colors[2];
     u8 board[64];
-    int stm;
-    int castled;
-    int enpassant;
-    int halfmove;
-    u64 checkers;
-    u64 hash;
-    u64 hash_pawn;
-    u64 hash_non_pawn[2];
+    int stm,
+        castled,
+        enpassant,
+        halfmove;
+    u64 checkers,
+        hash,
+        hash_pawn,
+        hash_non_pawn[2];
 
     void edit(int square, int piece) {
         u64 mask = 1ull << square;
@@ -58,8 +58,9 @@ struct Board {
     }
 
     int see(u16 move, int threshold) {
-        int from = move_from(move);
-        int to = move_to(move);
+        int from = move_from(move),
+            to = move_to(move),
+            side = !stm;
 
         if (move_promo(move) || (board[from] < WHITE_KNIGHT && to == enpassant))
             return TRUE;
@@ -70,10 +71,10 @@ struct Board {
         if ((threshold += VALUE[board[from] / 2]) <= 0)
             return TRUE;
 
-        u64 whites = colors[WHITE];
-        u64 blacks = colors[BLACK];
+        u64 whites = colors[WHITE],
+            blacks = colors[BLACK];
+
         colors[stm] ^= 1ull << from;
-        int side = !stm;
 
         while (u64 threats = attackers(to) & colors[side]) {
             int type = PAWN;
@@ -101,9 +102,9 @@ struct Board {
 
     u64 make(u16 move) {
         // Get move data
-        int from = move_from(move);
-        int to = move_to(move);
-        int piece = board[from];
+        int from = move_from(move),
+            to = move_to(move),
+            piece = board[from];
 
         // Update halfmove
         halfmove += board[to] > BLACK_KING && piece > BLACK_PAWN ? 1 : -halfmove;
@@ -196,13 +197,11 @@ struct Board {
     int movegen(u16 list[], int is_all) {
         int count = 0;
 
-        u64 occupied = colors[WHITE] | colors[BLACK];
-        u64 targets = is_all ? ~colors[stm] : colors[!stm];
-
-        // Pawn
-        u64 pawns = pieces[PAWN] & colors[stm];
-        u64 pawns_push = (stm ? south(pawns) : north(pawns)) & ~occupied & (is_all ? ~0ull : 0xff000000000000ff);
-        u64 pawns_targets = colors[!stm] | u64(enpassant < SQUARE_NONE) << enpassant;
+        u64 occupied = colors[WHITE] | colors[BLACK],
+            targets = is_all ? ~colors[stm] : colors[!stm],
+            pawns = pieces[PAWN] & colors[stm],
+            pawns_push = (stm ? south(pawns) : north(pawns)) & ~occupied & (is_all ? ~0ull : 0xff000000000000ff),
+            pawns_targets = colors[!stm] | u64(enpassant < SQUARE_NONE) << enpassant;
 
         add_pawn_moves(list, count, pawns_push, stm ? -8 : 8);
         add_pawn_moves(list, count, (stm ? south(pawns_push & 0xff0000000000) : north(pawns_push & 0xff0000ull)) & ~occupied, stm ? -16 : 16);
@@ -231,15 +230,15 @@ struct Board {
     }
 
     int eval() {
-        int eval = 0;
-        int phase = 0;
+        int eval = 0,
+            phase = 0;
 
         for (int color = WHITE; color < 2; color++) {
-            u64 pawns_us = pieces[PAWN] & colors[color];
-            u64 pawns_them = pieces[PAWN] & colors[!color];
-            u64 pawns_threats = se(pawns_them) | sw(pawns_them);
-            u64 pawns_attacks = ne(pawns_us) | nw(pawns_us);
-            u64 pawns_phalanx = west(pawns_us) & pawns_us;
+            u64 pawns_us = pieces[PAWN] & colors[color],
+                pawns_them = pieces[PAWN] & colors[!color],
+                pawns_threats = se(pawns_them) | sw(pawns_them),
+                pawns_attacks = ne(pawns_us) | nw(pawns_us),
+                pawns_phalanx = west(pawns_us) & pawns_us;
 
             eval +=
                 // Bishop pair
