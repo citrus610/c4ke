@@ -215,7 +215,9 @@ struct Thread {
                     // Base reduction
                     log(depth) * log(legals) * 0.3 + 1 -
                     // History reduction
-                    is_quiet * move_scores[i] / 8192;
+                    is_quiet * move_scores[i] / 8192 +
+                    // PV
+                    !is_pv;
 
                 reduction *= reduction > 0;
 
