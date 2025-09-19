@@ -10,10 +10,15 @@ void update_history(i16& entry, int bonus) {
 // Search thread
 struct Thread {
     u16 pv;
-    i16 qhist[2][4096] {}, corrhist[2][CORRHIST_SIZE] {};
-    HTable nhist[6] {}, conthist[12][64] {}, *stack_conthist[STACK_SIZE];
-    u64 nodes {}, visited[STACK_SIZE];
-    int id, stack_eval[STACK_SIZE];
+    i16 qhist[2][4096] {},
+        corrhist[2][CORRHIST_SIZE] {};
+    HTable nhist[6] {},
+        conthist[12][64] {},
+        *stack_conthist[STACK_SIZE];
+    u64 nodes {},
+        visited[STACK_SIZE];
+    int id,
+        stack_eval[STACK_SIZE];
 
     int search(Board& board, int alpha, int beta, int ply, int depth, int is_pv = FALSE, u16 excluded = MOVE_NONE) {
         // All search variables
@@ -86,7 +91,8 @@ struct Thread {
                 corrhist[board.stm][board.hash_pawn % CORRHIST_SIZE] / 128 +
                 corrhist[board.stm][board.hash_non_pawn[WHITE] % CORRHIST_SIZE] / 256 +
                 corrhist[board.stm][board.hash_non_pawn[BLACK] % CORRHIST_SIZE] / 256 +
-                (*stack_conthist[ply + 1])[0][0] / 128;
+                (*stack_conthist[ply + 1])[0][0] / 128 +
+                (*stack_conthist[ply])[1][0] / 200;
 
             // Use tt score as better eval
             if (tt.key && !excluded && tt.bound != tt.score < eval)
@@ -304,6 +310,7 @@ struct Thread {
             update_history(corrhist[board.stm][board.hash_non_pawn[WHITE] % CORRHIST_SIZE], bonus);
             update_history(corrhist[board.stm][board.hash_non_pawn[BLACK] % CORRHIST_SIZE], bonus);
             update_history((*stack_conthist[ply + 1])[0][0], bonus);
+            update_history((*stack_conthist[ply])[1][0], bonus);
         }
 
         // Update transposition
