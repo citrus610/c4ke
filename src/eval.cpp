@@ -2,12 +2,10 @@
 
 #define S(MG, EG) (MG + (EG << 16))
 
-int PHASE[] { 0, 1, 1, 2, 4, 0 };
-int VALUE[] { 100, 320, 330, 500, 900, 2000, 0 };
-int LAYOUT[] { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK };
-
-// Values copied from 4ku, will replace later
-int MATERIAL[] { S(89, 147), S(350, 521), S(361, 521), S(479, 956), S(1046, 1782), 0 };
+int PHASE[] { 0, 1, 1, 2, 4, 0 },
+    VALUE[] { 100, 320, 330, 500, 900, 2000, 0 },
+    LAYOUT[] { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK },
+    MATERIAL[] { S(89, 147), S(350, 521), S(361, 521), S(479, 956), S(1046, 1782), 0 };
 
 #define SCALE_PST 8
 #define SCALE_PASSER 5

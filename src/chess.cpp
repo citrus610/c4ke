@@ -247,20 +247,18 @@ u64 king(u64 mask, u64 occupied = 0) {
 
 // Shared states
 struct TTEntry {
-    u16 key;
-    u16 move;
+    u16 key, move;
     i16 score;
-    u8 depth;
-    u8 bound;
+    u8 depth, bound;
 };
 
 TTEntry* TTABLE;
 u16 BEST_MOVE;
-u64 LIMIT_SOFT;
-u64 LIMIT_HARD;
-u64 VISITED[STACK_SIZE];
-int VISITED_COUNT;
-int RUNNING;
+u64 LIMIT_SOFT,
+    LIMIT_HARD,
+    VISITED[STACK_SIZE];
+int VISITED_COUNT,
+    RUNNING;
 
 #ifdef OB
 void print_bitboard(u64 bitboard) {
