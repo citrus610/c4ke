@@ -20,7 +20,7 @@ struct Thread {
     int stack_eval[STACK_SIZE];
     int id;
 
-    int search(Board& board, int alpha, int beta, int ply, int depth, int is_pv, int is_nmp = FALSE, u16 excluded = MOVE_NONE) {
+    int search(Board& board, int alpha, int beta, int ply, int depth, int is_pv, u16 excluded = MOVE_NONE) {
         // Clamp depth for qsearch
         depth *= depth > 0;
 
@@ -106,7 +106,7 @@ struct Thread {
                     return eval;
 
                 // Null move pruning
-                if (depth > 2 && eval >= beta && !is_nmp && board.colors[board.stm] & ~board.pieces[PAWN] & ~board.pieces[KING]) {
+                if (depth > 2 && eval >= beta && board.colors[board.stm] & ~board.pieces[PAWN] & ~board.pieces[KING]) {
                     Board child = board;
 
                     if (child.enpassant < SQUARE_NONE)
@@ -118,7 +118,7 @@ struct Thread {
 
                     stack_conthist[ply + 2] = conthist[WHITE_PAWN];
 
-                    int score = -search(child, -beta, -alpha, ply + 1, depth - 5 - depth / 3, FALSE, TRUE);
+                    int score = -search(child, -beta, -alpha, ply + 1, depth - 5 - depth / 3, FALSE);
 
                     if (score >= beta)
                         return score < WIN ? score : beta;
@@ -190,7 +190,7 @@ struct Thread {
             // Singular extension
             if (ply && depth > 7 && !excluded && move == tt.move && tt.depth > depth - 4 && tt.bound) {
                 int singular_beta = tt.score - depth * 2;
-                int singular_score = search(board, singular_beta - 1, singular_beta, ply, (depth - 1) / 2, FALSE, FALSE, move);
+                int singular_score = search(board, singular_beta - 1, singular_beta, ply, (depth - 1) / 2, FALSE, move);
 
                 if (singular_score < singular_beta)
                     depth_next += 1 + (!is_pv && singular_score + 16 < singular_beta);
