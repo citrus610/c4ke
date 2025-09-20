@@ -79,7 +79,7 @@ struct Thread {
         }
         else
             // Internal iterative reduction
-            depth -= depth > 3;
+            depth -= is_pv && depth > 3;
 
         // Static eval
         stack_eval[ply] = INF;
