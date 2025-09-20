@@ -321,7 +321,7 @@ struct Thread {
 
         // Update transposition
         if (!excluded)
-            slot = { u16(board.hash), best_move, i16(best), u8(depth), bound };
+            slot = { u16(board.hash), best_move || !tt.key ? best_move : slot.move, i16(best), u8(depth), bound };
 
         return best;
     }
