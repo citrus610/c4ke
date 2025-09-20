@@ -110,7 +110,7 @@ struct Thread {
             }
             else if (!is_pv && !excluded) {
                 // Reverse futility pruning
-                if (depth < 9 && eval < WIN && eval > beta + 70 * depth)
+                if (depth < 9 && eval < WIN && eval > beta + 70 * (depth - is_improving))
                     return eval;
 
                 // Null move pruning
