@@ -184,7 +184,7 @@ struct Thread {
                 continue;
 
             // Futility pruning
-            if (ply && best > -WIN && depth < 10 && is_quiet && !board.checkers && stack_eval[ply] + 100 * depth + 100 < alpha)
+            if (ply && best > -WIN && depth < 10 && !board.checkers && stack_eval[ply] + 100 * depth + 100 < alpha && is_quiet)
                 continue;
 
             // SEE pruning
