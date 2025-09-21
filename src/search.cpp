@@ -242,12 +242,8 @@ struct Thread {
             if (!RUNNING)
                 return DRAW;
 
-            // Update score
-            if (score > best)
-                best = score;
-
-            // Alpha raised
-            if (score > alpha) {
+            // Update best score + check alpha raise
+            if ((best = max(best, score)) > alpha) {
                 alpha = score;
                 best_move = move;
 
@@ -379,4 +375,5 @@ struct Thread {
         if (!id)
             BEST_MOVE = pv;
     }
+
 };
