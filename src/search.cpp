@@ -9,7 +9,7 @@ void update_history(i16& entry, int bonus) {
 
 // Search thread
 struct Thread {
-    u16 pv;
+    i16 pv;
     i16 qhist[2][4096] {},
         corrhist[2][CORRHIST_SIZE] {};
     HTable nhist[6] {},
@@ -20,7 +20,7 @@ struct Thread {
     int id,
         stack_eval[STACK_SIZE];
 
-    int search(Board& board, int alpha, int beta, int ply, int depth, int is_pv = FALSE, u16 excluded = MOVE_NONE) {
+    int search(Board& board, int alpha, int beta, int ply, int depth, int is_pv = FALSE, i16 excluded = MOVE_NONE) {
         // All search variables
         int eval,
             best = -INF,
@@ -30,7 +30,7 @@ struct Thread {
             legals = 0,
             move_scores[MAX_MOVE];
 
-        u16 best_move = MOVE_NONE,
+        i16 best_move = MOVE_NONE,
             move_list[MAX_MOVE],
             quiet_list[MAX_MOVE],
             noisy_list[MAX_MOVE];
@@ -70,7 +70,7 @@ struct Thread {
         TTEntry& slot = TTABLE[board.hash >> TT_SHIFT];
         TTEntry tt {};
 
-        if (slot.key == u16(board.hash)) {
+        if (slot.key == i16(board.hash)) {
             tt = slot;
 
             // Cutoff
@@ -164,7 +164,7 @@ struct Thread {
             swap(move_list[i], move_list[next_index]);
             swap(move_scores[i], move_scores[next_index]);
 
-            u16 move = move_list[i];
+            i16 move = move_list[i];
 
             // Skip excluded move in singularity search
             if (move == excluded)
@@ -319,7 +319,7 @@ struct Thread {
 
         // Update transposition
         if (!excluded)
-            slot = { u16(board.hash), best_move || !tt.key ? best_move : slot.move, i16(best), u8(depth), bound };
+            slot = { i16(board.hash), best_move || !tt.key ? best_move : slot.move, i16(best), u8(depth), bound };
 
         return best;
     }

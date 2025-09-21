@@ -1,7 +1,7 @@
 #include "search.cpp"
 
 #ifdef OB
-string move_str(u16 move) {
+string move_str(i16 move) {
     string str;
 
     str += 97 + move_from(move) % 8;
@@ -23,7 +23,7 @@ u64 perft(Board& board, int depth, bool is_root = FALSE) {
 
     u64 nodes = 0;
 
-    u16 moves[MAX_MOVE];
+    i16 moves[MAX_MOVE];
     int count = board.movegen(moves, TRUE);
 
     for (int i = 0; i < count; i++) {
@@ -214,7 +214,7 @@ void test_see()
 {
     struct Test {
         std::string fen;
-        u16 move;
+        i16 move;
         int threshold;
         bool result;
     };

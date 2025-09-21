@@ -4,7 +4,6 @@ using namespace std;
 
 typedef uint8_t u8;
 typedef int16_t i16;
-typedef uint16_t u16;
 typedef uint64_t u64;
 
 #define OB
@@ -159,23 +158,23 @@ u64 now() {
 u64 KEYS[13][65]{};
 
 // Move
-u16 move_make(int from, int to, int promo = PAWN) {
+i16 move_make(int from, int to, int promo = PAWN) {
     return from | to << 6 | promo << 12;
 }
 
-int move_from(u16 move) {
+int move_from(i16 move) {
     return move & 63;
 }
 
-int move_to(u16 move) {
+int move_to(i16 move) {
     return move >> 6 & 63;
 }
 
-int move_promo(u16 move) {
+int move_promo(i16 move) {
     return move >> 12;
 }
 
-void move_print(u16 move) {
+void move_print(i16 move) {
     cout.put(97 + move_from(move) % 8).put(49 + move_from(move) / 8).put(97 + move_to(move) % 8).put(49 + move_to(move) / 8).put(" nbrq"[move_promo(move)]) << endl;
 }
 
@@ -247,7 +246,7 @@ u64 king(u64 mask, u64 occupied = 0) {
 
 // Shared states
 struct TTEntry {
-    u16 key,
+    i16 key,
         move;
     i16 score;
     u8 depth,
@@ -255,7 +254,7 @@ struct TTEntry {
 };
 
 TTEntry* TTABLE;
-u16 BEST_MOVE;
+i16 BEST_MOVE;
 u64 LIMIT_SOFT,
     LIMIT_HARD,
     VISITED[STACK_SIZE];

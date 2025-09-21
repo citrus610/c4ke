@@ -51,11 +51,11 @@ struct Board {
             king(1ull << square) & pieces[KING];
     }
 
-    int quiet(u16 move) {
+    int quiet(i16 move) {
         return board[move_to(move)] > BLACK_KING && !move_promo(move) && !(board[move_from(move)] < WHITE_KNIGHT && move_to(move) == enpassant);
     }
 
-    int see(u16 move, int threshold) {
+    int see(i16 move, int threshold) {
         int from = move_from(move),
             to = move_to(move),
             side = !stm;
@@ -95,7 +95,7 @@ struct Board {
         return side != stm;
     }
 
-    u64 make(u16 move) {
+    u64 make(i16 move) {
         // Get move data
         int from = move_from(move),
             to = move_to(move),
@@ -156,7 +156,7 @@ struct Board {
         return attackers(LSB(pieces[KING] & colors[!stm])) & colors[stm];
     }
 
-    void add_pawn_moves(u16 list[], int& count, u64 targets, int offset) {
+    void add_pawn_moves(i16 list[], int& count, u64 targets, int offset) {
         while (targets) {
             int to = LSB(targets);
             targets &= targets - 1;
@@ -171,7 +171,7 @@ struct Board {
         }
     }
 
-    void add_moves(u16 list[], int& count, u64 mask, u64 targets, u64 occupied, u64 (*func)(u64, u64)) {
+    void add_moves(i16 list[], int& count, u64 mask, u64 targets, u64 occupied, u64 (*func)(u64, u64)) {
         while (mask) {
             int from = LSB(mask);
             mask &= mask - 1;
@@ -187,7 +187,7 @@ struct Board {
         }
     }
 
-    int movegen(u16 list[], int is_all) {
+    int movegen(i16 list[], int is_all) {
         int count = 0;
 
         u64 occupied = colors[WHITE] | colors[BLACK],
