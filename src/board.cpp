@@ -29,8 +29,8 @@ struct Board {
         if (piece < PIECE_NONE) {
             hash ^= KEYS[piece][square];
 
-            pieces[piece / 2] |= (1ull << square);
-            colors[piece & 1] |= (1ull << square);
+            pieces[piece / 2] |= 1ull << square;
+            colors[piece & 1] |= 1ull << square;
 
             if (piece / 2 < KNIGHT)
                 hash_pawn ^= KEYS[piece][square];
