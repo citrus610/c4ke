@@ -4,6 +4,7 @@ using namespace std;
 
 using u8 = uint8_t;
 using i16 = int16_t;
+using i32 = int;
 using u64 = uint64_t;
 
 #define OB
@@ -134,15 +135,15 @@ using u64 = uint64_t;
 #define VISIT_BYTES 16384
 
 #ifdef OB
-    int TT_BITS = 20;
-    int TT_SHIFT = 64 - TT_BITS;
+    i32 TT_BITS = 20;
+    i32 TT_SHIFT = 64 - TT_BITS;
 #else
     #define TT_BITS 20
     #define TT_SHIFT 44
 #endif
 
 #ifdef OB
-    int THREADS = 1;
+    i32 THREADS = 1;
 #else
     #define THREADS 1
 #endif
@@ -158,19 +159,19 @@ u64 now() {
 u64 KEYS[13][65]{};
 
 // Move
-i16 move_make(int from, int to, int promo = PAWN) {
+i16 move_make(i32 from, i32 to, i32 promo = PAWN) {
     return from | to << 6 | promo << 12;
 }
 
-int move_from(i16 move) {
+i32 move_from(i16 move) {
     return move & 63;
 }
 
-int move_to(i16 move) {
+i32 move_to(i16 move) {
     return move >> 6 & 63;
 }
 
-int move_promo(i16 move) {
+i32 move_promo(i16 move) {
     return move >> 12;
 }
 
@@ -258,16 +259,16 @@ i16 BEST_MOVE;
 u64 LIMIT_SOFT,
     LIMIT_HARD,
     VISITED[STACK_SIZE];
-int VISITED_COUNT,
+i32 VISITED_COUNT,
     RUNNING;
 
 #ifdef OB
 void print_bitboard(u64 bitboard) {
 
-    for (int rank = 7; rank >= 0; rank--) {
+    for (i32 rank = 7; rank >= 0; rank--) {
         char line[] = ". . . . . . . .";
 
-        for (int file = 0; file < 8; file++) {
+        for (i32 file = 0; file < 8; file++) {
             if (bitboard & 1ull << (file | (rank << 3))) {
                 line[2 * file] = 'X';
             }

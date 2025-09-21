@@ -4,7 +4,7 @@ struct Board {
     u64 pieces[6],
         colors[2];
     u8 board[64];
-    int stm,
+    i32 stm,
         castled,
         enpassant,
         halfmove;
@@ -13,7 +13,7 @@ struct Board {
         hash_pawn,
         hash_non_pawn[2];
 
-    void edit(int square, int piece) {
+    void edit(i32 square, i32 piece) {
         if (board[square] < PIECE_NONE) {
             hash ^= KEYS[board[square]][square];
 
@@ -41,7 +41,7 @@ struct Board {
         board[square] = piece;
     }
 
-    u64 attackers(int square) {
+    u64 attackers(i32 square) {
         return
             (nw(1ull << square) | ne(1ull << square)) & pieces[PAWN] & colors[BLACK] |
             (sw(1ull << square) | se(1ull << square)) & pieces[PAWN] & colors[WHITE] |
@@ -51,12 +51,12 @@ struct Board {
             king(1ull << square) & pieces[KING];
     }
 
-    int quiet(i16 move) {
+    i32 quiet(i16 move) {
         return board[move_to(move)] > BLACK_KING && !move_promo(move) && !(board[move_from(move)] < WHITE_KNIGHT && move_to(move) == enpassant);
     }
 
-    int see(i16 move, int threshold) {
-        int from = move_from(move),
+    i32 see(i16 move, i32 threshold) {
+        i32 from = move_from(move),
             to = move_to(move),
             side = !stm;
 
@@ -75,7 +75,7 @@ struct Board {
         colors[stm] ^= 1ull << from;
 
         while (u64 threats = attackers(to) & colors[side]) {
-            int type = PAWN;
+            i32 type = PAWN;
 
             for (; type < KING && !(pieces[type] & threats); type++);
 
@@ -97,7 +97,7 @@ struct Board {
 
     u64 make(i16 move) {
         // Get move data
-        int from = move_from(move),
+        i32 from = move_from(move),
             to = move_to(move),
             piece = board[from];
 
@@ -124,7 +124,7 @@ struct Board {
 
         if (piece > BLACK_QUEEN) {
             if (abs(from - to) == 2) {
-                int dt = (from + to) / 2;
+                i32 dt = (from + to) / 2;
 
                 if ((attackers(dt) | attackers(to)) & colors[!stm])
                     return TRUE;
@@ -156,9 +156,9 @@ struct Board {
         return attackers(LSB(pieces[KING] & colors[!stm])) & colors[stm];
     }
 
-    void add_pawn_moves(i16 list[], int& count, u64 targets, int offset) {
+    void add_pawn_moves(i16 list[], i32& count, u64 targets, i32 offset) {
         while (targets) {
-            int to = LSB(targets);
+            i32 to = LSB(targets);
             targets &= targets - 1;
 
             if (to < 8 || to > 55)
@@ -171,15 +171,15 @@ struct Board {
         }
     }
 
-    void add_moves(i16 list[], int& count, u64 mask, u64 targets, u64 occupied, u64 (*func)(u64, u64)) {
+    void add_moves(i16 list[], i32& count, u64 mask, u64 targets, u64 occupied, u64 (*func)(u64, u64)) {
         while (mask) {
-            int from = LSB(mask);
+            i32 from = LSB(mask);
             mask &= mask - 1;
 
             u64 attack = func(1ull << from, occupied) & targets;
 
             while (attack) {
-                int to = LSB(attack);
+                i32 to = LSB(attack);
                 attack &= attack - 1;
 
                 list[count++] = move_make(from, to);
@@ -187,8 +187,8 @@ struct Board {
         }
     }
 
-    int movegen(i16 list[], int is_all) {
-        int count = 0;
+    i32 movegen(i16 list[], i32 is_all) {
+        i32 count = 0;
 
         u64 occupied = colors[WHITE] | colors[BLACK],
             targets = is_all ? ~colors[stm] : colors[!stm],
@@ -222,11 +222,11 @@ struct Board {
         return count;
     }
 
-    int eval() {
-        int eval = 0,
+    i32 eval() {
+        i32 eval = 0,
             phase = 0;
 
-        for (int color = WHITE; color < 2; color++) {
+        for (i32 color = WHITE; color < 2; color++) {
             u64 pawns_us = pieces[PAWN] & colors[color],
                 pawns_them = pieces[PAWN] & colors[!color],
                 pawns_threats = se(pawns_them) | sw(pawns_them),
@@ -241,11 +241,11 @@ struct Board {
                 // Pawn doubled
                 POPCNT(pawns_us & (north(pawns_us) | north(north(pawns_us)))) * PAWN_DOUBLED;
 
-            for (int type = PAWN; type < TYPE_NONE; type++) {
+            for (i32 type = PAWN; type < TYPE_NONE; type++) {
                 u64 mask = pieces[type] & colors[color];
 
                 while (mask) {
-                    int square = LSB(mask);
+                    i32 square = LSB(mask);
                     mask &= mask - 1;
 
                     // PST
@@ -299,14 +299,14 @@ struct Board {
             colors[WHITE] = BSWAP(colors[WHITE]);
             colors[BLACK] = BSWAP(colors[BLACK]);
 
-            for (int type = PAWN; type < TYPE_NONE; type++)
+            for (i32 type = PAWN; type < TYPE_NONE; type++)
                 pieces[type] = BSWAP(pieces[type]);
 
             eval = -eval;
         }
 
         // Scaling
-        int x = 8 - POPCNT(pieces[PAWN] & colors[eval < 0]);
+        i32 x = 8 - POPCNT(pieces[PAWN] & colors[eval < 0]);
 
         eval = (i16(eval) * phase + (eval + 0x8000 >> 16) * (128 - x * x) / 128 * (24 - phase)) / 24;
 
@@ -323,7 +323,7 @@ struct Board {
         // Set pieces
         fen >> token;
 
-        int square = 56;
+        i32 square = 56;
 
         for (char c : token) {
             if (isdigit(c)) {
@@ -333,7 +333,7 @@ struct Board {
                 square -= 16;
             }
             else {
-                int piece =
+                i32 piece =
                     c == 'P' ? WHITE_PAWN :
                     c == 'N' ? WHITE_KNIGHT :
                     c == 'B' ? WHITE_BISHOP :
@@ -405,7 +405,7 @@ struct Board {
 
         enpassant = SQUARE_NONE;
 
-        for (int i = 0; i < 8; i++)
+        for (i32 i = 0; i < 8; i++)
             edit(i + A1, LAYOUT[i] * 2 | WHITE),
             edit(i + A8, LAYOUT[i] * 2 | BLACK),
             edit(i + A2, WHITE_PAWN),

@@ -3,7 +3,7 @@
 // History
 using HTable = i16[12][64];
 
-void update_history(i16& entry, int bonus) {
+void update_history(i16& entry, i32 bonus) {
     entry += bonus - entry * abs(bonus) / HIST_MAX;
 }
 
@@ -17,12 +17,12 @@ struct Thread {
         *stack_conthist[STACK_SIZE];
     u64 nodes {},
         visited[STACK_SIZE];
-    int id,
+    i32 id,
         stack_eval[STACK_SIZE];
 
-    int search(Board& board, int alpha, int beta, int ply, int depth, int is_pv = FALSE, i16 excluded = MOVE_NONE) {
+    i32 search(Board& board, i32 alpha, i32 beta, i32 ply, i32 depth, i32 is_pv = FALSE, i16 excluded = MOVE_NONE) {
         // All search variables
-        int eval,
+        i32 eval,
             best = -INF,
             is_improving = FALSE,
             quiet_count = 0,
@@ -50,11 +50,11 @@ struct Thread {
         // Oracle
         if (ply) {
             // Repetiion
-            for (int i = 4; i <= ply; i += 2)
+            for (i32 i = 4; i <= ply; i += 2)
                 if (board.hash == visited[ply - i])
                     return DRAW;
 
-            for (int i = 0; i < VISITED_COUNT; i++)
+            for (i32 i = 0; i < VISITED_COUNT; i++)
                 if (board.hash == VISITED[i])
                     return DRAW;
 
@@ -126,7 +126,7 @@ struct Thread {
 
                     stack_conthist[ply + 2] = conthist[WHITE_PAWN];
 
-                    int score = -search(child, -beta, -alpha, ply + 1, depth - 5 - depth / 3);
+                    i32 score = -search(child, -beta, -alpha, ply + 1, depth - 5 - depth / 3);
 
                     if (score >= beta)
                         return score < WIN ? score : beta;
@@ -135,11 +135,11 @@ struct Thread {
         }
 
         // Generate move
-        int move_count = board.movegen(move_list, depth || board.checkers);
+        i32 move_count = board.movegen(move_list, depth || board.checkers);
 
         // Score move
-        for (int i = 0; i < move_count; i++) {
-            int move = move_list[i],
+        for (i32 i = 0; i < move_count; i++) {
+            i32 move = move_list[i],
                 piece = board.board[move_from(move)],
                 victim = board.board[move_to(move)] / 2 % TYPE_NONE;
 
@@ -153,11 +153,11 @@ struct Thread {
         }
 
         // Iterate moves
-        for (int i = 0; i < move_count; i++) {
+        for (i32 i = 0; i < move_count; i++) {
             // Sort next move
-            int next_index = i;
+            i32 next_index = i;
 
-            for (int k = i + 1; k < move_count; k++)
+            for (i32 k = i + 1; k < move_count; k++)
                 if (move_scores[k] > move_scores[next_index])
                     next_index = k;
             
@@ -171,7 +171,7 @@ struct Thread {
                 continue;
 
             // Search data
-            int is_quiet = board.quiet(move),
+            i32 is_quiet = board.quiet(move),
                 depth_next = depth - 1,
                 score;
 
@@ -193,7 +193,7 @@ struct Thread {
 
             // Singular extension
             if (ply && depth > 7 && !excluded && move == tt.move && tt.depth > depth - 4 && tt.bound) {
-                int singular_beta = tt.score - depth * 2,
+                i32 singular_beta = tt.score - depth * 2,
                     singular_score = search(board, singular_beta - 1, singular_beta, ply, (depth - 1) / 2, FALSE, move);
 
                 if (singular_score < singular_beta)
@@ -215,7 +215,7 @@ struct Thread {
             // Don't do zero window search for qsearch
             // Late move reduction
             if (depth > 2 && legals > 3) {
-                int reduction =
+                i32 reduction =
                     // Base reduction
                     log(depth) * log(legals) * 0.3 + 1 -
                     // History reduction
@@ -269,7 +269,7 @@ struct Thread {
                     break;
 
                 // History bonus
-                int bonus = min(150 * depth - 50, 1500);
+                i32 bonus = min(150 * depth - 50, 1500);
 
                 if (is_quiet) {
                     // Update quiet history
@@ -278,7 +278,7 @@ struct Thread {
                     update_history((*stack_conthist[ply + 1])[board.board[move_from(move)]][move_to(move)], bonus);
 
                     // Add pelnaty to visited quiet moves
-                    for (int k = 0; k < quiet_count; k++)
+                    for (i32 k = 0; k < quiet_count; k++)
                         update_history(qhist[board.stm][quiet_list[k] & 4095], -bonus),
                         update_history((*stack_conthist[ply])[board.board[move_from(quiet_list[k])]][move_to(quiet_list[k])], -bonus),
                         update_history((*stack_conthist[ply + 1])[board.board[move_from(quiet_list[k])]][move_to(quiet_list[k])], -bonus);
@@ -288,7 +288,7 @@ struct Thread {
                     update_history(nhist[board.board[move_to(move)] / 2 % TYPE_NONE][board.board[move_from(move)]][move_to(move)], bonus);
 
                 // Add penalty to visited noisy moves
-                for (int k = 0; k < noisy_count; k++)
+                for (i32 k = 0; k < noisy_count; k++)
                     update_history(nhist[board.board[move_to(noisy_list[k])] / 2 % TYPE_NONE][board.board[move_from(noisy_list[k])]][move_to(noisy_list[k])], -bonus);
 
                 break;
@@ -309,7 +309,7 @@ struct Thread {
 
         // Update corrhist
         if (!board.checkers && (!best_move || board.quiet(best_move)) && bound != best < stack_eval[ply]) {
-            int bonus = clamp((best - stack_eval[ply]) * depth, -CORRHIST_BONUS_MAX, CORRHIST_BONUS_MAX) * CORRHIST_BONUS_SCALE;
+            i32 bonus = clamp((best - stack_eval[ply]) * depth, -CORRHIST_BONUS_MAX, CORRHIST_BONUS_MAX) * CORRHIST_BONUS_SCALE;
             update_history(corrhist[board.stm][board.hash_pawn % CORRHIST_SIZE], bonus);
             update_history(corrhist[board.stm][board.hash_non_pawn[WHITE] % CORRHIST_SIZE], bonus);
             update_history(corrhist[board.stm][board.hash_non_pawn[BLACK] % CORRHIST_SIZE], bonus);
@@ -325,21 +325,21 @@ struct Thread {
     }
 
 #ifdef OB_MINI
-    void start(Board board, int ID = 0, int MAX_DEPTH = 256, int BENCH = FALSE) {
+    void start(Board board, i32 ID = 0, i32 MAX_DEPTH = 256, i32 BENCH = FALSE) {
 #else
-    void start(Board board, int ID) {
+    void start(Board board, i32 ID) {
         #define MAX_DEPTH 256
 #endif
         id = ID;
-        int score = 0;
+        i32 score = 0;
 
         // Iterative deepening
-        for (int depth = 1; depth < MAX_DEPTH; ++depth) {
+        for (i32 depth = 1; depth < MAX_DEPTH; ++depth) {
             // Clear stack
             stack_conthist[0] = stack_conthist[1] = &conthist[WHITE_PAWN][B1];
 
             // Aspiration window
-            int delta = 10,
+            i32 delta = 10,
                 alpha = score,
                 beta = score;
 
