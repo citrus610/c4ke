@@ -1,7 +1,7 @@
 #include "search.cpp"
 
 #ifdef OB
-string move_str(u16 move) {
+string move_str(i16 move) {
     string str;
 
     str += 97 + move_from(move) % 8;
@@ -16,17 +16,17 @@ string move_str(u16 move) {
     return str;
 }
 
-u64 perft(Board& board, int depth, bool is_root = FALSE) {
+u64 perft(Board& board, i32 depth, bool is_root = FALSE) {
     if (depth <= 0) {
         return 1;
     }
 
     u64 nodes = 0;
 
-    u16 moves[MAX_MOVE];
-    int count = board.movegen(moves, TRUE);
+    i16 moves[MAX_MOVE];
+    i32 count = board.movegen(moves, TRUE);
 
-    for (int i = 0; i < count; i++) {
+    for (i32 i = 0; i < count; i++) {
         Board child = board;
 
         if (child.make(moves[i])) {
@@ -48,7 +48,7 @@ u64 perft(Board& board, int depth, bool is_root = FALSE) {
 void test_perft() {
     struct Test {
         string fen;
-        int depth;
+        i32 depth;
         u64 result;
     };
 
@@ -183,7 +183,7 @@ void test_perft() {
         Test { "rnbqkb1r/ppppp1pp/7n/4Pp2/8/8/PPPP1PPP/RNBQKBNR w KQkq f6 0 3", 5, 11139762 }
     };
 
-    int passed = 0;
+    i32 passed = 0;
 
     for (auto& test : tests) {
         stringstream fen(test.fen);
@@ -214,8 +214,8 @@ void test_see()
 {
     struct Test {
         std::string fen;
-        u16 move;
-        int threshold;
+        i16 move;
+        i32 threshold;
         bool result;
     };
 
@@ -361,15 +361,15 @@ void bench()
 #endif
 
 #ifdef OB_MINI
-int main(int argc, char *argv[]) {
+i32 main(i32 argc, char *argv[]) {
 #else
-int main() {
+i32 main() {
 #endif
     // Zobrist hash init
     mt19937_64 rng;
 
-    for (int i = 0; i < 13; i++)
-        for (int k = 0; k < 64; k++)
+    for (i32 i = 0; i < 13; i++)
+        for (i32 k = 0; k < 64; k++)
             KEYS[i][k] = rng();
 
     // Search data
@@ -476,12 +476,11 @@ int main() {
             tokens >> token >> token;
 #endif
 
-            while (tokens >> token) {
-                BEST_MOVE = move_make(token[0] + token[1] * 8 - 489, token[2] + token[3] * 8 - 489, token[4] % 35 * 5 % 6);
-                VISITED[VISITED_COUNT++] = board.hash;
-                VISITED_COUNT *= board.board[move_from(BEST_MOVE)] > BLACK_PAWN && board.board[move_to(BEST_MOVE)] > BLACK_KING;
+            while (tokens >> token)
+                BEST_MOVE = move_make(token[0] + token[1] * 8 - 489, token[2] + token[3] * 8 - 489, token[4] % 35 * 5 % 6),
+                VISITED[VISITED_COUNT++] = board.hash,
+                VISITED_COUNT *= board.board[move_from(BEST_MOVE)] > BLACK_PAWN && board.board[move_to(BEST_MOVE)] > BLACK_KING,
                 board.make(BEST_MOVE);
-            }
         }
         // Uci go
         else if (token[0] == 'g') {
@@ -502,10 +501,10 @@ int main() {
             thread threads[THREADS];
 #endif
 
-            int id = 0;
+            i32 id = 0;
 
             for (thread& t : threads)
-                t = thread([&] () { Thread().start(board, id++); });
+                t = thread([&] { Thread().start(board, id++); });
 
             for (thread& t : threads)
                 t.join();
@@ -520,6 +519,4 @@ int main() {
     }
 
     free(TTABLE);
-
-    return 0;
 };

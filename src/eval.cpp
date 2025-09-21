@@ -2,7 +2,7 @@
 
 #define S(MG, EG) (MG + (EG << 16))
 
-int PHASE[] { 0, 1, 1, 2, 4, 0 },
+i32 PHASE[] { 0, 1, 1, 2, 4, 0 },
     VALUE[] { 100, 320, 330, 500, 900, 2000, 0 },
     LAYOUT[] { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK },
     MATERIAL[] { S(89, 147), S(350, 521), S(361, 521), S(479, 956), S(1046, 1782), 0 };
@@ -41,7 +41,7 @@ int PHASE[] { 0, 1, 1, 2, 4, 0 },
 #define OFFSET_KING_ATTACK S(20, 0)
 #define OFFSET_PST S(-19, -16)
 
-int get_data(int index) {
+i32 get_data(i32 index) {
     auto data = DATA_STR;
 
     return data[index] + data[index + INDEX_EG] * 0x10000 - S(32, 32);
