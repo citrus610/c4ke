@@ -1,7 +1,7 @@
 #include "board.cpp"
 
 // History
-typedef i16 HTable[12][64];
+using HTable = i16[12][64];
 
 void update_history(i16& entry, int bonus) {
     entry += bonus - entry * abs(bonus) / HIST_MAX;

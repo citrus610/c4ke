@@ -2,9 +2,9 @@
 
 using namespace std;
 
-typedef uint8_t u8;
-typedef int16_t i16;
-typedef uint64_t u64;
+using u8 = uint8_t;
+using i16 = int16_t;
+using u64 = uint64_t;
 
 #define OB
 #define OB_MINI
