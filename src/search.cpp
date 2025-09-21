@@ -333,28 +333,20 @@ struct Thread {
         #define MAX_DEPTH 256
 #endif
         id = ID;
-        int score = 0;
 
         // Iterative deepening
-        for (int depth = 1; depth < MAX_DEPTH; ++depth) {
+        for (int score = 0, depth = 1; depth < MAX_DEPTH; ++depth) {
             // Clear stack
             stack_conthist[0] = stack_conthist[1] = &conthist[WHITE_PAWN][B1];
 
-            // Aspiration window
-            int delta = 10,
-                alpha = score,
-                beta = score;
-
-            while (score <= alpha || score >= beta) {
+            // Aspiration window, scale delta every failed iteration
+            for (int delta = 10, alpha = score, beta = score; score <= alpha || score >= beta; delta *= 1.5) {
                 // Update window
                 if (score <= alpha) alpha = score - delta;
                 if (score >= beta) beta = score + delta;
 
                 // Search
                 score = search(board, alpha, beta, 0, depth, TRUE);
-
-                // Scale delta
-                delta *= 1.5;
             }
 
             // Print info
@@ -379,4 +371,5 @@ struct Thread {
         if (!id)
             BEST_MOVE = pv;
     }
+
 };
