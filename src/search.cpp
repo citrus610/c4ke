@@ -235,7 +235,7 @@ struct Thread {
                 score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next);
 
             // Principle variation search and qsearch
-            if (!depth || (is_pv && (legals == 1 || score > alpha)))
+            if (!depth || is_pv && (legals == 1 || score > alpha))
                 score = -search(child, -beta, -alpha, ply + 1, depth_next, is_pv);
 
             // Abort
