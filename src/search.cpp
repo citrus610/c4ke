@@ -278,11 +278,10 @@ struct Thread {
                     update_history((*stack_conthist[ply + 1])[board.board[move_from(move)]][move_to(move)], bonus);
 
                     // Add pelnaty to visited quiet moves
-                    for (int k = 0; k < quiet_count; k++) {
-                        update_history(qhist[board.stm][quiet_list[k] & 4095], -bonus);
-                        update_history((*stack_conthist[ply])[board.board[move_from(quiet_list[k])]][move_to(quiet_list[k])], -bonus);
+                    for (int k = 0; k < quiet_count; k++)
+                        update_history(qhist[board.stm][quiet_list[k] & 4095], -bonus),
+                        update_history((*stack_conthist[ply])[board.board[move_from(quiet_list[k])]][move_to(quiet_list[k])], -bonus),
                         update_history((*stack_conthist[ply + 1])[board.board[move_from(quiet_list[k])]][move_to(quiet_list[k])], -bonus);
-                    }
                 }
                 else
                     // Update noisy history
@@ -311,7 +310,6 @@ struct Thread {
         // Update corrhist
         if (!board.checkers && (!best_move || board.quiet(best_move)) && bound != best < stack_eval[ply]) {
             int bonus = clamp((best - stack_eval[ply]) * depth, -CORRHIST_BONUS_MAX, CORRHIST_BONUS_MAX) * CORRHIST_BONUS_SCALE;
-
             update_history(corrhist[board.stm][board.hash_pawn % CORRHIST_SIZE], bonus);
             update_history(corrhist[board.stm][board.hash_non_pawn[WHITE] % CORRHIST_SIZE], bonus);
             update_history(corrhist[board.stm][board.hash_non_pawn[BLACK] % CORRHIST_SIZE], bonus);

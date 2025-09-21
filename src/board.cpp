@@ -83,7 +83,6 @@ struct Board {
 
             if ((threshold = VALUE[type] - threshold) < 0) {
                 side ^= type == KING && attackers(to) & colors[side];
-
                 break;
             }
 
@@ -112,10 +111,9 @@ struct Board {
         // Enpassant
         hash ^= KEYS[PIECE_NONE][enpassant];
 
-        if (piece < WHITE_KNIGHT && to == enpassant) {
-            edit(to ^ 8, PIECE_NONE);
-            hash ^= KEYS[PIECE_NONE][enpassant];
-        }
+        if (piece < WHITE_KNIGHT && to == enpassant)
+            edit(to ^ 8, PIECE_NONE), hash ^= KEYS[PIECE_NONE][enpassant];
+
 
         enpassant = piece < WHITE_KNIGHT && abs(from - to) == 16 ? to ^ 8 : SQUARE_NONE;
 
@@ -163,12 +161,11 @@ struct Board {
             int to = LSB(targets);
             targets &= targets - 1;
 
-            if (to < 8 || to > 55) {
-                list[count++] = move_make(to - offset, to, KNIGHT);
-                list[count++] = move_make(to - offset, to, BISHOP);
-                list[count++] = move_make(to - offset, to, ROOK);
+            if (to < 8 || to > 55)
+                list[count++] = move_make(to - offset, to, KNIGHT),
+                list[count++] = move_make(to - offset, to, BISHOP),
+                list[count++] = move_make(to - offset, to, ROOK),
                 list[count++] = move_make(to - offset, to, QUEEN);
-            }
             else
                 list[count++] = move_make(to - offset, to);
         }
@@ -408,11 +405,10 @@ struct Board {
 
         enpassant = SQUARE_NONE;
 
-        for (int i = 0; i < 8; i++) {
-            edit(i + A1, LAYOUT[i] * 2 | WHITE);
-            edit(i + A8, LAYOUT[i] * 2 | BLACK);
-            edit(i + A2, WHITE_PAWN);
+        for (int i = 0; i < 8; i++)
+            edit(i + A1, LAYOUT[i] * 2 | WHITE),
+            edit(i + A8, LAYOUT[i] * 2 | BLACK),
+            edit(i + A2, WHITE_PAWN),
             edit(i + A7, BLACK_PAWN);
-        }
     }
 };

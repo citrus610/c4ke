@@ -476,12 +476,11 @@ int main() {
             tokens >> token >> token;
 #endif
 
-            while (tokens >> token) {
-                BEST_MOVE = move_make(token[0] + token[1] * 8 - 489, token[2] + token[3] * 8 - 489, token[4] % 35 * 5 % 6);
-                VISITED[VISITED_COUNT++] = board.hash;
-                VISITED_COUNT *= board.board[move_from(BEST_MOVE)] > BLACK_PAWN && board.board[move_to(BEST_MOVE)] > BLACK_KING;
+            while (tokens >> token)
+                BEST_MOVE = move_make(token[0] + token[1] * 8 - 489, token[2] + token[3] * 8 - 489, token[4] % 35 * 5 % 6),
+                VISITED[VISITED_COUNT++] = board.hash,
+                VISITED_COUNT *= board.board[move_from(BEST_MOVE)] > BLACK_PAWN && board.board[move_to(BEST_MOVE)] > BLACK_KING,
                 board.make(BEST_MOVE);
-            }
         }
         // Uci go
         else if (token[0] == 'g') {
