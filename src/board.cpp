@@ -79,9 +79,7 @@ struct Board {
         while (u64 threats = attackers(to) & colors[side]) {
             int type = PAWN;
 
-            for (; type < KING; type++)
-                if (pieces[type] & threats)
-                    break;
+            for (; type < KING && !(pieces[type] & threats); type++);
 
             side ^= 1;
 
@@ -419,4 +417,5 @@ struct Board {
             edit(i + A7, BLACK_PAWN);
         }
     }
+
 };
