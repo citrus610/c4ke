@@ -14,13 +14,11 @@ struct Board {
         hash_non_pawn[2];
 
     void edit(int square, int piece) {
-        u64 mask = 1ull << square;
-
         if (board[square] < PIECE_NONE) {
             hash ^= KEYS[board[square]][square];
 
-            pieces[board[square] / 2] &= ~mask;
-            colors[board[square] & 1] &= ~mask;
+            pieces[board[square] / 2] ^= 1ull << square;
+            colors[board[square] & 1] ^= 1ull << square;
 
             if (board[square] / 2 < KNIGHT)
                 hash_pawn ^= KEYS[board[square]][square];
@@ -31,8 +29,8 @@ struct Board {
         if (piece < PIECE_NONE) {
             hash ^= KEYS[piece][square];
 
-            pieces[piece / 2] |= mask;
-            colors[piece & 1] |= mask;
+            pieces[piece / 2] |= (1ull << square);
+            colors[piece & 1] |= (1ull << square);
 
             if (piece / 2 < KNIGHT)
                 hash_pawn ^= KEYS[piece][square];
