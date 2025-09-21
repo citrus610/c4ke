@@ -119,9 +119,7 @@ struct Board {
             hash ^= KEYS[PIECE_NONE][enpassant];
         }
 
-        enpassant = piece < WHITE_KNIGHT ? abs(from - to) == 16 ? to ^ 8 : SQUARE_NONE : SQUARE_NONE;
-
-        hash ^= KEYS[PIECE_NONE][enpassant];
+        hash ^= KEYS[PIECE_NONE][enpassant = piece < WHITE_KNIGHT && abs(from - to) == 16 ? to ^ 8 : SQUARE_NONE];
 
         // Castling
         hash ^= KEYS[PIECE_NONE][castled];
