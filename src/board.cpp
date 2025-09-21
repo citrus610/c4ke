@@ -186,10 +186,8 @@ struct Board {
             u64 attack = func(1ull << from, occupied) & targets;
 
             while (attack) {
-                int to = LSB(attack);
+                list[count++] = move_make(from, LSB(attack));
                 attack &= attack - 1;
-
-                list[count++] = move_make(from, to);
             }
         }
     }
@@ -419,4 +417,5 @@ struct Board {
             edit(i + A7, BLACK_PAWN);
         }
     }
+
 };
