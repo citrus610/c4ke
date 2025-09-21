@@ -124,13 +124,13 @@ struct Board {
 
         if (piece > BLACK_QUEEN) {
             if (abs(from - to) == 2) {
-                int dt = to > from ? 1 : -1;
+                int dt = from + to >> 1;
 
-                if ((attackers(from + dt) | attackers(from + dt * 2)) & colors[!stm])
+                if ((attackers(dt) | attackers(to)) & colors[!stm])
                     return TRUE;
 
                 edit(to + (to > from ? 1 : -2), PIECE_NONE);
-                edit(from + dt, ROOK * 2 + stm);
+                edit(dt, ROOK * 2 + stm);
             }
 
             castled |= 3 << stm * 2;

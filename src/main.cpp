@@ -504,7 +504,7 @@ int main() {
             int id = 0;
 
             for (thread& t : threads)
-                t = thread([&] () { Thread().start(board, id++); });
+                t = thread([&] { Thread().start(board, id++); });
 
             for (thread& t : threads)
                 t.join();
