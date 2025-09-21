@@ -124,7 +124,7 @@ struct Board {
 
         if (piece > BLACK_QUEEN) {
             if (abs(from - to) == 2) {
-                int dt = from + to >> 1;
+                int dt = (from + to) / 2;
 
                 if ((attackers(dt) | attackers(to)) & colors[!stm])
                     return TRUE;

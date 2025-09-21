@@ -519,6 +519,4 @@ int main() {
     }
 
     free(TTABLE);
-
-    return 0;
 };
