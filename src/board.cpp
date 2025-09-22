@@ -1,8 +1,8 @@
 #include "eval.cpp"
 
 struct Board {
-    u64 pieces[6],
-        colors[2];
+    u64 pieces[6]{},
+        colors[2]{};
     u8 board[64];
     i32 stm,
         castled,
@@ -11,7 +11,7 @@ struct Board {
     u64 checkers,
         hash,
         hash_pawn,
-        hash_non_pawn[2];
+        hash_non_pawn[2]{};
 
     void edit(i32 square, i32 piece) {
         // Remove any pieces that exist in this square
