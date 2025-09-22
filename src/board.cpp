@@ -171,23 +171,23 @@ struct Board {
         return attackers(LSB(pieces[KING] & colors[!stm])) & colors[stm];
     }
 
-    void add_pawn_moves(i16 list[], i32& count, u64 targets, i32 offset) {
+    void add_pawn_moves(i16*& list_end, u64 targets, i32 offset) {
         while (targets) {
             i32 to = LSB(targets);
             targets &= targets - 1;
 
             if (to < 8 || to > 55)
                 // Prmotion
-                list[count++] = move_make(to - offset, to, KNIGHT),
-                list[count++] = move_make(to - offset, to, BISHOP),
-                list[count++] = move_make(to - offset, to, ROOK),
-                list[count++] = move_make(to - offset, to, QUEEN);
+                *list_end++ = move_make(to - offset, to, KNIGHT),
+                *list_end++ = move_make(to - offset, to, BISHOP),
+                *list_end++ = move_make(to - offset, to, ROOK),
+                *list_end++ = move_make(to - offset, to, QUEEN);
             else
-                list[count++] = move_make(to - offset, to);
+                *list_end++ = move_make(to - offset, to);
         }
     }
 
-    void add_moves(i16 list[], i32& count, u64 mask, u64 targets, u64 occupied, u64 (*func)(u64, u64)) {
+    void add_moves(i16*& list_end, u64 mask, u64 targets, u64 occupied, u64 (*func)(u64, u64)) {
         while (mask) {
             i32 from = LSB(mask);
             mask &= mask - 1;
@@ -198,13 +198,13 @@ struct Board {
                 i32 to = LSB(attack);
                 attack &= attack - 1;
 
-                list[count++] = move_make(from, to);
+                *list_end++ = move_make(from, to);
             }
         }
     }
 
-    i32 movegen(i16 list[], i32 is_all) {
-        i32 count = 0;
+    i32 movegen(i16* list, i32 is_all) {
+        i16* list_end = list;
 
         u64 occupied = colors[WHITE] | colors[BLACK],
             targets = is_all ? ~colors[stm] : colors[!stm],
@@ -213,30 +213,30 @@ struct Board {
             pawns_targets = colors[!stm] | u64(enpassant < SQUARE_NONE) << enpassant;
 
         // Pawn
-        add_pawn_moves(list, count, pawns_push, stm ? -8 : 8);
-        add_pawn_moves(list, count, (stm ? south(pawns_push & 0xff0000000000) : north(pawns_push & 0xff0000ull)) & ~occupied, stm ? -16 : 16);
-        add_pawn_moves(list, count, (stm ? se(pawns) : nw(pawns)) & pawns_targets, stm ? -7 : 7);
-        add_pawn_moves(list, count, (stm ? sw(pawns) : ne(pawns)) & pawns_targets, stm ? -9 : 9);
+        add_pawn_moves(list_end, pawns_push, stm ? -8 : 8);
+        add_pawn_moves(list_end, (stm ? south(pawns_push & 0xff0000000000) : north(pawns_push & 0xff0000ull)) & ~occupied, stm ? -16 : 16);
+        add_pawn_moves(list_end, (stm ? se(pawns) : nw(pawns)) & pawns_targets, stm ? -7 : 7);
+        add_pawn_moves(list_end, (stm ? sw(pawns) : ne(pawns)) & pawns_targets, stm ? -9 : 9);
 
         // Knight
-        add_moves(list, count, pieces[KNIGHT] & colors[stm], targets, occupied, knight);
+        add_moves(list_end, pieces[KNIGHT] & colors[stm], targets, occupied, knight);
 
         // Bishop
-        add_moves(list, count, (pieces[BISHOP] | pieces[QUEEN]) & colors[stm], targets, occupied, bishop);
+        add_moves(list_end, (pieces[BISHOP] | pieces[QUEEN]) & colors[stm], targets, occupied, bishop);
 
         // Rook
-        add_moves(list, count, (pieces[ROOK] | pieces[QUEEN]) & colors[stm], targets, occupied, rook);
+        add_moves(list_end, (pieces[ROOK] | pieces[QUEEN]) & colors[stm], targets, occupied, rook);
 
         // King
-        add_moves(list, count, pieces[KING] & colors[stm], targets, occupied, king);
+        add_moves(list_end, pieces[KING] & colors[stm], targets, occupied, king);
 
         // Castling
         if (is_all && !checkers) {
-            if (~castled >> stm * 2 & 1 && !(occupied & 0x60ull << stm * 56)) list[count++] = move_make(E1 + stm * 56, G1 + stm * 56);
-            if (~castled >> stm * 2 & 2 && !(occupied & 0xeull << stm * 56)) list[count++] = move_make(E1 + stm * 56, C1 + stm * 56);
+            if (~castled >> stm * 2 & 1 && !(occupied & 0x60ull << stm * 56)) *list_end++ = move_make(E1 + stm * 56, G1 + stm * 56);
+            if (~castled >> stm * 2 & 2 && !(occupied & 0xeull << stm * 56)) *list_end++ = move_make(E1 + stm * 56, C1 + stm * 56);
         }
 
-        return count;
+        return list_end - list;
     }
 
     i32 eval() {
