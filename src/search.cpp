@@ -173,7 +173,7 @@ struct Thread {
                 depth_next = depth - 1,
                 score;
 
-            // Quiet pruning and SEE pruning in qsearch
+            // Quiet pruning, SEE pruning and LMP in qsearch
             if (!depth && best > -WIN && move_scores[i] < 1e6)
                 break;
 
@@ -359,12 +359,12 @@ struct Thread {
             // Print info
 #ifdef OB_MINI
             if (!BENCH && !id) {
+#else
+            if (!id) {
 #endif
                 cout << "info depth " << depth << " score cp " << score << " pv ";
                 move_print(pv);
-#ifdef OB_MINI
             }
-#endif
 
             // Check time
             if (now() > LIMIT_SOFT && !id)
