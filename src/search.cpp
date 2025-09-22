@@ -9,8 +9,7 @@ void update_history(i16& entry, i32 bonus) {
 
 // Search thread
 struct Thread {
-    i16 pv,
-        qhist[2][4096],
+    i16 qhist[2][4096],
         corrhist[2][CORRHIST_SIZE];
     HTable nhist[6],
         conthist[12][64],
@@ -41,7 +40,7 @@ struct Thread {
         depth *= depth > 0;
 
         // Abort
-        if (!(++nodes & 4095) && now() > LIMIT_HARD && !id)
+        if (!id && !(++nodes & 4095) && now() > LIMIT_HARD)
             RUNNING = FALSE;
 
         if (!RUNNING || ply >= MAX_PLY)
@@ -255,8 +254,8 @@ struct Thread {
                 bound = BOUND_EXACT;
 
                 // Update pv
-                if (!ply)
-                    pv = move;
+                if (!id && !ply)
+                    BEST_MOVE = move;
             }
 
             // Cutoff
@@ -326,7 +325,7 @@ struct Thread {
     }
 
 #ifdef OB_MINI
-    void start(Board board, i32 ID, i32 MAX_DEPTH = 256, i32 BENCH = FALSE) {
+    void start(Board board, i32 ID = 0, i32 MAX_DEPTH = 256, i32 BENCH = FALSE) {
 #else
     void start(Board board, i32 ID) {
         #define MAX_DEPTH 256
@@ -358,16 +357,16 @@ struct Thread {
 
             // Print info
 #ifdef OB_MINI
-            if (!BENCH && !id) {
-#else
-            if (!id) {
+            if (!id && !BENCH) {
 #endif
                 cout << "info depth " << depth << " score cp " << score << " pv ";
-                move_print(pv);
+                move_print(BEST_MOVE);
+#ifdef OB_MINI
             }
+#endif
 
             // Check time
-            if (now() > LIMIT_SOFT && !id)
+            if (!id && now() > LIMIT_SOFT)
                 RUNNING = FALSE;
 
             if (!RUNNING)
@@ -380,6 +379,6 @@ struct Thread {
             && !BENCH
 #endif
         )
-            cout << "bestmove ", move_print(BEST_MOVE = pv);
+            cout << "bestmove ", move_print(BEST_MOVE);
     }
 };
