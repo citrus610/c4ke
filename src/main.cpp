@@ -428,9 +428,8 @@ i32 main() {
         tokens >> token;
 
         // Uci isready
-        if (token[0] == 'i') {
+        if (token[0] == 'i')
             cout << "readyok\n";
-        }
 #ifdef OB
         // Uci ucinewgame
         else if (token[0] == 'u') {
@@ -507,9 +506,8 @@ i32 main() {
                 t = jthread([&] { Thread{}.start(board, id++); });
         }
         // Uci quit
-        else if (token[0] == 'q') {
+        else if (token[0] == 'q')
             break;
-        }
     }
 
     free(TTABLE);
