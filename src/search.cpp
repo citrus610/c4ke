@@ -106,7 +106,7 @@ struct Thread {
                 if (eval >= beta)
                     return eval;
 
-                alpha = max(alpha, best = eval);
+                if ((best = eval) > alpha) alpha = best;
             }
             else if (!is_pv && !excluded) {
                 // Reverse futility pruning
