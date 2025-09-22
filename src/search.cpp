@@ -335,7 +335,7 @@ struct Thread {
         i32 score = 0;
 
         // Iterative deepening
-        for (i32 depth = 1; depth < MAX_DEPTH; ++depth) {
+        for (i32 depth = 1; depth < MAX_DEPTH; depth++) {
             // Clear stack
             stack_conthist[0] = stack_conthist[1] = &conthist[WHITE_PAWN][B1];
 
