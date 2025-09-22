@@ -359,12 +359,12 @@ struct Thread {
             // Print info
 #ifdef OB_MINI
             if (!BENCH && !id) {
+#else
+            if (!id) {
 #endif
                 cout << "info depth " << depth << " score cp " << score << " pv ";
                 move_print(pv);
-#ifdef OB_MINI
             }
-#endif
 
             // Check time
             if (now() > LIMIT_SOFT && !id)
