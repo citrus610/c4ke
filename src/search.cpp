@@ -173,7 +173,7 @@ struct Thread {
                 depth_next = depth - 1,
                 score;
 
-            // Quiet pruning, SEE pruning and LMP in qsearch
+            // Quiet pruning and SEE pruning in qsearch
             if (!depth && best > -WIN && move_scores[i] < 1e6)
                 break;
 
