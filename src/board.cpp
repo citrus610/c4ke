@@ -419,8 +419,8 @@ struct Board {
         enpassant = SQUARE_NONE;
 
         for (i32 i = 0; i < 8; i++)
-            edit(i + A1, LAYOUT[i] * 2 | WHITE),
-            edit(i + A8, LAYOUT[i] * 2 | BLACK),
+            edit(i + A1, LAYOUT[i] * 2 + WHITE),
+            edit(i + A8, LAYOUT[i] * 2 + BLACK),
             edit(i + A2, WHITE_PAWN),
             edit(i + A7, BLACK_PAWN);
     }
