@@ -156,7 +156,7 @@ u64 now() {
 }
 
 // Zobrist
-u64 KEYS[13][65]{};
+u64 KEYS[13][65];
 
 // Move
 i16 move_make(i32 from, i32 to, i32 promo = PAWN) {
