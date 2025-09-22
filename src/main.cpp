@@ -461,7 +461,7 @@ i32 main() {
 #endif
         // Uci position
         else if (token[0] == 'p') {
-            board = Board();
+            board = Board{};
             VISITED_COUNT = 0;
 
 #ifdef OB

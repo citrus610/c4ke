@@ -414,7 +414,6 @@ struct Board {
 #endif
 
     Board() {
-        memset(this, 0, sizeof(Board));
         memset(board, PIECE_NONE, 64);
 
         enpassant = SQUARE_NONE;
