@@ -496,21 +496,15 @@ i32 main() {
             LIMIT_HARD = now() + time / 2;
 
 #ifdef OB
-            vector<thread> threads(THREADS);
+            vector<jthread> threads(THREADS);
 #else
-            thread threads[THREADS];
+            jthread threads[THREADS];
 #endif
 
             i32 id = 0;
 
-            for (thread& t : threads)
-                t = thread([&] { Thread{}.start(board, id++); });
-
-            for (thread& t : threads)
-                t.join();
-
-            cout << "bestmove ";
-            move_print(BEST_MOVE);
+            for (jthread& t : threads)
+                t = jthread([&] { Thread{}.start(board, id++); });
         }
         // Uci quit
         else if (token[0] == 'q') {

@@ -375,7 +375,11 @@ struct Thread {
         }
 
         // Return best move
-        if (!id)
-            BEST_MOVE = pv;
+        if (!id
+#ifdef OB_MINI
+            && !BENCH
+#endif
+        )
+            cout << "bestmove ", move_print(BEST_MOVE = pv);
     }
 };
