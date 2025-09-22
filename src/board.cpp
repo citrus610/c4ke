@@ -129,18 +129,14 @@ struct Board {
         // Castling
         hash ^= KEYS[PIECE_NONE][castled];
 
-        if (piece > BLACK_QUEEN) {
-            if (abs(from - to) == 2) {
-                i32 dt = (from + to) / 2;
+        if (piece > BLACK_QUEEN && (castled |= 3 << stm * 2) && abs(from - to) == 2) {
+            i32 dt = (from + to) / 2;
 
-                if ((attackers(dt) | attackers(to)) & colors[!stm])
-                    return TRUE;
+            if ((attackers(dt) | attackers(to)) & colors[!stm])
+                return TRUE;
 
-                edit(to + (to > from ? 1 : -2), PIECE_NONE);
-                edit(dt, ROOK * 2 + stm);
-            }
-
-            castled |= 3 << stm * 2;
+            edit(to + (to > from ? 1 : -2), PIECE_NONE);
+            edit(dt, ROOK * 2 + stm);
         }
 
         if (from == H1 || to == H1) castled |= CASTLED_WK;
