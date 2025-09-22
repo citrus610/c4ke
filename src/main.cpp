@@ -504,7 +504,7 @@ i32 main() {
             i32 id = 0;
 
             for (thread& t : threads)
-                t = thread([=] { Thread().start(board, id); }), id++;
+                t = thread([&] { Thread{}.start(board, id++); });
 
             for (thread& t : threads)
                 t.join();
