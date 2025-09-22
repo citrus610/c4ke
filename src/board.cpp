@@ -15,24 +15,22 @@ struct Board {
 
     void edit(i32 square, i32 piece) {
         // Remove any pieces that exist in this square
-        if (board[square] < PIECE_NONE) {
-            hash ^= KEYS[board[square]][square];
+        if (board[square] < PIECE_NONE)
+            hash ^= KEYS[board[square]][square],
 
-            pieces[board[square] / 2] ^= 1ull << square;
-            colors[board[square] & 1] ^= 1ull << square;
+            pieces[board[square] / 2] ^= 1ull << square,
+            colors[board[square] & 1] ^= 1ull << square,
 
             (board[square] / 2 < KNIGHT ? hash_pawn : hash_non_pawn[board[square] & 1]) ^= KEYS[board[square]][square];
-        }
 
         // Place new piece
-        if (piece < PIECE_NONE) {
-            hash ^= KEYS[piece][square];
+        if (piece < PIECE_NONE)
+            hash ^= KEYS[piece][square],
 
-            pieces[piece / 2] |= 1ull << square;
-            colors[piece & 1] |= 1ull << square;
+            pieces[piece / 2] |= 1ull << square,
+            colors[piece & 1] |= 1ull << square,
 
             (piece / 2 < KNIGHT ? hash_pawn : hash_non_pawn[piece & 1]) ^= KEYS[piece][square];
-        }
 
         board[square] = piece;
     }
@@ -59,7 +57,7 @@ struct Board {
 
         // Skip special moves such as promo and enpassant
         // We don't have to handle castling here since king moves are always safe
-        if (move_promo(move) || (board[from] < WHITE_KNIGHT && to == enpassant))
+        if (move_promo(move) || board[from] < WHITE_KNIGHT && to == enpassant)
             return TRUE;
 
         // Return early if capturing this piece can't beat the threshold

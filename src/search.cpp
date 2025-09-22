@@ -294,10 +294,7 @@ struct Thread {
             }
 
             // Push visited moves
-            if (is_quiet)
-                quiet_list[quiet_count++] = move;
-            else
-                noisy_list[noisy_count++] = move;
+            (is_quiet ? quiet_list[quiet_count++] : noisy_list[noisy_count++]) = move;
         }
 
         // Return mate score
