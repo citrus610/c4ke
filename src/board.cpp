@@ -84,7 +84,7 @@ struct Board {
         colors[stm] ^= 1ull << from;
 
         // Loop until one side runs out of attackers, or fail to beat the threshold
-        while (u64 threats = attackers(to) & colors[side]) {
+        for (; u64 threats = attackers(to) & colors[side];) {
             // Get the least valuable attacker
             i32 type = PAWN;
 
@@ -172,7 +172,7 @@ struct Board {
     }
 
     void add_pawn_moves(i16*& list_end, u64 targets, i32 offset) {
-        while (targets) {
+        for (; targets;) {
             i32 to = LSB(targets);
             targets &= targets - 1;
 
@@ -188,13 +188,13 @@ struct Board {
     }
 
     void add_moves(i16*& list_end, u64 mask, u64 targets, u64 occupied, u64 (*func)(u64, u64)) {
-        while (mask) {
+        for (; mask;) {
             i32 from = LSB(mask);
             mask &= mask - 1;
 
             u64 attack = func(1ull << from, occupied) & targets;
 
-            while (attack) {
+            for (; attack;) {
                 i32 to = LSB(attack);
                 attack &= attack - 1;
 
@@ -261,7 +261,7 @@ struct Board {
             for (i32 type = PAWN; type < TYPE_NONE; type++) {
                 u64 mask = pieces[type] & colors[color];
 
-                while (mask) {
+                for (; mask;) {
                     i32 square = LSB(mask);
                     mask &= mask - 1;
 

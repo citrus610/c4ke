@@ -423,7 +423,7 @@ i32 main() {
     cin >> token;
     cout << "uciok\n";
 
-    while (getline(cin, token)) {
+    for (; getline(cin, token);) {
         stringstream tokens(token);
         tokens >> token;
 
@@ -476,7 +476,7 @@ i32 main() {
             tokens >> token >> token;
 #endif
 
-            while (tokens >> token)
+            for (; tokens >> token;)
                 BEST_MOVE = move_make(token[0] + token[1] * 8 - 489, token[2] + token[3] * 8 - 489, token[4] % 35 * 5 % 6),
                 VISITED[VISITED_COUNT++] = board.hash,
                 VISITED_COUNT *= board.board[move_from(BEST_MOVE)] > BLACK_PAWN && board.board[move_to(BEST_MOVE)] > BLACK_KING,

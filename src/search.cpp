@@ -9,8 +9,8 @@ void update_history(i16& entry, i32 bonus) {
 
 // Search thread
 struct Thread {
-    i16 pv;
-    i16 qhist[2][4096],
+    i16 pv,
+        qhist[2][4096],
         corrhist[2][CORRHIST_SIZE];
     HTable nhist[6],
         conthist[12][64],
@@ -344,7 +344,7 @@ struct Thread {
                 alpha = score,
                 beta = score;
 
-            while (score <= alpha || score >= beta) {
+            for (; score <= alpha || score >= beta;) {
                 // Update window
                 if (score <= alpha) alpha = score - delta;
                 if (score >= beta) beta = score + delta;
