@@ -373,7 +373,7 @@ i32 main() {
             KEYS[i][k] = rng();
 
     // Search data
-    Board board;
+    Board board{};
     TTABLE = (TTEntry*)calloc(1ull << TT_BITS, 8);
 
 #ifdef OB_MINI
