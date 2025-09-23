@@ -500,10 +500,8 @@ i32 main() {
             jthread threads[THREADS];
 #endif
 
-            i32 id = 0;
-
-            for (jthread& t : threads)
-                t = jthread([=] { Thread{}.start(board, id); }), id++;
+            for (i32 id = 0; id < THREADS; id++)
+                threads[id] = jthread([=] { Thread{}.start(board, id); });
         }
         // Uci quit
         else if (token[0] == 'q')
