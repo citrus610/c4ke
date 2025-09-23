@@ -14,7 +14,7 @@ inline f64 get_linear(const Entry& entry, const std::vector<Pair>& weights)
         eg += entry.coefs[i] * weights[i][EG];
     }
 
-    f64 score = (mg * entry.phase + eg * entry.scale / 128 * (24.0 - entry.phase)) / 24.0;
+    f64 score = (mg * entry.phase + eg * entry.scale * (24.0 - entry.phase)) / 24.0;
 
     if (entry.is_white) {
         score += f64(TEMPO);

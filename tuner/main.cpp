@@ -16,7 +16,7 @@ int main()
 
     // Get optimal K value
     // auto K = get_optimal_K(dataset);
-    auto K = 2.5;
+    auto K = 10.0;
 
     // Get loss
     auto loss = get_mse(dataset, weights, K);

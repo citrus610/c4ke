@@ -105,9 +105,5 @@ Dataset get_dataset(const std::string& path)
 
     std::cout << "\nTotal " << positions << " data entries\n";
 
-    for (usize i = 0; i < 5; ++i) {
-        std::cout << result.data[i].phase << " " << result.data[i].wdl << " " << result.data[i].score << " " << result.data[i].is_white << "\n";
-    }
-
     return result;
 };
