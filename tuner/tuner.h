@@ -94,7 +94,7 @@ inline void update_gradient(std::vector<Pair>& gradient, const Entry& entry, con
         f64 coef = f64(entry.coefs[i]);
 
         gradient[i][MG] += mg_base * coef;
-        gradient[i][EG] += mg_base * coef * entry.scale;
+        gradient[i][EG] += eg_base * coef * entry.scale;
     }
 };
 
