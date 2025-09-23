@@ -40,7 +40,7 @@ struct Thread {
         depth *= depth > 0;
 
         // Abort
-        if (!id && !(++nodes & 4095) && now() > LIMIT_HARD)
+        if (!id && !(nodes++ & 4095) && now() > LIMIT_HARD)
             STOP++;
 
         if (STOP || ply >= MAX_PLY)
@@ -354,13 +354,11 @@ struct Thread {
 
             // Print info
 #ifdef OB_MINI
-            if (!id && !BENCH) {
+            if (!id && !BENCH)
 #else
-            if (!id) {
+            if (!id)
 #endif
-                cout << "info depth " << depth << " score cp " << score << " pv ";
-                move_print(BEST_MOVE);
-            }
+                cout << "info depth " << depth << " score cp " << score << " pv ", move_print(BEST_MOVE);
 
             // Check time
             if (!id && now() > LIMIT_SOFT)
