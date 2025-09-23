@@ -340,7 +340,7 @@ void bench()
 
         Thread engine {};
 
-        RUNNING = TRUE;
+        STOP = FALSE;
         LIMIT_SOFT = UINT64_MAX;
         LIMIT_HARD = UINT64_MAX;
         VISITED_COUNT = 0;
@@ -490,7 +490,7 @@ i32 main() {
             if (board.stm)
                 tokens >> token >> time;
 
-            RUNNING = TRUE;
+            STOP = FALSE;
             LIMIT_SOFT = now() + time / 50;
             LIMIT_HARD = now() + time / 2;
 

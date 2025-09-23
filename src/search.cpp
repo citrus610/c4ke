@@ -41,9 +41,9 @@ struct Thread {
 
         // Abort
         if (!id && !(++nodes & 4095) && now() > LIMIT_HARD)
-            RUNNING = FALSE;
+            STOP = TRUE;
 
-        if (!RUNNING || ply >= MAX_PLY)
+        if (STOP || ply >= MAX_PLY)
             return DRAW;
 
         // Oracle
@@ -238,7 +238,7 @@ struct Thread {
                 score = -search(child, -beta, -alpha, ply + 1, depth_next, is_pv);
 
             // Abort
-            if (!RUNNING)
+            if (STOP)
                 return DRAW;
 
             // Update score
@@ -364,9 +364,9 @@ struct Thread {
 
             // Check time
             if (!id && now() > LIMIT_SOFT)
-                RUNNING = FALSE;
+                STOP = TRUE;
 
-            if (!RUNNING)
+            if (STOP)
                 break;
         }
 

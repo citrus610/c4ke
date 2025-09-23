@@ -260,7 +260,7 @@ u64 LIMIT_SOFT,
     LIMIT_HARD,
     VISITED[STACK_SIZE];
 i32 VISITED_COUNT,
-    RUNNING;
+    STOP;
 
 #ifdef OB
 void print_bitboard(u64 bitboard) {
