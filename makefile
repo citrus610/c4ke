@@ -22,7 +22,7 @@ c4ke-mini: minifier
 
 c4ke-mini-bench: minifier
 	./mini bench
-	g++ -DNDEBUG -std=c++20 -O3 -march=native -pthread $(STATIC) src/main.cpp -o c4ke-mini-bench$(SUFFIX)
+	g++ -DNDEBUG -std=c++20 -O3 -march=native -pthread $(STATIC) mini.cpp -o c4ke-mini-bench$(SUFFIX)
 
 minifier:
 	g++ -O3 -std=c++20 $(STATIC) minifier/*.cpp -o mini$(SUFFIX)
