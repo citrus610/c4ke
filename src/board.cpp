@@ -295,7 +295,7 @@ struct Board {
                             eval -= get_data(type + INDEX_THREAT) + OFFSET_THREAT;
 
                         // King attacker
-                        eval += POPCNT(mobility & king(pieces[KING] & colors[!color])) * (get_data(type + INDEX_KING_ATTACK) + OFFSET_KING_ATTACK);
+                        eval += POPCNT(mobility & king(pieces[KING] & colors[!color])) * (get_data(type + INDEX_KING_ATTACK) + OFFSET_KING_ATTACK) * (type < KING);
                     }
                 }
             }
