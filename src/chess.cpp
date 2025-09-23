@@ -156,7 +156,7 @@ u64 now() {
 }
 
 // Zobrist
-u64 KEYS[13][65]{};
+u64 KEYS[13][65];
 
 // Move
 i16 move_make(i32 from, i32 to, i32 promo = PAWN) {
@@ -216,7 +216,7 @@ u64 se(u64 bitboard) {
     return south(east(bitboard));
 }
 
-u64 ray(u64 mask, u64 occupied, u64 (*func)(u64)) {
+u64 ray(u64 mask, u64 occupied, auto func) {
     mask = func(mask);
 
     mask |= func(mask & ~occupied);
@@ -248,8 +248,8 @@ u64 king(u64 mask, u64 occupied = 0) {
 // Shared states
 struct TTEntry {
     i16 key,
-        move;
-    i16 score;
+        move,
+        score;
     u8 depth,
         bound;
 };
@@ -260,7 +260,7 @@ u64 LIMIT_SOFT,
     LIMIT_HARD,
     VISITED[STACK_SIZE];
 i32 VISITED_COUNT,
-    RUNNING;
+    STOP;
 
 #ifdef OB
 void print_bitboard(u64 bitboard) {

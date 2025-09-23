@@ -6,7 +6,7 @@ struct Board {
     u8 board[64];
     i32 stm,
         castled,
-        enpassant,
+        enpassant = SQUARE_NONE,
         halfmove;
     u64 checkers,
         hash,
@@ -15,30 +15,22 @@ struct Board {
 
     void edit(i32 square, i32 piece) {
         // Remove any pieces that exist in this square
-        if (board[square] < PIECE_NONE) {
-            hash ^= KEYS[board[square]][square];
+        if (board[square] < PIECE_NONE)
+            hash ^= KEYS[board[square]][square],
 
-            pieces[board[square] / 2] ^= 1ull << square;
-            colors[board[square] & 1] ^= 1ull << square;
+            pieces[board[square] / 2] ^= 1ull << square,
+            colors[board[square] & 1] ^= 1ull << square,
 
-            if (board[square] / 2 < KNIGHT)
-                hash_pawn ^= KEYS[board[square]][square];
-            else
-                hash_non_pawn[board[square] & 1] ^= KEYS[board[square]][square];
-        }
+            (board[square] / 2 < KNIGHT ? hash_pawn : hash_non_pawn[board[square] & 1]) ^= KEYS[board[square]][square];
 
         // Place new piece
-        if (piece < PIECE_NONE) {
-            hash ^= KEYS[piece][square];
+        if (piece < PIECE_NONE)
+            hash ^= KEYS[piece][square],
 
-            pieces[piece / 2] |= 1ull << square;
-            colors[piece & 1] |= 1ull << square;
+            pieces[piece / 2] ^= 1ull << square,
+            colors[piece & 1] ^= 1ull << square,
 
-            if (piece / 2 < KNIGHT)
-                hash_pawn ^= KEYS[piece][square];
-            else
-                hash_non_pawn[piece & 1] ^= KEYS[piece][square];
-        }
+            (piece / 2 < KNIGHT ? hash_pawn : hash_non_pawn[piece & 1]) ^= KEYS[piece][square];
 
         board[square] = piece;
     }
@@ -65,7 +57,7 @@ struct Board {
 
         // Skip special moves such as promo and enpassant
         // We don't have to handle castling here since king moves are always safe
-        if (move_promo(move) || (board[from] < WHITE_KNIGHT && to == enpassant))
+        if (move_promo(move) || board[from] < WHITE_KNIGHT && to == enpassant)
             return TRUE;
 
         // Return early if capturing this piece can't beat the threshold
@@ -84,7 +76,7 @@ struct Board {
         colors[stm] ^= 1ull << from;
 
         // Loop until one side runs out of attackers, or fail to beat the threshold
-        while (u64 threats = attackers(to) & colors[side]) {
+        for (; u64 threats = attackers(to) & colors[side];) {
             // Get the least valuable attacker
             i32 type = PAWN;
 
@@ -137,18 +129,14 @@ struct Board {
         // Castling
         hash ^= KEYS[PIECE_NONE][castled];
 
-        if (piece > BLACK_QUEEN) {
-            if (abs(from - to) == 2) {
-                i32 dt = (from + to) / 2;
+        if (piece > BLACK_QUEEN && (castled |= 3 << stm * 2) && abs(from - to) == 2) {
+            i32 dt = (from + to) / 2;
 
-                if ((attackers(dt) | attackers(to)) & colors[!stm])
-                    return TRUE;
+            if ((attackers(dt) | attackers(to)) & colors[!stm])
+                return TRUE;
 
-                edit(to + (to > from ? 1 : -2), PIECE_NONE);
-                edit(dt, ROOK * 2 + stm);
-            }
-
-            castled |= 3 << stm * 2;
+            edit(to + (to > from ? 1 : -2), PIECE_NONE);
+            edit(dt, ROOK * 2 + stm);
         }
 
         if (from == H1 || to == H1) castled |= CASTLED_WK;
@@ -171,40 +159,40 @@ struct Board {
         return attackers(LSB(pieces[KING] & colors[!stm])) & colors[stm];
     }
 
-    void add_pawn_moves(i16 list[], i32& count, u64 targets, i32 offset) {
-        while (targets) {
+    void add_pawn_moves(i16*& list_end, u64 targets, i32 offset) {
+        for (; targets;) {
             i32 to = LSB(targets);
             targets &= targets - 1;
 
             if (to < 8 || to > 55)
                 // Prmotion
-                list[count++] = move_make(to - offset, to, KNIGHT),
-                list[count++] = move_make(to - offset, to, BISHOP),
-                list[count++] = move_make(to - offset, to, ROOK),
-                list[count++] = move_make(to - offset, to, QUEEN);
+                *list_end++ = move_make(to - offset, to, KNIGHT),
+                *list_end++ = move_make(to - offset, to, BISHOP),
+                *list_end++ = move_make(to - offset, to, ROOK),
+                *list_end++ = move_make(to - offset, to, QUEEN);
             else
-                list[count++] = move_make(to - offset, to);
+                *list_end++ = move_make(to - offset, to);
         }
     }
 
-    void add_moves(i16 list[], i32& count, u64 mask, u64 targets, u64 occupied, u64 (*func)(u64, u64)) {
-        while (mask) {
+    void add_moves(i16*& list_end, u64 mask, u64 targets, u64 occupied, auto func) {
+        for (; mask;) {
             i32 from = LSB(mask);
             mask &= mask - 1;
 
             u64 attack = func(1ull << from, occupied) & targets;
 
-            while (attack) {
+            for (; attack;) {
                 i32 to = LSB(attack);
                 attack &= attack - 1;
 
-                list[count++] = move_make(from, to);
+                *list_end++ = move_make(from, to);
             }
         }
     }
 
-    i32 movegen(i16 list[], i32 is_all) {
-        i32 count = 0;
+    i32 movegen(i16* list, i32 is_all) {
+        i16* list_end = list;
 
         u64 occupied = colors[WHITE] | colors[BLACK],
             targets = is_all ? ~colors[stm] : colors[!stm],
@@ -213,30 +201,30 @@ struct Board {
             pawns_targets = colors[!stm] | u64(enpassant < SQUARE_NONE) << enpassant;
 
         // Pawn
-        add_pawn_moves(list, count, pawns_push, stm ? -8 : 8);
-        add_pawn_moves(list, count, (stm ? south(pawns_push & 0xff0000000000) : north(pawns_push & 0xff0000ull)) & ~occupied, stm ? -16 : 16);
-        add_pawn_moves(list, count, (stm ? se(pawns) : nw(pawns)) & pawns_targets, stm ? -7 : 7);
-        add_pawn_moves(list, count, (stm ? sw(pawns) : ne(pawns)) & pawns_targets, stm ? -9 : 9);
+        add_pawn_moves(list_end, pawns_push, stm ? -8 : 8);
+        add_pawn_moves(list_end, (stm ? south(pawns_push & 0xff0000000000) : north(pawns_push & 0xff0000ull)) & ~occupied, stm ? -16 : 16);
+        add_pawn_moves(list_end, (stm ? se(pawns) : nw(pawns)) & pawns_targets, stm ? -7 : 7);
+        add_pawn_moves(list_end, (stm ? sw(pawns) : ne(pawns)) & pawns_targets, stm ? -9 : 9);
 
         // Knight
-        add_moves(list, count, pieces[KNIGHT] & colors[stm], targets, occupied, knight);
+        add_moves(list_end, pieces[KNIGHT] & colors[stm], targets, occupied, knight);
 
         // Bishop
-        add_moves(list, count, (pieces[BISHOP] | pieces[QUEEN]) & colors[stm], targets, occupied, bishop);
+        add_moves(list_end, (pieces[BISHOP] | pieces[QUEEN]) & colors[stm], targets, occupied, bishop);
 
         // Rook
-        add_moves(list, count, (pieces[ROOK] | pieces[QUEEN]) & colors[stm], targets, occupied, rook);
+        add_moves(list_end, (pieces[ROOK] | pieces[QUEEN]) & colors[stm], targets, occupied, rook);
 
         // King
-        add_moves(list, count, pieces[KING] & colors[stm], targets, occupied, king);
+        add_moves(list_end, pieces[KING] & colors[stm], targets, occupied, king);
 
         // Castling
         if (is_all && !checkers) {
-            if (~castled >> stm * 2 & 1 && !(occupied & 0x60ull << stm * 56)) list[count++] = move_make(E1 + stm * 56, G1 + stm * 56);
-            if (~castled >> stm * 2 & 2 && !(occupied & 0xeull << stm * 56)) list[count++] = move_make(E1 + stm * 56, C1 + stm * 56);
+            if (~castled >> stm * 2 & 1 && !(occupied & 0x60ull << stm * 56)) *list_end++ = move_make(E1 + stm * 56, G1 + stm * 56);
+            if (~castled >> stm * 2 & 2 && !(occupied & 0xeull << stm * 56)) *list_end++ = move_make(E1 + stm * 56, C1 + stm * 56);
         }
 
-        return count;
+        return list_end - list;
     }
 
     i32 eval() {
@@ -261,7 +249,7 @@ struct Board {
             for (i32 type = PAWN; type < TYPE_NONE; type++) {
                 u64 mask = pieces[type] & colors[color];
 
-                while (mask) {
+                for (; mask;) {
                     i32 square = LSB(mask);
                     mask &= mask - 1;
 
@@ -413,15 +401,14 @@ struct Board {
     }
 #endif
 
-    Board() {
-        memset(this, 0, sizeof(Board));
-        memset(board, PIECE_NONE, 64);
+    void startpos() {
+        *this = Board{};
 
-        enpassant = SQUARE_NONE;
+        for (i32 i = 0; i < 64; i++) board[i] = PIECE_NONE;
 
         for (i32 i = 0; i < 8; i++)
-            edit(i + A1, LAYOUT[i] * 2 | WHITE),
-            edit(i + A8, LAYOUT[i] * 2 | BLACK),
+            edit(i + A1, LAYOUT[i] * 2 + WHITE),
+            edit(i + A8, LAYOUT[i] * 2 + BLACK),
             edit(i + A2, WHITE_PAWN),
             edit(i + A7, BLACK_PAWN);
     }

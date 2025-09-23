@@ -340,7 +340,7 @@ void bench()
 
         Thread engine {};
 
-        RUNNING = TRUE;
+        STOP = FALSE;
         LIMIT_SOFT = UINT64_MAX;
         LIMIT_HARD = UINT64_MAX;
         VISITED_COUNT = 0;
@@ -423,14 +423,13 @@ i32 main() {
     cin >> token;
     cout << "uciok\n";
 
-    while (getline(cin, token)) {
+    for (; getline(cin, token);) {
         stringstream tokens(token);
         tokens >> token;
 
         // Uci isready
-        if (token[0] == 'i') {
+        if (token[0] == 'i')
             cout << "readyok\n";
-        }
 #ifdef OB
         // Uci ucinewgame
         else if (token[0] == 'u') {
@@ -461,7 +460,7 @@ i32 main() {
 #endif
         // Uci position
         else if (token[0] == 'p') {
-            board = Board();
+            board.startpos();
             VISITED_COUNT = 0;
 
 #ifdef OB
@@ -476,7 +475,7 @@ i32 main() {
             tokens >> token >> token;
 #endif
 
-            while (tokens >> token)
+            for (; tokens >> token;)
                 BEST_MOVE = move_make(token[0] + token[1] * 8 - 489, token[2] + token[3] * 8 - 489, token[4] % 35 * 5 % 6),
                 VISITED[VISITED_COUNT++] = board.hash,
                 VISITED_COUNT *= board.board[move_from(BEST_MOVE)] > BLACK_PAWN && board.board[move_to(BEST_MOVE)] > BLACK_KING,
@@ -491,31 +490,22 @@ i32 main() {
             if (board.stm)
                 tokens >> token >> time;
 
-            RUNNING = TRUE;
+            STOP = FALSE;
             LIMIT_SOFT = now() + time / 50;
             LIMIT_HARD = now() + time / 2;
 
 #ifdef OB
-            vector<thread> threads(THREADS);
+            vector<jthread> threads(THREADS);
 #else
-            thread threads[THREADS];
+            jthread threads[THREADS];
 #endif
 
-            i32 id = 0;
-
-            for (thread& t : threads)
-                t = thread([=] { Thread().start(board, id); }), id++;
-
-            for (thread& t : threads)
-                t.join();
-
-            cout << "bestmove ";
-            move_print(BEST_MOVE);
+            for (i32 id = 0; id < THREADS; id++)
+                threads[id] = jthread([=] { Thread{}.start(board, id); });
         }
         // Uci quit
-        else if (token[0] == 'q') {
+        else if (token[0] == 'q')
             break;
-        }
     }
 
     free(TTABLE);

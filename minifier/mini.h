@@ -57,6 +57,7 @@ const inline std::vector<std::string> KEYWORDS = {
     "int16_t",
     "int32_t",
     "int64_t",
+    "jthread",
     "long",
     "mutable",
     "namespace",

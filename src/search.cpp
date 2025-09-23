@@ -9,13 +9,12 @@ void update_history(i16& entry, i32 bonus) {
 
 // Search thread
 struct Thread {
-    i16 pv;
-    i16 qhist[2][4096] {},
-        corrhist[2][CORRHIST_SIZE] {};
-    HTable nhist[6] {},
-        conthist[12][64] {},
+    i16 qhist[2][4096],
+        corrhist[2][CORRHIST_SIZE];
+    HTable nhist[6],
+        conthist[12][64],
         *stack_conthist[STACK_SIZE];
-    u64 nodes {},
+    u64 nodes,
         visited[STACK_SIZE];
     i32 id,
         stack_eval[STACK_SIZE];
@@ -28,6 +27,7 @@ struct Thread {
             quiet_count = 0,
             noisy_count = 0,
             legals = 0,
+            score,
             move_scores[MAX_MOVE];
 
         i16 best_move = MOVE_NONE,
@@ -41,10 +41,10 @@ struct Thread {
         depth *= depth > 0;
 
         // Abort
-        if (!(++nodes & 4095) && now() > LIMIT_HARD && !id)
-            RUNNING = FALSE;
+        if (!id && !(nodes++ & 4095) && now() > LIMIT_HARD)
+            STOP++;
 
-        if (!RUNNING || ply >= MAX_PLY)
+        if (STOP || ply >= MAX_PLY)
             return DRAW;
 
         // Oracle
@@ -91,8 +91,8 @@ struct Thread {
                 corrhist[board.stm][board.hash_pawn % CORRHIST_SIZE] / 128 +
                 corrhist[board.stm][board.hash_non_pawn[WHITE] % CORRHIST_SIZE] / 256 +
                 corrhist[board.stm][board.hash_non_pawn[BLACK] % CORRHIST_SIZE] / 256 +
-                (*stack_conthist[ply + 1])[0][0] / 128 +
-                (*stack_conthist[ply])[1][0] / 200;
+                stack_conthist[ply + 1][0][0][0] / 128 +
+                stack_conthist[ply][0][1][0] / 200;
 
             // Use tt score as better eval
             if (tt.key && !excluded && tt.bound != tt.score < eval)
@@ -106,7 +106,7 @@ struct Thread {
                 if (eval >= beta)
                     return eval;
 
-                alpha = max(alpha, best = eval);
+                if ((best = eval) > alpha) alpha = best;
             }
             else if (!is_pv && !excluded) {
                 // Reverse futility pruning
@@ -124,7 +124,7 @@ struct Thread {
 
                     stack_conthist[ply + 2] = conthist[WHITE_PAWN];
 
-                    i32 score = -search(child, -beta, -alpha, ply + 1, depth - 5 - depth / 3);
+                    score = -search(child, -beta, -alpha, ply + 1, depth - 5 - depth / 3);
 
                     if (score >= beta)
                         return score < WIN ? score : beta;
@@ -145,7 +145,7 @@ struct Thread {
                 // Hash move
                 move == tt.move ? 1e8 :
                 // Quiet moves
-                board.quiet(move) ? qhist[board.stm][move & 4095] + (*stack_conthist[ply])[piece][move_to(move)] + (*stack_conthist[ply + 1])[piece][move_to(move)] :
+                board.quiet(move) ? qhist[board.stm][move & 4095] + stack_conthist[ply][0][piece][move_to(move)] + stack_conthist[ply + 1][0][piece][move_to(move)] :
                 // Noisy moves
                 VALUE[victim] * 16 + VALUE[move_promo(move)] + nhist[victim][piece][move_to(move)] + board.see(move, 0) * 2e7 - 1e7;
         }
@@ -170,8 +170,7 @@ struct Thread {
 
             // Search data
             i32 is_quiet = board.quiet(move),
-                depth_next = depth - 1,
-                score;
+                depth_next = depth - 1;
 
             // Quiet pruning and SEE pruning in qsearch
             if (!depth && best > -WIN && move_scores[i] < 1e6)
@@ -239,7 +238,7 @@ struct Thread {
                 score = -search(child, -beta, -alpha, ply + 1, depth_next, is_pv);
 
             // Abort
-            if (!RUNNING)
+            if (STOP)
                 return DRAW;
 
             // Update score
@@ -255,8 +254,8 @@ struct Thread {
                 bound = BOUND_EXACT;
 
                 // Update pv
-                if (!ply)
-                    pv = move;
+                if (!id && !ply)
+                    BEST_MOVE = move;
             }
 
             // Cutoff
@@ -274,14 +273,14 @@ struct Thread {
                 if (is_quiet) {
                     // Update quiet history
                     update_history(qhist[board.stm][move & 4095], bonus);
-                    update_history((*stack_conthist[ply])[board.board[move_from(move)]][move_to(move)], bonus);
-                    update_history((*stack_conthist[ply + 1])[board.board[move_from(move)]][move_to(move)], bonus);
+                    update_history(stack_conthist[ply][0][board.board[move_from(move)]][move_to(move)], bonus);
+                    update_history(stack_conthist[ply + 1][0][board.board[move_from(move)]][move_to(move)], bonus);
 
                     // Add penalty to visited quiet moves
                     for (i32 k = 0; k < quiet_count; k++)
                         update_history(qhist[board.stm][quiet_list[k] & 4095], -bonus),
-                        update_history((*stack_conthist[ply])[board.board[move_from(quiet_list[k])]][move_to(quiet_list[k])], -bonus),
-                        update_history((*stack_conthist[ply + 1])[board.board[move_from(quiet_list[k])]][move_to(quiet_list[k])], -bonus);
+                        update_history(stack_conthist[ply][0][board.board[move_from(quiet_list[k])]][move_to(quiet_list[k])], -bonus),
+                        update_history(stack_conthist[ply + 1][0][board.board[move_from(quiet_list[k])]][move_to(quiet_list[k])], -bonus);
                 }
                 else
                     // Update noisy history
@@ -295,10 +294,7 @@ struct Thread {
             }
 
             // Push visited moves
-            if (is_quiet)
-                quiet_list[quiet_count++] = move;
-            else
-                noisy_list[noisy_count++] = move;
+            (is_quiet ? quiet_list[quiet_count++] : noisy_list[noisy_count++]) = move;
         }
 
         // Return mate score
@@ -314,8 +310,8 @@ struct Thread {
             update_history(corrhist[board.stm][board.hash_pawn % CORRHIST_SIZE], bonus);
             update_history(corrhist[board.stm][board.hash_non_pawn[WHITE] % CORRHIST_SIZE], bonus);
             update_history(corrhist[board.stm][board.hash_non_pawn[BLACK] % CORRHIST_SIZE], bonus);
-            update_history((*stack_conthist[ply + 1])[0][0], bonus);
-            update_history((*stack_conthist[ply])[1][0], bonus);
+            update_history(stack_conthist[ply + 1][0][0][0], bonus);
+            update_history(stack_conthist[ply][0][1][0], bonus);
         }
 
         // Update transposition
@@ -335,7 +331,7 @@ struct Thread {
         i32 score = 0;
 
         // Iterative deepening
-        for (i32 depth = 1; depth < MAX_DEPTH; ++depth) {
+        for (i32 depth = 1; depth < MAX_DEPTH; depth++) {
             // Clear stack
             stack_conthist[0] = stack_conthist[1] = &conthist[WHITE_PAWN][B1];
 
@@ -344,7 +340,7 @@ struct Thread {
                 alpha = score,
                 beta = score;
 
-            while (score <= alpha || score >= beta) {
+            for (; score <= alpha || score >= beta;) {
                 // Update window
                 if (score <= alpha) alpha = score - delta;
                 if (score >= beta) beta = score + delta;
@@ -358,24 +354,26 @@ struct Thread {
 
             // Print info
 #ifdef OB_MINI
-            if (!BENCH && !id) {
+            if (!id && !BENCH)
 #else
-            if (!id) {
+            if (!id)
 #endif
-                cout << "info depth " << depth << " score cp " << score << " pv ";
-                move_print(pv);
-            }
+                cout << "info depth " << depth << " score cp " << score << " pv ", move_print(BEST_MOVE);
 
             // Check time
-            if (now() > LIMIT_SOFT && !id)
-                RUNNING = FALSE;
+            if (!id && now() > LIMIT_SOFT)
+                STOP++;
 
-            if (!RUNNING)
+            if (STOP)
                 break;
         }
 
         // Return best move
-        if (!id)
-            BEST_MOVE = pv;
+        if (!id
+#ifdef OB_MINI
+            && !BENCH
+#endif
+        )
+            cout << "bestmove ", move_print(BEST_MOVE);
     }
 };
