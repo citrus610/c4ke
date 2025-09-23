@@ -373,7 +373,7 @@ i32 main() {
             KEYS[i][k] = rng();
 
     // Search data
-    Board board = Board{}.startpos();
+    Board board;
     TTABLE = (TTEntry*)calloc(1ull << TT_BITS, 8);
 
 #ifdef OB_MINI
@@ -460,7 +460,7 @@ i32 main() {
 #endif
         // Uci position
         else if (token[0] == 'p') {
-            board = Board{}.startpos();
+            board.startpos();
             VISITED_COUNT = 0;
 
 #ifdef OB

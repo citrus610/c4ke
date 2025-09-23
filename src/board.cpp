@@ -6,7 +6,7 @@ struct Board {
     u8 board[64];
     i32 stm,
         castled,
-        enpassant,
+        enpassant = SQUARE_NONE,
         halfmove;
     u64 checkers,
         hash,
@@ -401,17 +401,15 @@ struct Board {
     }
 #endif
 
-    Board& startpos() {
-        for (i32 i = 0; i < 64; i++) board[i] = PIECE_NONE;
+    void startpos() {
+        *this = Board{};
 
-        enpassant = SQUARE_NONE;
+        for (i32 i = 0; i < 64; i++) board[i] = PIECE_NONE;
 
         for (i32 i = 0; i < 8; i++)
             edit(i + A1, LAYOUT[i] * 2 + WHITE),
             edit(i + A8, LAYOUT[i] * 2 + BLACK),
             edit(i + A2, WHITE_PAWN),
             edit(i + A7, BLACK_PAWN);
-        
-        return *this;
     }
 };
