@@ -216,7 +216,7 @@ u64 se(u64 bitboard) {
     return south(east(bitboard));
 }
 
-u64 ray(u64 mask, u64 occupied, u64 (*func)(u64)) {
+u64 ray(u64 mask, u64 occupied, auto func) {
     mask = func(mask);
 
     mask |= func(mask & ~occupied);

@@ -175,7 +175,7 @@ struct Board {
         }
     }
 
-    void add_moves(i16*& list_end, u64 mask, u64 targets, u64 occupied, u64 (*func)(u64, u64)) {
+    void add_moves(i16*& list_end, u64 mask, u64 targets, u64 occupied, auto func) {
         for (; mask;) {
             i32 from = LSB(mask);
             mask &= mask - 1;
