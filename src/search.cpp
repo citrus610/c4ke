@@ -190,15 +190,16 @@ struct Thread {
 
             // Singular extension
             if (ply && depth > 7 && !excluded && move == tt.move && tt.depth > depth - 4 && tt.bound) {
-                i32 singular_beta = tt.score - depth * 2,
-                    singular_score = search(board, singular_beta - 1, singular_beta, ply, (depth - 1) / 2, FALSE, move);
+                i32 singular_beta = tt.score - depth * 2;
+                score = search(board, singular_beta - 1, singular_beta, ply, (depth - 1) / 2, FALSE, move);
 
                 // Single extension + double extension
-                if (singular_score < singular_beta)
-                    depth_next += 1 + (!is_pv && singular_score + 16 < singular_beta);
+                if (score < singular_beta)
+                    depth_next += 1 + (!is_pv && score + 16 < singular_beta);
+
                 // Multicut
-                else if (singular_score >= beta)
-                    return singular_score;
+                else if (score >= beta)
+                    return score;
             }
 
             // Make
