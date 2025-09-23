@@ -31,7 +31,7 @@ check:
 	./check.sh
 
 tuner:
-	g++ -DUNICODE -O3 -std=c++20 $(STATIC) tuner/*.cpp -o tune$(SUFFIX)
+	g++ -DUNICODE -O3 -std=c++20 $(STATIC) tuner/chess/*.cpp tuner/*.cpp -o tune$(SUFFIX)
 
 clean:
 	@rm -rf $(EXE)
