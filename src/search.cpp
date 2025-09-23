@@ -27,6 +27,7 @@ struct Thread {
             quiet_count = 0,
             noisy_count = 0,
             legals = 0,
+            score,
             move_scores[MAX_MOVE];
 
         i16 best_move = MOVE_NONE,
@@ -123,7 +124,7 @@ struct Thread {
 
                     stack_conthist[ply + 2] = conthist[WHITE_PAWN];
 
-                    i32 score = -search(child, -beta, -alpha, ply + 1, depth - 5 - depth / 3);
+                    score = -search(child, -beta, -alpha, ply + 1, depth - 5 - depth / 3);
 
                     if (score >= beta)
                         return score < WIN ? score : beta;
@@ -169,8 +170,7 @@ struct Thread {
 
             // Search data
             i32 is_quiet = board.quiet(move),
-                depth_next = depth - 1,
-                score;
+                depth_next = depth - 1;
 
             // Quiet pruning and SEE pruning in qsearch
             if (!depth && best > -WIN && move_scores[i] < 1e6)
