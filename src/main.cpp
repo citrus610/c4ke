@@ -503,7 +503,7 @@ i32 main() {
             i32 id = 0;
 
             for (jthread& t : threads)
-                t = jthread([&] { Thread{}.start(board, id++); });
+                t = jthread([=] { Thread{}.start(board, id); }), id++;
         }
         // Uci quit
         else if (token[0] == 'q')
