@@ -41,7 +41,7 @@ struct Thread {
 
         // Abort
         if (!id && !(++nodes & 4095) && now() > LIMIT_HARD)
-            STOP = TRUE;
+            STOP++;
 
         if (STOP || ply >= MAX_PLY)
             return DRAW;
@@ -364,7 +364,7 @@ struct Thread {
 
             // Check time
             if (!id && now() > LIMIT_SOFT)
-                STOP = TRUE;
+                STOP++;
 
             if (STOP)
                 break;
