@@ -326,7 +326,7 @@ struct Thread {
     }
 
 #ifdef OB_MINI
-    void start(Board board, i32 ID = 0, i32 MAX_DEPTH = 256, i32 BENCH = FALSE) {
+    void start(Board board, i32 ID, i32 MAX_DEPTH = 256, i32 BENCH = FALSE) {
 #else
     void start(Board board, i32 ID) {
         #define MAX_DEPTH 256
