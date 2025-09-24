@@ -85,7 +85,7 @@ Dataset get_dataset(const std::string& path)
     std::string line;
 
     usize positions = 0;
-    usize positions_max = 1000000;
+    usize positions_max = 10000000;
 
     std::cout << "Loading dataset\n";
 
