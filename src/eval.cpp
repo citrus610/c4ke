@@ -5,24 +5,22 @@
 i32 PHASE[] { 0, 1, 1, 2, 4, 0 },
     VALUE[] { 100, 320, 330, 500, 900, 2000, 0 },
     LAYOUT[] { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK },
-    MATERIAL[] { S(89, 147), S(350, 521), S(361, 521), S(479, 956), S(1046, 1782), 0 };
+    MATERIAL[] { S(80, 100), S(200, 300), S(250, 350), S(400, 600), S(800, 1000) };
 
-#define SCALE_PST 8
-#define SCALE_PASSER 5
-#define SCALE_PHALANX 8
+#define SCALE 8
 
-#define BISHOP_PAIR S(25, 55)
-#define KING_OPEN S(-75, 5)
-#define KING_SEMI_OPEN S(-30, 15)
-#define ROOK_OPEN S(25, 5)
-#define ROOK_SEMI_OPEN S(10, 15)
-#define PAWN_PROTECTED S(12, 16)
-#define PAWN_DOUBLED S(12, 40)
-#define PAWN_SHIELD S(30, -10)
+#define BISHOP_PAIR S(32, 85)
+#define KING_OPEN S(-65, -21)
+#define KING_SEMIOPEN S(-35, 30)
+#define ROOK_OPEN S(25, -9)
+#define ROOK_SEMIOPEN S(16, 21)
+#define PAWN_PROTECTED S(23, 24)
+#define PAWN_DOUBLED S(11, 37)
+#define PAWN_SHIELD S(28, -13)
 
 #define TEMPO 20
 
-#define DATA_STR "/,,.04//-/02341 /11111.%/.--/101121//.+-.0.+.444#\"#$%&&# #$&&&%#\"$%$%$&#\"#$%&%%#\"##$$%&%\"&#  \"&$-,(( \"! $%' !\"$).  >9 %%%++**+.++&(*./,+,)*+++++-(()+--., #(-002/%)+.0/-%&&%$%%%%\"$&((%$\"$%%&&&%$%&&%$%%$\"$%&''%$ $&'''$ &(&#  \"$(2< !\"*/49R9     "
+#define DATA_STR "+*(*,31+13579<9%1343451(32213532>?==<>:7(0' \"--.&((*+++'-0134421-00/0/1/,+,././-99::;;==),' $\"+*21+( !  #!$ !#'11 '9+ ,3((+**+/6(01256211//111002777:;;=<57;=??@>!%),/0- .-+))+,+124443201112221/9::97877<<=>??>> '+.,,' 1..?  \"'+37 \"$,;;fzN #' ;"
 
 #define INDEX_EG 121
 
@@ -34,14 +32,14 @@ i32 PHASE[] { 0, 1, 1, 2, 4, 0 },
 #define INDEX_THREAT 112
 #define INDEX_KING_ATTACK 116
 
-#define OFFSET_MOBILITY S(-5, -1)
-#define OFFSET_PASSER S(-2, 2)
+#define OFFSET_MOBILITY S(-9, -7)
+#define OFFSET_PASSER S(-2, 0)
 #define OFFSET_PHALANX S(1, 0)
-#define OFFSET_THREAT S(50, 0)
-#define OFFSET_KING_ATTACK S(20, 0)
+#define OFFSET_THREAT S(70, -45)
+#define OFFSET_KING_ATTACK S(11, -12)
 #define OFFSET_PST S(-19, -16)
 
-i32 get_data(i32 index) {
+int get_data(int index) {
     auto data = DATA_STR;
 
     return data[index] + data[index + INDEX_EG] * 0x10000 - S(32, 32);

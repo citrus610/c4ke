@@ -19,6 +19,7 @@ struct Param
 {
     std::string name;
     std::vector<int> data;
+    int scale;
     int index_offset;
 };
 
@@ -34,70 +35,90 @@ inline const std::vector<Param> PARAMS = {
     Param {
         .name = "PST_RANK",
         .data = {
-            0, S(-3, 0), S(-3, -1), S(-1, -1), S(1, 0), S(5, 3), 0, 0,
-            S(-2, -5), S(0, -3), S(1, -1), S(3, 3), S(4, 4), S(5, 1), S(2, 0), S(-15, 1),
-            S(0, -2), S(2, -1), S(2, 0), S(2, 0), S(2, 0), S(2, 0), S(-1, 0), S(-10, 2),
-            S(0, -3), S(-1, -3), S(-2, -2), S(-2, 0), S(0, 2), S(2, 2), S(1, 3), S(2, 1),
-            S(2, -11), S(3, -8), S(2, -3), S(0, 2), S(0, 5), S(-1, 5), S(-4, 7), S(-2, 4),
-            S(-1, -6), S(1, -2), S(-1, 0), S(-4, 3), S(-1, 5), S(5, 4), S(5, 2), S(5, -6),
+            S(0, 0), S(-9, 25), S(-22, 16), S(-9, 16), S(5, 25), S(61, 56), S(51, 114), S(0, 0),
+            S(48, 60), S(67, 69), S(80, 80), S(97, 107), S(110, 111), S(135, 81), S(109, 71), S(-48, 71),
+            S(49, 52), S(66, 54), S(70, 69), S(65, 70), S(68, 73), S(77, 65), S(46, 62), S(-20, 80),
+            S(64, 118), S(53, 116), S(54, 120), S(45, 144), S(65, 153), S(82, 153), S(66, 166), S(57, 158),
+            S(152, 105), S(159, 120), S(147, 151), S(142, 166), S(135, 185), S(150, 181), S(121, 189), S(97, 177),
+            S(-20, -59), S(38, -22), S(-35, 5), S(-86, 34), S(-71, 57), S(12, 60), S(18, 42), S(20, -61)
         },
+        .scale = 8,
         .index_offset = 0
     },
     Param {
         .name = "PST_FILE",
         .data = {
-            S(-1, 1), S(-2, 1), S(-1, 0), S(0, -1), S(1, 0), S(2, 0), S(2, 0), S(-1, 0),
-            S(-4, -3), S(-1, -1), S(0, 1), S(2, 3), S(2, 3), S(2, 0), S(1, -1), S(-1, -3),
-            S(-2, -1), 0, S(1, 0), S(0, 1), S(1, 1), S(0, 1), S(2, 0), S(-1, -1),
-            S(-2, 0), S(-1, 1), S(0, 1), S(1, 0), S(2, -1), S(1, 0), S(1, 0), S(-1, -1),
-            S(-2, -3), S(-1, -1), S(-1, 0), S(0, 1), S(0, 2), S(1, 2), S(2, 0), S(1, -1),
-            S(-2, -5), S(2, -1), S(-1, 1), S(-4, 2), S(-4, 2), S(-2, 2), S(2, -1), S(0, -5),
+            S(-12, 46), S(0, 41), S(3, 21), S(14, 5), S(25, 10), S(20, 22), S(21, 32), S(-8, 23),
+            S(37, 75), S(60, 83), S(70, 94), S(90, 99), S(92, 98), S(92, 84), S(80, 81), S(73, 67),
+            S(43, 70), S(62, 72), S(63, 72), S(57, 82), S(65, 80), S(57, 78), S(71, 68), S(59, 58),
+            S(28, 139), S(26, 144), S(34, 146), S(44, 133), S(56, 123), S(44, 130), S(57, 123), S(36, 123),
+            S(136, 156), S(139, 162), S(141, 167), S(147, 177), S(149, 181), S(152, 181), S(165, 175), S(165, 176),
+            S(6, -67), S(32, -11), S(-8, 21), S(-63, 44), S(-30, 32), S(-49, 28), S(25, -7), S(17, -65)
         },
+        .scale = 8,
         .index_offset = 0
     },
     Param {
         .name = "MOBILITY",
         .data = {
-            S(8, 5), S(7, 7), S(3, 5), S(3, 2), S(-5, -1)
+            S(9, 10), S(8, 7), S(2, 7), S(-1, 24), S(-9, -7)
         },
+        .scale = 1,
         .index_offset = -1
     },
     Param {
         .name = "PASSER",
         .data = {
-            S(0, 2), S(-1, 4), S(-2, 6), S(2, 10), S(3, 20), S(5, 30)
+            S(-9, 0), S(-12, 17), S(-12, 52), S(11, 85), S(-7, 150), S(16, 184)
         },
+        .scale = 8,
         .index_offset = -1
     },
     Param {
         .name = "PHALANX",
         .data = {
-            S(1, 0), S(2, 1), S(3, 2), S(5, 10), S(10, 15), S(15, 20)
+            S(8, 3), S(19, 18), S(34, 34), S(65, 92), S(147, 214), S(144, 218)
         },
+        .scale = 8,
         .index_offset = -1
     },
     Param {
         .name = "THREAT",
         .data = {
-            S(50, 25), S(50, 50), S(80, 25), S(75, 0)
+            S(70, 25), S(77, 45), S(95, 1), S(81, -45)
         },
+        .scale = 1,
         .index_offset = -1
     },
     Param {
         .name = "KING_ATTACK",
         .data = {
-            S(20, 0), S(25, 0), S(25, 0), S(25, 0)
+            S(11, -9), S(23, -5), S(30, -12), S(19, 15)
         },
+        .scale = 1,
         .index_offset = -1
     },
 };
 
-inline Compressed get_compressed_data(std::vector<int> data)
+inline Compressed get_compressed_data(std::vector<int> data, int scale)
 {
     auto result = Compressed();
 
     result.min_mg = INT32_MAX;
     result.min_eg = INT32_MAX;
+
+    if (scale < 2) {
+        scale = 1;
+    }
+
+    if (scale > 1) {
+        for (auto& score : data) {
+            int mg = int(std::round(double(get_mg(score)) / double(scale)));
+            int eg = int(std::round(double(get_eg(score)) / double(scale)));
+
+            score = S(mg, eg);
+        }
+    }
 
     for (auto& score : data) {
         result.min_mg = std::min(result.min_mg, get_mg(score));
@@ -129,7 +150,7 @@ inline std::string get_eval_str()
     int offset_pst_eg = 0;
 
     for (auto& param : PARAMS) {
-        auto compressed = get_compressed_data(param.data);
+        auto compressed = get_compressed_data(param.data, param.scale);
 
         mg += compressed.str_mg;
         eg += compressed.str_eg;

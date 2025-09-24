@@ -40,3 +40,4 @@ clean:
 	@rm -rf mini$(SUFFIX)
 	@rm -rf tune$(SUFFIX)
 	@rm -rf mini.cpp
+	@rm -rf checkpoint.txt
