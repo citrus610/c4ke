@@ -63,7 +63,7 @@ i32 PHALANX[6] = {
 };
 
 i32 THREAT[4] = {
-    S(-50, -25), S(-50, -50), S(-80, -25), S(-75, 0)
+    S(50, 25), S(50, 50), S(80, 25), S(75, 0)
 };
 
 i32 KING_ATTACK[4] = {
@@ -76,7 +76,7 @@ i32 KING_SEMIOPEN = S(-30, 15);
 i32 ROOK_OPEN = S(25, 5);
 i32 ROOK_SEMIOPEN = S(10, 15);
 i32 PAWN_PROTECTED = S(12, 16);
-i32 PAWN_DOUBLED = S(-12, -40);
+i32 PAWN_DOUBLED = S(12, 40);
 i32 PAWN_SHIELD = S(30, -10);
 
 i32 TEMPO = 20;
@@ -113,8 +113,8 @@ inline Trace get_trace(Board& board)
         // Pawn doubled
         i32 pawn_doubled = bitboard::get_count(pawns_us & (pawns_us << 8 | pawns_us << 16));
 
-        score += pawn_doubled * PAWN_DOUBLED;
-        trace.pawn_doubled[color] += pawn_doubled;
+        score -= pawn_doubled * PAWN_DOUBLED;
+        trace.pawn_doubled[color] -= pawn_doubled;
 
         for (i8 type = piece::type::PAWN; type < 6; ++type) {
             u64 mask = board.pieces[type] & board.colors[color];
@@ -222,8 +222,8 @@ inline Trace get_trace(Board& board)
 
                     // Pawn threats
                     if (1ULL << square & pawns_threats) {
-                        score += THREAT[type - 1];
-                        trace.threat[color][type - 1] += 1;
+                        score -= THREAT[type - 1];
+                        trace.threat[color][type - 1] -= 1;
                     }
 
                     // King attacker
