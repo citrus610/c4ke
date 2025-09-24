@@ -40,9 +40,9 @@ inline const std::vector<Param> PARAMS = {
             S(-4, -28), S(17, -23), S(14, 1), S(15, 5), S(16, 13), S(27, 8), S(-9, 7), S(-69, 19),
             S(-5, -37), S(-27, -28), S(-19, -16), S(-21, 10), S(-4, 26), S(20, 20), S(20, 22), S(37, 8),
             S(0, -72), S(15, -64), S(6, -15), S(-5, 28), S(5, 25), S(3, 41), S(-15, 51), S(-6, 12),
-            S(-26, -96), S(-8, -30), S(-61, -4), S(-67, 15), S(-44, 44), S(0, 72), S(0, 52), S(0, -3)
+            S(-26, -96), S(-8, -30), S(-61, -4), S(-67, 15), S(-44, 44), S(43, 72), S(169, 52), S(154, -3)
         },
-        .scale = 4,
+        .scale = 8,
         .index_offset = 0
     },
     Param {
@@ -55,7 +55,7 @@ inline const std::vector<Param> PARAMS = {
             S(-10, -12), S(-7, -3), S(-1, -3), S(4, 11), S(10, 1), S(7, 6), S(5, -1), S(-5, 7),
             S(10, -61), S(14, 6), S(-21, 22), S(-45, 30), S(-28, 18), S(-31, 20), S(22, 1), S(22, -65)
         },
-        .scale = 4,
+        .scale = 8,
         .index_offset = 0
     },
     Param {
@@ -71,7 +71,7 @@ inline const std::vector<Param> PARAMS = {
         .data = {
             S(-12, 7), S(-24, 29), S(-17, 55), S(3, 69), S(6, 114), S(14, 167)
         },
-        .scale = 4,
+        .scale = 8,
         .index_offset = -1
     },
     Param {
@@ -79,7 +79,7 @@ inline const std::vector<Param> PARAMS = {
         .data = {
             S(7, 21), S(15, 28), S(22, 38), S(42, 89), S(168, 196), S(174, 251)
         },
-        .scale = 4,
+        .scale = 8,
         .index_offset = -1
     },
     Param {
@@ -111,14 +111,23 @@ inline Compressed get_compressed_data(std::vector<int> data, int scale)
         scale = 1;
     }
 
+    if (scale > 1) {
+        for (auto& score : data) {
+            int mg = int(std::round(double(get_mg(score)) / double(scale)));
+            int eg = int(std::round(double(get_eg(score)) / double(scale)));
+
+            score = S(mg, eg);
+        }
+    }
+
     for (auto& score : data) {
         result.min_mg = std::min(result.min_mg, get_mg(score));
         result.min_eg = std::min(result.min_eg, get_eg(score));
     }
 
     for (auto& score : data) {
-        int mg = int(std::round(double(get_mg(score) - result.min_mg) / double(scale))) + 32;
-        int eg = int(std::round(double(get_eg(score) - result.min_eg) / double(scale))) + 32;
+        int mg = get_mg(score) - result.min_mg + 32;
+        int eg = get_eg(score) - result.min_eg + 32;
 
         result.str_mg.push_back(char(mg));
         result.str_eg.push_back(char(eg));

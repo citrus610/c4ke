@@ -254,7 +254,7 @@ struct Board {
                     mask &= mask - 1;
 
                     // PST
-                    eval += MATERIAL[type] + (get_data(type * 8 + square / 8) + get_data(type * 8 + square % 8 + INDEX_PST_FILE)) * SCALE + OFFSET_PST;
+                    eval += MATERIAL[type] + (get_data(type * 8 + square / 8) + get_data(type * 8 + square % 8 + INDEX_PST_FILE) + OFFSET_PST) * SCALE;
 
                     // Update phase
                     phase += PHASE[type];
@@ -262,11 +262,11 @@ struct Board {
                     if (!type) {
                         // Pawn phalanx
                         if (pawns_phalanx & 1ull << square)
-                            eval += get_data(square / 8 + INDEX_PHALANX) * SCALE + OFFSET_PHALANX;
+                            eval += (get_data(square / 8 + INDEX_PHALANX) + OFFSET_PHALANX) * SCALE;
 
                         // Passed pawns
                         if (!(0x101010101010101 << square & (pawns_them | pawns_threats)))
-                            eval += get_data(square / 8 + INDEX_PASSER) * SCALE + OFFSET_PASSER;
+                            eval += (get_data(square / 8 + INDEX_PASSER) + OFFSET_PASSER) * SCALE;
                     }
                     else {
                         // Mobility
