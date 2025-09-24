@@ -415,7 +415,7 @@ i32 main() {
 
 #ifdef OB
     cout << "id name c4ke" << endl;
-    cout << "id author citrus610" << endl;
+    cout << "id author citrus610 and cj5716" << endl;
     cout << "option name Hash type spin default 8 min 1 max 67108864" << endl;
     cout << "option name Threads type spin default 1 min 1 max 2048" << endl;
 #endif
