@@ -5,23 +5,22 @@
 i32 PHASE[] { 0, 1, 1, 2, 4, 0 },
     VALUE[] { 100, 320, 330, 500, 900, 2000, 0 },
     LAYOUT[] { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK },
-    MATERIAL[] { S(73, 109), S(228, 307), S(237, 323), S(367, 687), S(677, 973) };
+    MATERIAL[] { S(107, 148), S(415, 470), S(425, 484), S(572, 838), S(1156, 1426) };
 
-#define SCALE_PST 4
-#define SCALE_PHALANX 4
+#define SCALE 4
 
-#define BISHOP_PAIR S(10, 25)
-#define KING_OPEN S(-11, -8)
-#define KING_SEMI_OPEN S(-8, 8)
-#define ROOK_OPEN S(5, -7)
-#define ROOK_SEMI_OPEN S(5, 8)
-#define PAWN_PROTECTED S(6, 10)
-#define PAWN_DOUBLED S(7, 11)
-#define PAWN_SHIELD S(7, -2)
+#define BISHOP_PAIR S(39, 74)
+#define KING_OPEN S(-37, -25)
+#define KING_SEMIOPEN S(-25, 23)
+#define ROOK_OPEN S(16, -19)
+#define ROOK_SEMIOPEN S(16, 22)
+#define PAWN_PROTECTED S(18, 30)
+#define PAWN_DOUBLED S(24, 37)
+#define PAWN_SHIELD S(24, -7)
 
 #define TEMPO 20
 
-#define DATA_STR "F?>@ACIF:;<>>A>28:99::83)'(()++,!\"\"!!!  EFBBDJX[ACCDCDDA688999879::::9::12344322  !!!!! IIFEFFJJ$### 3/177  !!#0H\"\"  !!\" YRQQRTVYCDGIKHGHDDFGGGGH$$%')()(  %*+,,*PUWXZ]ZTMMMLLMMM?BDDDDCA?@@AAA@?####\"##\" \"#$##!\"RXYZYYWR$%$\"  &.3BZ !!&-X'((  \" '"
+#define DATA_STR "@<:?CIH@;?BGGQG ?DDDDG>/?9;;?EEI@DB?AA<?:>1/5@@@&,,.-//%%+,//.,)*,,+,*-,&),/0-+))*+,.--*./& $$11.-*( # \"'(* \"$)HJ..* $&% 88437>J8*08?C;7<1289;::=/14;?=>:&(4?>BE; 17<CJE7121./120'.46640+,113221+2220/00.-0031202!268551 +./6  &,0;H \"$1LZR\\M  '%?"
 
 #define INDEX_EG 121
 
@@ -33,12 +32,12 @@ i32 PHASE[] { 0, 1, 1, 2, 4, 0 },
 #define INDEX_THREAT 112
 #define INDEX_KING_ATTACK 116
 
-#define OFFSET_MOBILITY S(-1, -4)
-#define OFFSET_PASSER S(-22, 2)
-#define OFFSET_PHALANX S(2, 7)
-#define OFFSET_THREAT S(28, 21)
-#define OFFSET_KING_ATTACK S(3, -4)
-#define OFFSET_PST S(-309, -443)
+#define OFFSET_MOBILITY S(-5, -12)
+#define OFFSET_PASSER S(-24, 7)
+#define OFFSET_PHALANX S(7, 21)
+#define OFFSET_THREAT S(51, 9)
+#define OFFSET_KING_ATTACK S(9, -11)
+#define OFFSET_PST S(-173, -161)
 
 int get_data(int index) {
     auto data = DATA_STR;

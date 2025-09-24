@@ -16,7 +16,7 @@ int main()
 
     // Get optimal K value
     // auto K = get_optimal_K(dataset);
-    auto K = 10.0;
+    auto K = 2.5;
 
     // Get loss
     auto loss = get_mse(dataset, weights, K);
@@ -68,7 +68,7 @@ int main()
         std::cout << "lr: " << std::to_string(lr) << "\n";
         
         // Save check point
-        if ((epoch % 100) == 0) {
+        if ((epoch % 10) == 0) {
             auto file = std::ofstream("checkpoint.txt", std::ios::out);
 
             file << get_str_print_weights(weights);

@@ -6,7 +6,6 @@ constexpr i32 PHASE[] = { 0, 1, 1, 2, 4, 0 };
 
 struct Trace
 {
-    i32 material[2][5] {};
     i32 pst_rank[2][48] {};
     i32 pst_file[2][48] {};
     i32 mobility[2][5] {};
@@ -26,10 +25,11 @@ struct Trace
     f64 score = 0.0;
     f64 scale = 1.0;
     i32 phase = 0;
+    i32 delta = 0;
 };
 
 i32 MATERIAL[5] = {
-    S(100, 150), S(330, 400), S(350, 450), S(500, 900), S(900, 1200)
+    S(80, 100), S(200, 300), S(250, 350), S(400, 600), S(800, 1000)
 };
 
 i32 PST_RANK[48] = {
@@ -42,12 +42,12 @@ i32 PST_RANK[48] = {
 };
 
 i32 PST_FILE[48] = {
-    S(-1, 1), S(-2, 1), S(-1, 0), S(0, -1), S(1, 0), S(2, 0), S(2, 0), S(-1, 0),
-    S(-4, -3), S(-1, -1), S(0, 1), S(2, 3), S(2, 3), S(2, 0), S(1, -1), S(-1, -3),
-    S(-2, -1), 0, S(1, 0), S(0, 1), S(1, 1), S(0, 1), S(2, 0), S(-1, -1),
-    S(-2, 0), S(-1, 1), S(0, 1), S(1, 0), S(2, -1), S(1, 0), S(1, 0), S(-1, -1),
-    S(-2, -3), S(-1, -1), S(-1, 0), S(0, 1), S(0, 2), S(1, 2), S(2, 0), S(1, -1),
-    S(-2, -5), S(2, -1), S(-1, 1), S(-4, 2), S(-4, 2), S(-2, 2), S(2, -1), S(0, -5),
+    S(-8, 8), S(-16, 8), S(-8, 0), S(0, -8), S(8, 0), S(16, 0), S(16, 0), S(-8, 0), 
+    S(-32, -24), S(-8, -8), S(0, 8), S(16, 24), S(16, 24), S(16, 0), S(8, -8), S(-8, -24), 
+    S(-16, -8), S(0, 0), S(8, 0), S(0, 8), S(8, 8), S(0, 8), S(16, 0), S(-8, -8), 
+    S(-16, 0), S(-8, 8), S(0, 8), S(8, 0), S(16, -8), S(8, 0), S(8, 0), S(-8, -8), 
+    S(-16, -24), S(-8, -8), S(-8, 0), S(0, 8), S(0, 16), S(8, 16), S(16, 0), S(8, -8), 
+    S(-16, -40), S(16, -8), S(-8, 8), S(-32, 16), S(-32, 16), S(-16, 16), S(16, -8), S(0, -40),
 };
 
 i32 MOBILITY[5] = {
@@ -63,7 +63,7 @@ i32 PHALANX[6] = {
 };
 
 i32 THREAT[4] = {
-    S(50, 25), S(50, 50), S(80, 25), S(75, 0)
+    S(-50, -25), S(-50, -50), S(-80, -25), S(-75, 0)
 };
 
 i32 KING_ATTACK[4] = {
@@ -76,7 +76,7 @@ i32 KING_SEMIOPEN = S(-30, 15);
 i32 ROOK_OPEN = S(25, 5);
 i32 ROOK_SEMIOPEN = S(10, 15);
 i32 PAWN_PROTECTED = S(12, 16);
-i32 PAWN_DOUBLED = S(12, 40);
+i32 PAWN_DOUBLED = S(-12, -40);
 i32 PAWN_SHIELD = S(30, -10);
 
 i32 TEMPO = 20;
@@ -87,6 +87,8 @@ inline Trace get_trace(Board& board)
 
     i32 score = 0;
     i32 phase = 0;
+
+    i32 material = 0;
 
     for (i8 color = color::WHITE; color < 2; ++color) {
         u64 occupied = board.colors[color::WHITE] | board.colors[color::BLACK];
@@ -108,7 +110,7 @@ inline Trace get_trace(Board& board)
         score += pawn_protected * PAWN_PROTECTED;
         trace.pawn_protected[color] += pawn_protected;
 
-        // Pawn f64d
+        // Pawn doubled
         i32 pawn_doubled = bitboard::get_count(pawns_us & (pawns_us << 8 | pawns_us << 16));
 
         score += pawn_doubled * PAWN_DOUBLED;
@@ -126,7 +128,7 @@ inline Trace get_trace(Board& board)
                 // Material
                 if (type < piece::type::KING) {
                     score += MATERIAL[type];
-                    trace.material[color][type] += 1;
+                    material += MATERIAL[type];
                 }
 
                 // PST rank
@@ -196,7 +198,7 @@ inline Trace get_trace(Board& board)
                     }
 
                     // Semi open file
-                    if (!(0x101010101010101 << square % 8 & pawns_us)) {
+                    if (!(0x101010101010101ULL << square % 8 & pawns_us)) {
                         // King
                         if (type == piece::type::KING) {
                             score += KING_SEMIOPEN;
@@ -243,6 +245,7 @@ inline Trace get_trace(Board& board)
             piece = bitboard::get_flip(piece);
 
         score = -score;
+        material = -material;
     }
 
     // Scaling
@@ -256,6 +259,7 @@ inline Trace get_trace(Board& board)
     trace.scale = f64(scale) / 128.0;
     trace.score = score;
     trace.phase = phase;
+    trace.delta = material;
 
     return trace;
 };
@@ -327,7 +331,7 @@ std::vector<Pair> get_init_weights()
 {
     std::vector<Pair> result;
 
-    add_weights(result, MATERIAL, 5);
+    // add_weights(result, MATERIAL, 5);
     add_weights(result, PST_RANK, 48);
     add_weights(result, PST_FILE, 48);
     add_weights(result, MOBILITY, 5);
@@ -352,7 +356,7 @@ std::vector<i32> get_coefs(Trace trace)
 {
     std::vector<i32> result;
 
-    add_coefs(result, trace.material, 5);
+    // add_coefs(result, trace.material, 5);
     add_coefs(result, trace.pst_rank, 48);
     add_coefs(result, trace.pst_file, 48);
     add_coefs(result, trace.mobility, 5);
@@ -378,7 +382,7 @@ std::string get_str_print_weights(std::vector<Pair> weights)
     std::string str;
     i32 index = 0;
 
-    str += get_str_weights(weights, index, "MATERIAL", 5);
+    // str += get_str_weights(weights, index, "MATERIAL", 5);
     str += get_str_weights(weights, index, "PST_RANK", 48);
     str += get_str_weights(weights, index, "PST_FILE", 48);
     str += get_str_weights(weights, index, "MOBILITY", 5);

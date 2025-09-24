@@ -7,6 +7,7 @@ struct Entry
 {
     std::vector<i32> coefs = {};
     f64 score = 0.0;
+    f64 delta[2] = { 0.0, 0.0 };
     f64 scale = 1.0;
     f64 phase = 0.0;
     f64 wdl = 0.0;
@@ -31,6 +32,8 @@ Entry get_data_entry(const std::string& str)
     auto trace = get_trace(board);
 
     result.coefs = get_coefs(trace);
+    result.delta[MG] = f64(get_mg(trace.delta));
+    result.delta[EG] = f64(get_eg(trace.delta));
     result.scale = trace.scale;
     result.phase = trace.phase;
     result.is_white = board.stm == color::WHITE;

@@ -6,8 +6,8 @@ inline f64 get_linear(const Entry& entry, const std::vector<Pair>& weights)
 {
     assert(entry.coefs.size() == weights.size());
 
-    f64 mg = 0.0;
-    f64 eg = 0.0;
+    f64 mg = entry.delta[MG];
+    f64 eg = entry.delta[EG];
 
     for (usize i = 0; i < entry.coefs.size(); ++i) {
         mg += entry.coefs[i] * weights[i][MG];
