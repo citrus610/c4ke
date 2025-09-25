@@ -230,11 +230,11 @@ struct Thread {
 
             // Don't do zero window search for qsearch
             // Zero window search
-            if (score > alpha && depth && (!is_pv || legals))
+            if (score > alpha && depth && legals)
                 score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next);
 
             // Principle variation search and qsearch
-            if (!depth || is_pv && (!legals || score > alpha))
+            if (!depth || !legals || is_pv && score > alpha)
                 score = -search(child, -beta, -alpha, ply + 1, depth_next, is_pv);
 
             legals++;
