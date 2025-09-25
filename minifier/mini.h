@@ -157,6 +157,7 @@ const inline std::vector<std::string> KEYWORDS_SKIP = {
 
 const inline std::vector<std::string> KEYWORDS_STATEMENT = {
     "if",
+    "else"
     "for",
     "while"
 };
@@ -269,7 +270,27 @@ inline bool is_field(const std::vector<std::string>& tokens, size_t index) {
 // Check if it's a statement
 inline bool is_statement(const std::vector<std::string>& tokens, size_t index)
 {
-    return is_in_list(KEYWORDS_STATEMENT, tokens[index]);
+    if (!is_in_list(KEYWORDS_STATEMENT, tokens[index])) {
+        return false;
+    }
+
+    int parenth_scope = 0;
+
+    for (size_t i = index; i + 1 < tokens.size(); i++) {
+        if (tokens[i] == "(") {
+            parenth_scope += 1;
+        }
+
+        if (tokens[i] == ")") {
+            parenth_scope -= 1;
+
+            if (parenth_scope <= 0) {
+                return tokens[i + 1] == "{";
+            }
+        }
+    }
+
+    return false;
 };
 
 // Check if it's a struct
@@ -866,86 +887,91 @@ inline std::pair<Scope, size_t> get_scope(ScopeType type, std::string name, std:
             continue;
         }
 
-        // Skip special keyword except "main"
-        if ((is_in_list(KEYWORDS, token) || is_in_list(KEYWORDS_SKIP, token)) && token != "main") {
+        // Special check for "if", "else", "for", "while" statements
+        bool is_token_statement = is_statement(tokens, i);
+
+        // Skip special keyword except "main" and statements
+        if ((is_in_list(KEYWORDS, token) || is_in_list(KEYWORDS_SKIP, token)) && token != "main" && !is_token_statement) {
             continue;
         }
 
-        // Check if this is a global name
-        if (is_in_list(globals, token)) {
-            bool found = false;
-
-            for (auto& toplevel : scope.toplevels) {
-                if (toplevel.name == token) {
-                    toplevel.count += 1;
-                    found = true;
-                    break;
-                }
-            }
-
-            if (!found) {
-                scope.toplevels.push_back(Name {
-                    .name = token,
-                    .count = 1
-                });
-            }
-        }
-        // Check if we've found this name before in this scope
-        else if (is_in_list(scope.names, token)) {
-            for (auto& variable : scope.names) {
-                if (variable.name == token) {
-                    variable.count += 1;
-                    break;
-                }
-            }
-        }
-        // Check if this is another struct's field or method
-        else if (is_field(tokens, i)) {
-            auto& structs_list = type == ScopeType::GLOBAL ? scope.children : structs;
-
-            for (auto& a_struct : structs_list) {
-                if (a_struct.type != ScopeType::STRUCT) {
-                    continue;
-                }
-
+        // Update names list
+        if (!is_token_statement) {
+            // Check if this is a global name
+            if (is_in_list(globals, token)) {
                 bool found = false;
 
-                for (auto& field : a_struct.names) {
-                    if (field.name == token) {
-                        field.count += 1;
+                for (auto& toplevel : scope.toplevels) {
+                    if (toplevel.name == token) {
+                        toplevel.count += 1;
                         found = true;
                         break;
                     }
                 }
 
-                if (found) {
-                    break;
+                if (!found) {
+                    scope.toplevels.push_back(Name {
+                        .name = token,
+                        .count = 1
+                    });
                 }
             }
-        }
-        // New name
-        else {
-            scope.names.push_back(Name {
-                .name = token,
-                .count = 1
-            });
+            // Check if we've found this name before in this scope
+            else if (is_in_list(scope.names, token)) {
+                for (auto& variable : scope.names) {
+                    if (variable.name == token) {
+                        variable.count += 1;
+                        break;
+                    }
+                }
+            }
+            // Check if this is another struct's field or method
+            else if (is_field(tokens, i)) {
+                auto& structs_list = type == ScopeType::GLOBAL ? scope.children : structs;
+
+                for (auto& a_struct : structs_list) {
+                    if (a_struct.type != ScopeType::STRUCT) {
+                        continue;
+                    }
+
+                    bool found = false;
+
+                    for (auto& field : a_struct.names) {
+                        if (field.name == token) {
+                            field.count += 1;
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (found) {
+                        break;
+                    }
+                }
+            }
+            // New name
+            else {
+                scope.names.push_back(Name {
+                    .name = token,
+                    .count = 1
+                });
+            }
         }
 
         // Check if this is a statement: if, for, while
-        // if (is_statement(tokens, i)) {
-        //     auto& structs_list = type == ScopeType::GLOBAL ? scope.children : structs;
+        if (is_token_statement) {
+            auto& structs_list = type == ScopeType::GLOBAL ? scope.children : structs;
 
-        //     auto [child, child_end] = get_scope(ScopeType::STATEMENT, "", get_globals(scope, globals), structs_list, i + 1, tokens);
+            auto [child, child_end] = get_scope(ScopeType::STATEMENT, "", get_globals(scope, globals), structs_list, i + 1, tokens);
 
-        //     push_child_toplevels(scope, child);
+            push_child_toplevels(scope, child);
 
-        //     scope.children.push_back(child);
+            scope.children.push_back(child);
 
-        //     i = child_end;
-        // }
+            i = child_end;
+        }
         // Check if this is a function
-        // else if (is_function(tokens, i)) {
-        if (is_function(tokens, i)) {
+        else if (is_function(tokens, i)) {
             auto& structs_list = type == ScopeType::GLOBAL ? scope.children : structs;
 
             auto [child, child_end] = get_scope(ScopeType::FUNCTION, token, get_globals(scope, globals), structs_list, i + 1, tokens);
@@ -1176,70 +1202,75 @@ size_t get_replace_ir(ScopeIR& scope_id, std::vector<NameID> globals, std::vecto
             continue;
         }
 
-        // Skip special keyword except "main"
-        if ((is_in_list(KEYWORDS, token) || is_in_list(KEYWORDS_SKIP, token)) && token != "main") {
+        // Special check for "if", "else", "for", "while" statements
+        bool is_token_statement = is_statement(tokens, i);
+
+        // Skip special keyword except "main" or statements
+        if ((is_in_list(KEYWORDS, token) || is_in_list(KEYWORDS_SKIP, token)) && token != "main" && !is_token_statement) {
             continue;
         }
 
-        // Check if this is another struct's field or method
-        if (is_field(tokens, i)) {
-            for (auto& a_struct : structs) {
-                if (a_struct.type != ScopeType::STRUCT) {
-                    continue;
-                }
+        // Replace name
+        if (!is_token_statement) {
+            // Check if this is another struct's field or method
+            if (is_field(tokens, i)) {
+                for (auto& a_struct : structs) {
+                    if (a_struct.type != ScopeType::STRUCT) {
+                        continue;
+                    }
 
-                bool found = false;
+                    bool found = false;
 
-                for (auto& field : a_struct.names) {
-                    if (field.name == token) {
-                        token = std::string("name_") + std::to_string(field.id);
-                        found = true;
+                    for (auto& field : a_struct.names) {
+                        if (field.name == token) {
+                            token = std::string("name_") + std::to_string(field.id);
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (found) {
                         break;
                     }
                 }
-
-                if (found) {
-                    break;
+            }
+            // Check if this is a top level name
+            else if (is_in_list(globals, token) && token != "main") {
+                for (auto& name : globals) {
+                    if (name.name == token) {
+                        token = std::string("name_") + std::to_string(name.id);
+                        break;
+                    }
                 }
             }
-        }
-        // Check if this is a top level name
-        else if (is_in_list(globals, token) && token != "main") {
-            for (auto& name : globals) {
-                if (name.name == token) {
-                    token = std::string("name_") + std::to_string(name.id);
-                    break;
+            // Check if we've found this name before in this scope
+            else if (is_in_list(scope_id.names, token) && token != "main") {
+                for (auto& name : scope_id.names) {
+                    if (name.name == token) {
+                        token = std::string("name_") + std::to_string(name.id);
+                        break;
+                    }
                 }
             }
-        }
-        // Check if we've found this name before in this scope
-        else if (is_in_list(scope_id.names, token) && token != "main") {
-            for (auto& name : scope_id.names) {
-                if (name.name == token) {
-                    token = std::string("name_") + std::to_string(name.id);
-                    break;
-                }
+            // New name
+            else if (token != "main") {
+                std::cout << "ERROR: Unknown indentifier " << token << std::endl;
             }
-        }
-        // New name
-        else if (token != "main") {
-            std::cout << "ERROR: Unknown indentifier " << token << std::endl;
         }
 
         // Check if this is a statement: if, for, while
-        // if (is_statement(tokens, i)) {
-        //     if (scope_id.children[scope_index].type != ScopeType::STATEMENT) {
-        //         std::cout << "ERROR: Wrong scope type " << int(scope_id.children[scope_index].type) << ", expected " << int(ScopeType::STATEMENT) << std::endl;
-        //     }
+        if (is_token_statement) {
+            if (scope_id.children[scope_index].type != ScopeType::STATEMENT) {
+                std::cout << "ERROR: Wrong scope type " << int(scope_id.children[scope_index].type) << ", expected " << int(ScopeType::STATEMENT) << std::endl;
+            }
 
-        //     auto child_end = get_replace_ir(scope_id.children[scope_index], child_globals, structs, tokens, i + 1);
+            auto child_end = get_replace_ir(scope_id.children[scope_index], child_globals, structs, tokens, i + 1);
 
-        //     scope_index += 1;
-        //     i = child_end;
-        // }
+            scope_index += 1;
+            i = child_end;
+        }
         // Check if this is a function
-        // else if (is_function(tokens, i)) {
-        if (is_function(tokens, i)) {
+        else if (is_function(tokens, i)) {
             if (scope_id.children[scope_index].type != ScopeType::FUNCTION) {
                 std::cout << "ERROR: Wrong scope type " << int(scope_id.children[scope_index].type) << ", expected " << int(ScopeType::FUNCTION) << std::endl;
             }
