@@ -70,9 +70,9 @@ int main(int argc, char *argv[])
     auto stat_str = print_scope(global_scope, 0);
 
     // For debuging purpose
-    auto file_stat = std::ofstream("stat.txt", std::ios::out);
-    file_stat << stat_str;
-    file_stat.close();
+    // auto file_stat = std::ofstream("stat.txt", std::ios::out);
+    // file_stat << stat_str;
+    // file_stat.close();
 
     // Transform from stats to names' ids
     auto scope_id = get_scope_id(global_scope, {});
