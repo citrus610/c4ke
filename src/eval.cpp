@@ -17,6 +17,7 @@ i32 PHASE[] { 0, 1, 1, 2, 4, 0 },
 #define PAWN_PROTECTED S(23, 24)
 #define PAWN_DOUBLED S(11, 37)
 #define PAWN_SHIELD S(28, -13)
+#define PASSER_BLOCKED S(5, 50)
 
 #define TEMPO 20
 
