@@ -265,8 +265,13 @@ struct Board {
                             eval += (get_data(square / 8 + INDEX_PHALANX) + OFFSET_PHALANX) * SCALE;
 
                         // Passed pawns
-                        if (!(0x101010101010101 << square & (pawns_them | pawns_threats)))
+                        if (!(0x101010101010101 << square & (pawns_them | pawns_threats))) {
                             eval += (get_data(square / 8 + INDEX_PASSER) + OFFSET_PASSER) * SCALE;
+
+                            // Blocked passed pawn
+                            if (north(1ull << square) & colors[!color])
+                                eval -= PASSER_BLOCKED;
+                        }
                     }
                     else {
                         // Mobility
