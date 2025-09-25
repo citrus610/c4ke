@@ -125,7 +125,6 @@ struct Thread {
                     stack_conthist[ply + 2] = conthist[WHITE_PAWN];
 
                     score = -search(child, -beta, -alpha, ply + 1, depth - 5 - depth / 3);
-
                     if (score >= beta)
                         return score < WIN ? score : beta;
                 }
@@ -210,30 +209,27 @@ struct Thread {
 
             stack_conthist[ply + 2] = &conthist[board.board[move_from(move)]][move_to(move)];
 
-            // Don't do zero window search for qsearch
-            // Late move reduction
-            if (depth > 2 && legals > 2) {
-                i32 reduction =
+            i32 reduction = depth > 2 && legals > 2 ? 
                     // Base reduction
                     log(depth) * log(legals + 1) * 0.3 + 1 -
                     // History reduction
                     is_quiet * move_scores[i] / 8192 +
                     // PV
-                    !is_pv;
+                    !is_pv
+                    : 0;
 
-                reduction *= reduction > 0;
+            reduction *= reduction > 0;
 
-                score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next - reduction);
+            // First iter: LMR search (if any)
+            // Second iter: ZWS search
+            // We don't do ZWS in qsearch, or if it's the first move.
+            for (; depth && legals &&
+                (score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next - reduction)) > alpha && reduction;) reduction = 0;
 
-                if (score > alpha && reduction)
-                    score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next);
-            }
-            // Zero window search
-            else if (depth && (!is_pv || legals))
-                score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next);
-
-            // Principle variation search and qsearch
-            if (!depth || is_pv && (!legals || score > alpha))
+            // We do the principal variation search for the first move,
+            // or if it's a successful alpha raise on a PV node. (Otherwise it's ZW and there is duplicated search)
+            // We also always search fully in qsearch.
+            if (!depth || !legals || (is_pv && score > alpha))
                 score = -search(child, -beta, -alpha, ply + 1, depth_next, is_pv);
 
             legals++;
