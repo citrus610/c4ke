@@ -229,7 +229,7 @@ struct Thread {
             // We do the principal variation search for the first move,
             // or if it's a successful alpha raise on a PV node. (Otherwise it's ZW and there is duplicated search)
             // We also always search fully in qsearch.
-            if (!depth || !legals || is_pv && score > alpha)
+            if (!(depth && legals) || is_pv && score > alpha)
                 score = -search(child, -beta, -alpha, ply + 1, depth_next, is_pv);
 
             legals++;
