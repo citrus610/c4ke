@@ -287,15 +287,16 @@ struct Board {
                             eval += (type > QUEEN) * KING_SEMIOPEN + (type == ROOK) * ROOK_SEMIOPEN;
 
                         // Pawn shield
-                        if (type > QUEEN && square < A2)
-                            eval += POPCNT(pawns_us & 0x70700ull << 5 * (square % 8 > 2)) * PAWN_SHIELD;
+                        if (type > QUEEN)
+                            eval += POPCNT(pawns_us & 0x70700ull << 5 * (square % 8 > 2)) * (square < A2) * PAWN_SHIELD;
+
+                        // King attacker
+                        else 
+                            eval += POPCNT(mobility & king(pieces[KING] & colors[!color])) * (get_data(type + INDEX_KING_ATTACK) + OFFSET_KING_ATTACK);
 
                         // Pawn threats
                         if (1ull << square & pawns_threats)
                             eval -= get_data(type + INDEX_THREAT) + OFFSET_THREAT;
-
-                        // King attacker
-                        eval += POPCNT(mobility & king(pieces[KING] & colors[!color])) * (get_data(type + INDEX_KING_ATTACK) + OFFSET_KING_ATTACK) * (type < KING);
                     }
                 }
             }
