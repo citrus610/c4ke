@@ -169,7 +169,8 @@ struct Thread {
 
             // Search data
             i32 is_quiet = board.quiet(move),
-                depth_next = depth - 1;
+                depth_next = depth - 1,
+                reduction = 0;
 
             // Quiet pruning and SEE pruning in qsearch
             if (!depth && best > -WIN && move_scores[i] < 1e6)
@@ -209,14 +210,13 @@ struct Thread {
 
             stack_conthist[ply + 2] = &conthist[board.board[move_from(move)]][move_to(move)];
 
-            i32 reduction = depth > 2 && legals > 2 ? 
-                    // Base reduction
-                    log(depth) * log(legals + 1) * 0.3 + 1 -
-                    // History reduction
-                    is_quiet * move_scores[i] / 8192 +
-                    // PV
-                    !is_pv
-                    : 0;
+            if (depth > 2 && legals > 2)
+                reduction = // Base reduction
+                            log(depth) * log(legals + 1) * 0.3 + 1 -
+                            // History reduction
+                            is_quiet * move_scores[i] / 8192 +
+                            // PV
+                            !is_pv;
 
             reduction *= reduction > 0;
 
