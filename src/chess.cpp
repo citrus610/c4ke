@@ -176,7 +176,7 @@ i32 move_promo(i16 move) {
 }
 
 void move_print(i16 move) {
-    cout.put(97 + move_from(move) % 8).put(49 + move_from(move) / 8).put(97 + move_to(move) % 8).put(49 + move_to(move) / 8).put(" nbrq"[move_promo(move)]) << endl;
+    cout.put(97 + move_from(move) % 8).put(49 + move_from(move) / 8).put(97 + move_to(move) % 8).put(49 + move_to(move) / 8).put(" nbrq"[move_promo(move)]).put(10);
 }
 
 // Bitboard
