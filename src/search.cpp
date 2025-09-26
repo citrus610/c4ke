@@ -210,7 +210,9 @@ struct Thread {
 
             stack_conthist[ply + 2] = &conthist[board.board[move_from(move)]][move_to(move)];
 
-            // Don't do zero window search for qsearch
+            // Set this as a dummy value to drop straight into ZWS if we don't do LMR
+            score = beta;
+
             // Late move reduction
             if (depth > 2 && legals > 2) {
                 i32 reduction =
@@ -221,15 +223,12 @@ struct Thread {
                     // PV
                     !is_pv;
 
-                reduction *= reduction > 0;
-
-                score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next - reduction);
-
-                if (score > alpha && reduction)
-                    score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next);
+                if (reduction > 0) score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next - reduction);
             }
+
+            // Don't do zero window search for qsearch
             // Zero window search
-            else if (depth && (!is_pv || legals))
+            if (score > alpha && depth && (!is_pv || legals))
                 score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next);
 
             // Principle variation search and qsearch
