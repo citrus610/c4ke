@@ -50,8 +50,8 @@ struct Thread {
         // Oracle
         if (ply) {
             // Repetiion
-            for (i32 i = 4; i <= ply; i += 2)
-                if (board.hash == visited[ply - i])
+            for (i32 i = 3; i < ply; i++)
+                if (board.hash == visited[ply - ++i])
                     return DRAW;
 
             for (i32 i = 0; i < VISITED_COUNT; i++)
@@ -208,35 +208,34 @@ struct Thread {
             if (child.make(move))
                 continue;
 
-            legals++;
-
             stack_conthist[ply + 2] = &conthist[board.board[move_from(move)]][move_to(move)];
 
-            // Don't do zero window search for qsearch
+            // Set this as a dummy value to drop straight into ZWS if we don't do LMR
+            score = beta;
+
             // Late move reduction
-            if (depth > 2 && legals > 3) {
+            if (depth > 2 && legals > 2) {
                 i32 reduction =
                     // Base reduction
-                    log(depth) * log(legals) * 0.3 + 1 -
+                    log(depth) * log(legals + 1) * 0.3 + 1 -
                     // History reduction
                     is_quiet * move_scores[i] / 8192 +
                     // PV
                     !is_pv;
 
-                reduction *= reduction > 0;
-
-                score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next - reduction);
-
-                if (score > alpha && reduction)
-                    score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next);
+                if (reduction > 0) score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next - reduction);
             }
+
+            // Don't do zero window search for qsearch
             // Zero window search
-            else if (depth && (!is_pv || legals > 1))
+            if (score > alpha && depth && legals)
                 score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next);
 
             // Principle variation search and qsearch
-            if (!depth || is_pv && (legals == 1 || score > alpha))
+            if (!depth || !legals || is_pv && score > alpha)
                 score = -search(child, -beta, -alpha, ply + 1, depth_next, is_pv);
+
+            legals++;
 
             // Abort
             if (STOP)
