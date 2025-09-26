@@ -219,6 +219,8 @@ void test_see()
         bool result;
     };
 
+    i32 VALUE[] = { VALUE_PAWN, VALUE_KNIGHT, VALUE_BISHOP, VALUE_ROOK, VALUE_QUEEN, 2000, 0 };
+
     std::vector<Test> set = {
         Test {
             .fen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
@@ -418,6 +420,27 @@ i32 main() {
     cout << "id author citrus610 and cj5716" << endl;
     cout << "option name Hash type spin default 8 min 1 max 67108864" << endl;
     cout << "option name Threads type spin default 1 min 1 max 2048" << endl;
+
+    cout << "option name PAWN_CORRHIST_DIV type string default 128" << endl;
+    cout << "option name NONPAWN_CORRHIST_DIV type string default 256" << endl;
+    cout << "option name CONTCORRHIST_DIV_1 type string default 128" << endl;
+    cout << "option name CONTCORRHIST_DIV_2 type string default 200" << endl;
+    cout << "option name RFP_MARGIN type string default 70" << endl;
+    cout << "option name FP_MARGIN type string default 100" << endl;
+    cout << "option name FP_BASE type string default 100" << endl;
+    cout << "option name SEEP_MARGIN type string default 80" << endl;
+    cout << "option name SE_DOUBLE_EXT_MARGIN type string default 16" << endl;
+    cout << "option name LMR_COEF type string default 0.3" << endl;
+    cout << "option name LMR_BASE type string default 1.0" << endl;
+    cout << "option name LMR_HIST_DIV type string default 8192" << endl;
+    cout << "option name HIST_BONUS_MARGIN type string default 150" << endl;
+    cout << "option name HIST_BONUS_BASE type string default -50" << endl;
+    cout << "option name HIST_BONUS_MAX type string default 1500" << endl;
+    cout << "option name VALUE_PAWN type string default 100" << endl;
+    cout << "option name VALUE_KNIGHT type string default 320" << endl;
+    cout << "option name VALUE_BISHOP type string default 330" << endl;
+    cout << "option name VALUE_ROOK type string default 500" << endl;
+    cout << "option name VALUE_QUEEN type string default 900" << endl;
 #endif
 
     cin >> token;
@@ -456,6 +479,27 @@ i32 main() {
             if (token == "Threads") {
                 tokens >> token >> THREADS;
             }
+
+            if (token == "PAWN_CORRHIST_DIV") { tokens >> token >> PAWN_CORRHIST_DIV; }
+            if (token == "NONPAWN_CORRHIST_DIV") { tokens >> token >> NONPAWN_CORRHIST_DIV; }
+            if (token == "CONTCORRHIST_DIV_1") { tokens >> token >> CONTCORRHIST_DIV_1; }
+            if (token == "CONTCORRHIST_DIV_2") { tokens >> token >> CONTCORRHIST_DIV_2; }
+            if (token == "RFP_MARGIN") { tokens >> token >> RFP_MARGIN; }
+            if (token == "FP_MARGIN") { tokens >> token >> FP_MARGIN; }
+            if (token == "FP_BASE") { tokens >> token >> FP_BASE; }
+            if (token == "SEEP_MARGIN") { tokens >> token >> SEEP_MARGIN; }
+            if (token == "SE_DOUBLE_EXT_MARGIN") { tokens >> token >> SE_DOUBLE_EXT_MARGIN; }
+            if (token == "LMR_COEF") { tokens >> token >> LMR_COEF; }
+            if (token == "LMR_BASE") { tokens >> token >> LMR_BASE; }
+            if (token == "LMR_HIST_DIV") { tokens >> token >> LMR_HIST_DIV; }
+            if (token == "HIST_BONUS_MARGIN") { tokens >> token >> HIST_BONUS_MARGIN; }
+            if (token == "HIST_BONUS_BASE") { tokens >> token >> HIST_BONUS_BASE; }
+            if (token == "HIST_BONUS_MAX") { tokens >> token >> HIST_BONUS_MAX; }
+            if (token == "VALUE_PAWN") { tokens >> token >> VALUE_PAWN; }
+            if (token == "VALUE_KNIGHT") { tokens >> token >> VALUE_KNIGHT; }
+            if (token == "VALUE_BISHOP") { tokens >> token >> VALUE_BISHOP; }
+            if (token == "VALUE_ROOK") { tokens >> token >> VALUE_ROOK; }
+            if (token == "VALUE_QUEEN") { tokens >> token >> VALUE_QUEEN; }
         }
 #endif
         // Uci position

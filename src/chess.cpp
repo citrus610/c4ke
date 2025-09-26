@@ -280,3 +280,27 @@ void print_bitboard(u64 bitboard) {
     printf("\n");
 }
 #endif
+
+// SPSA params
+int PAWN_CORRHIST_DIV = 128;
+int NONPAWN_CORRHIST_DIV = 256;
+int CONTCORRHIST_DIV_1 = 128;
+int CONTCORRHIST_DIV_2 = 200;
+int RFP_MARGIN = 70;
+int FP_MARGIN = 100;
+int FP_BASE = 100;
+int SEEP_MARGIN = 80;
+int SE_DOUBLE_EXT_MARGIN = 16;
+double LMR_COEF = 0.3;
+double LMR_BASE = 1.0;
+int LMR_HIST_DIV = 8192;
+int HIST_BONUS_MARGIN = 150;
+int HIST_BONUS_BASE = -50;
+int HIST_BONUS_MAX = 1500;
+int VALUE_PAWN = 100;
+int VALUE_KNIGHT = 320;
+int VALUE_BISHOP = 330;
+int VALUE_ROOK = 500;
+int VALUE_QUEEN = 900;
+
+// VALUE[] { 100, 320, 330, 500, 900, 2000, 0 }

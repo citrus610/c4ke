@@ -60,6 +60,8 @@ struct Board {
         if (move_promo(move) || board[from] < WHITE_KNIGHT && to == enpassant)
             return TRUE;
 
+        i32 VALUE[] = { VALUE_PAWN, VALUE_KNIGHT, VALUE_BISHOP, VALUE_ROOK, VALUE_QUEEN, 2000, 0 };
+
         // Return early if capturing this piece can't beat the threshold
         if ((threshold -= VALUE[board[to] / 2]) > 0)
             return FALSE;

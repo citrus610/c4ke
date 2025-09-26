@@ -88,11 +88,11 @@ struct Thread {
         if (!board.checkers) {
             // Get eval
             eval = stack_eval[ply] = board.eval() +
-                corrhist[board.stm][board.hash_pawn % CORRHIST_SIZE] / 128 +
-                corrhist[board.stm][board.hash_non_pawn[WHITE] % CORRHIST_SIZE] / 256 +
-                corrhist[board.stm][board.hash_non_pawn[BLACK] % CORRHIST_SIZE] / 256 +
-                stack_conthist[ply + 1][0][0][0] / 128 +
-                stack_conthist[ply][0][1][0] / 200;
+                corrhist[board.stm][board.hash_pawn % CORRHIST_SIZE] / PAWN_CORRHIST_DIV +
+                corrhist[board.stm][board.hash_non_pawn[WHITE] % CORRHIST_SIZE] / NONPAWN_CORRHIST_DIV +
+                corrhist[board.stm][board.hash_non_pawn[BLACK] % CORRHIST_SIZE] / NONPAWN_CORRHIST_DIV +
+                stack_conthist[ply + 1][0][0][0] / CONTCORRHIST_DIV_1 +
+                stack_conthist[ply][0][1][0] / CONTCORRHIST_DIV_2;
 
             // Use tt score as better eval
             if (tt.key && !excluded && tt.bound != tt.score < eval)
@@ -110,7 +110,7 @@ struct Thread {
             }
             else if (!is_pv && !excluded) {
                 // Reverse futility pruning
-                if (depth < 9 && eval < WIN && eval > beta + 70 * (depth - is_improving))
+                if (depth < 9 && eval < WIN && eval > beta + RFP_MARGIN * (depth - is_improving))
                     return eval;
 
                 // Null move pruning
@@ -140,6 +140,8 @@ struct Thread {
             i32 move = move_list[i],
                 piece = board.board[move_from(move)],
                 victim = board.board[move_to(move)] / 2 % TYPE_NONE;
+
+            i32 VALUE[] = { VALUE_PAWN, VALUE_KNIGHT, VALUE_BISHOP, VALUE_ROOK, VALUE_QUEEN, 2000, 0 };
 
             move_scores[i] =
                 // Hash move
@@ -181,11 +183,11 @@ struct Thread {
                 continue;
 
             // Futility pruning
-            if (ply && best > -WIN && depth < 10 && !board.checkers && stack_eval[ply] + 100 * depth + 100 < alpha && is_quiet)
+            if (ply && best > -WIN && depth < 10 && !board.checkers && stack_eval[ply] + FP_MARGIN * depth + FP_BASE < alpha && is_quiet)
                 continue;
 
             // SEE pruning in pvsearch
-            if (ply && best > -WIN && move_scores[i] < 1e6 && !board.see(move, -80 * depth))
+            if (ply && best > -WIN && move_scores[i] < 1e6 && !board.see(move, -SEEP_MARGIN * depth))
                 continue;
 
             // Singular extension
@@ -195,7 +197,7 @@ struct Thread {
 
                 // Single extension + double extension
                 if (score < singular_beta)
-                    depth_next += 1 + (!is_pv && score + 16 < singular_beta);
+                    depth_next += 1 + (!is_pv && score + SE_DOUBLE_EXT_MARGIN < singular_beta);
 
                 // Multicut
                 else if (score >= beta)
@@ -217,9 +219,9 @@ struct Thread {
             if (depth > 2 && legals > 3) {
                 i32 reduction =
                     // Base reduction
-                    log(depth) * log(legals) * 0.3 + 1 -
+                    log(depth) * log(legals) * LMR_COEF + LMR_BASE -
                     // History reduction
-                    is_quiet * move_scores[i] / 8192 +
+                    is_quiet * move_scores[i] / LMR_HIST_DIV +
                     // PV
                     !is_pv;
 
@@ -269,7 +271,7 @@ struct Thread {
                     break;
 
                 // History bonus
-                i32 bonus = min(150 * depth - 50, 1500);
+                i32 bonus = min(HIST_BONUS_MARGIN * depth + HIST_BONUS_BASE, HIST_BONUS_MAX);
 
                 if (is_quiet) {
                     // Update quiet history
