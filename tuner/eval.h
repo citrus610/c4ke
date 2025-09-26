@@ -21,6 +21,7 @@ struct Trace
     i32 pawn_protected[2] {};
     i32 pawn_doubled[2] {};
     i32 pawn_shield[2] {};
+    i32 passer_blocked[2] {};
 
     f64 score = 0.0;
     f64 scale = 1.0;
@@ -78,6 +79,7 @@ i32 ROOK_SEMIOPEN = S(10, 15);
 i32 PAWN_PROTECTED = S(12, 16);
 i32 PAWN_DOUBLED = S(12, 40);
 i32 PAWN_SHIELD = S(30, -10);
+i32 PASSER_BLOCKED = S(5, 50);
 
 i32 TEMPO = 20;
 
@@ -150,6 +152,12 @@ inline Trace get_trace(Board& board)
                     if (!(0x101010101010101ULL << square & (pawns_them | pawns_threats))) {
                         score += PASSER[square / 8 - 1];
                         trace.passer[color][square / 8 - 1] += 1;
+
+                        // Blocked passed pawn
+                        if (((1ULL << square) << 8) & board.colors[!color]) {
+                            score -= PASSER_BLOCKED;
+                            trace.passer_blocked[color] -= 1;
+                        }
                     }
                 }
                 else {
@@ -348,6 +356,7 @@ std::vector<Pair> get_init_weights()
     add_weight(result, PAWN_PROTECTED);
     add_weight(result, PAWN_DOUBLED);
     add_weight(result, PAWN_SHIELD);
+    add_weight(result, PASSER_BLOCKED);
 
     return result;
 };
@@ -373,6 +382,7 @@ std::vector<i32> get_coefs(Trace trace)
     add_coef(result, trace.pawn_protected);
     add_coef(result, trace.pawn_doubled);
     add_coef(result, trace.pawn_shield);
+    add_coef(result, trace.passer_blocked);
 
     return result;
 };
@@ -399,6 +409,7 @@ std::string get_str_print_weights(std::vector<Pair> weights)
     str += get_str_weight(weights, index, "PAWN_PROTECTED");
     str += get_str_weight(weights, index, "PAWN_DOUBLED");
     str += get_str_weight(weights, index, "PAWN_SHIELD");
+    str += get_str_weight(weights, index, "PASSER_BLOCKED");
 
     return str;
 };
