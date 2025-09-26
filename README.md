@@ -36,7 +36,7 @@ make c4ke-mini
 ```
 
 ## Minification
-The minifier isn't general purpose and won't work on all c++ code
+The minifier isn't general-purpose and won't work on all c++ code
 - Removing whitespaces
 - Removing single-line comments
 - Removing `#ifdef` blocks (usually for OpenBench compliance code)
@@ -114,9 +114,5 @@ The minifier isn't general purpose and won't work on all c++ code
   - [4ku](https://github.com/kz04px/4ku)
 
 [badge-license]: https://img.shields.io/github/license/citrus610/c4ke?style=for-the-badge&label=license&color=success
-[badge-release]: https://img.shields.io/github/v/release/citrus610/c4ke?style=for-the-badge&label=official%20release
-[badge-commits]: https://img.shields.io/github/commits-since/citrus610/c4ke/latest?style=for-the-badge
 
 [link-license]: LICENSE
-[link-release]: https://github.com/citrus610/c4ke/releases/latest
-[link-commits]: https://github.com/citrus610/c4ke/commits/main
