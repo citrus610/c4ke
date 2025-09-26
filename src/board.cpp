@@ -253,13 +253,16 @@ struct Board {
                     i32 square = LSB(mask);
                     mask &= mask - 1;
 
-                    // PST
-                    eval += MATERIAL[type] + (get_data(type * 8 + square / 8) + get_data(type * 8 + square % 8 + INDEX_PST_FILE) + OFFSET_PST) * SCALE;
+                    // Material
+                    eval += MATERIAL[type];
 
                     // Update phase
                     phase += PHASE[type];
 
                     if (!type) {
+                        // PST
+                        eval += (get_data(square - 8) + OFFSET_PST_PAWN) * SCALE;
+
                         // Pawn phalanx
                         if (pawns_phalanx & 1ull << square)
                             eval += (get_data(square / 8 + INDEX_PHALANX) + OFFSET_PHALANX) * SCALE;
@@ -274,6 +277,13 @@ struct Board {
                         }
                     }
                     else {
+                        // PST
+                        eval += (
+                            get_data(type * 8 + square / 8 + INDEX_PST_RANK) +
+                            get_data(type * 8 + square % 8 + INDEX_PST_FILE) +
+                            OFFSET_PST
+                        ) * SCALE;
+
                         // Mobility
                         u64 mobility =
                             type < BISHOP ? knight(1ull << square) :

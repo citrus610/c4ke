@@ -6,8 +6,9 @@ constexpr i32 PHASE[] = { 0, 1, 1, 2, 4, 0 };
 
 struct Trace
 {
-    i32 pst_rank[2][48] {};
-    i32 pst_file[2][48] {};
+    i32 pst_pawn[2][48] {};
+    i32 pst_rank[2][40] {};
+    i32 pst_file[2][40] {};
     i32 mobility[2][5] {};
     i32 passer[2][6] {};
     i32 phalanx[2][6] {};
@@ -21,6 +22,7 @@ struct Trace
     i32 pawn_protected[2] {};
     i32 pawn_doubled[2] {};
     i32 pawn_shield[2] {};
+    i32 passer_blocked[2] {};
 
     f64 score = 0.0;
     f64 scale = 1.0;
@@ -32,8 +34,16 @@ i32 MATERIAL[5] = {
     S(80, 100), S(200, 300), S(250, 350), S(400, 600), S(800, 1000)
 };
 
-i32 PST_RANK[48] = {
-    S(0, 0), S(-24, 0), S(-24, -8), S(-8, -8), S(8, 0), S(40, 24), S(60, 80), S(0, 0), 
+i32 PST_PAWN[48] = {
+    S(-35, 13), S(-1, 8), S(-20, 8), S(-23, 10), S(-15, 13), S(24, 0), S(38, 2), S(-22, -7), 
+    S(-26, 4), S(-4, 7), S(-4, -6), S(-10, 1), S(3, 0), S(3, -5), S(33, -1), S(-12, -8), 
+    S(-27, 13), S(-2, 9), S(-5, -3), S(12, -7), S(17, -7), S(6, -8), S(10, 3), S(-25, -1), 
+    S(-14, 32), S(13, 24), S(6, 13), S(21, 5), S(23, -2), S(12, 4), S(17, 17), S(-23, 17), 
+    S(-6, 94), S(7, 100), S(26, 85), S(31, 67), S(65, 56), S(56, 53), S(25, 82), S(-20, 84), 
+    S(98, 178), S(134, 173), S(61, 158), S(95, 134), S(68, 147), S(126, 132), S(34, 165), S(-11, 187),
+};
+
+i32 PST_RANK[40] = {
     S(-16, -40), S(0, -24), S(8, -8), S(24, 24), S(32, 32), S(40, 8), S(16, 0), S(-120, 8),
     S(0, -16), S(16, -8), S(16, 0), S(16, 0), S(16, 0), S(16, 0), S(-8, 0), S(-80, 16),
     S(0, -24), S(-8, -24), S(-16, -16), S(-16, 0), S(0, 16), S(16, 16), S(8, 24), S(16, 8),
@@ -41,8 +51,7 @@ i32 PST_RANK[48] = {
     S(-8, -48), S(8, -16), S(-8, 0), S(-32, 24), S(-8, 40), S(40, 32), S(40, 16), S(40, -48),
 };
 
-i32 PST_FILE[48] = {
-    S(-8, 8), S(-16, 8), S(-8, 0), S(0, -8), S(8, 0), S(16, 0), S(16, 0), S(-8, 0), 
+i32 PST_FILE[40] = {
     S(-32, -24), S(-8, -8), S(0, 8), S(16, 24), S(16, 24), S(16, 0), S(8, -8), S(-8, -24), 
     S(-16, -8), S(0, 0), S(8, 0), S(0, 8), S(8, 8), S(0, 8), S(16, 0), S(-8, -8), 
     S(-16, 0), S(-8, 8), S(0, 8), S(8, 0), S(16, -8), S(8, 0), S(8, 0), S(-8, -8), 
@@ -78,6 +87,7 @@ i32 ROOK_SEMIOPEN = S(10, 15);
 i32 PAWN_PROTECTED = S(12, 16);
 i32 PAWN_DOUBLED = S(12, 40);
 i32 PAWN_SHIELD = S(30, -10);
+i32 PASSER_BLOCKED = S(5, 50);
 
 i32 TEMPO = 20;
 
@@ -131,13 +141,20 @@ inline Trace get_trace(Board& board)
                     material += MATERIAL[type];
                 }
 
-                // PST rank
-                score += PST_RANK[type * 8 + square / 8];
-                trace.pst_rank[color][type * 8 + square / 8] += 1;
+                // PST Pawn
+                if (type == piece::type::PAWN) {
+                    score += PST_PAWN[square - 8];
+                    trace.pst_pawn[color][square - 8] += 1;
+                }
+                else {
+                    // PST rank
+                    score += PST_RANK[(type - piece::type::KNIGHT) * 8 + square / 8];
+                    trace.pst_rank[color][(type - piece::type::KNIGHT) * 8 + square / 8] += 1;
 
-                // PST file
-                score += PST_FILE[type * 8 + square % 8];
-                trace.pst_file[color][type * 8 + square % 8] += 1;
+                    // PST file
+                    score += PST_FILE[(type - piece::type::KNIGHT) * 8 + square % 8];
+                    trace.pst_file[color][(type - piece::type::KNIGHT) * 8 + square % 8] += 1;
+                }
 
                 if (type == piece::type::PAWN) {
                     // Pawn phalanx
@@ -150,6 +167,12 @@ inline Trace get_trace(Board& board)
                     if (!(0x101010101010101ULL << square & (pawns_them | pawns_threats))) {
                         score += PASSER[square / 8 - 1];
                         trace.passer[color][square / 8 - 1] += 1;
+
+                        // Blocked passed pawn
+                        if (((1ULL << square) << 8) & board.colors[!color]) {
+                            score -= PASSER_BLOCKED;
+                            trace.passer_blocked[color] -= 1;
+                        }
                     }
                 }
                 else {
@@ -331,9 +354,9 @@ std::vector<Pair> get_init_weights()
 {
     std::vector<Pair> result;
 
-    // add_weights(result, MATERIAL, 5);
-    add_weights(result, PST_RANK, 48);
-    add_weights(result, PST_FILE, 48);
+    add_weights(result, PST_PAWN, 48);
+    add_weights(result, PST_RANK, 40);
+    add_weights(result, PST_FILE, 40);
     add_weights(result, MOBILITY, 5);
     add_weights(result, PASSER, 6);
     add_weights(result, PHALANX, 6);
@@ -348,6 +371,7 @@ std::vector<Pair> get_init_weights()
     add_weight(result, PAWN_PROTECTED);
     add_weight(result, PAWN_DOUBLED);
     add_weight(result, PAWN_SHIELD);
+    add_weight(result, PASSER_BLOCKED);
 
     return result;
 };
@@ -356,9 +380,9 @@ std::vector<i32> get_coefs(Trace trace)
 {
     std::vector<i32> result;
 
-    // add_coefs(result, trace.material, 5);
-    add_coefs(result, trace.pst_rank, 48);
-    add_coefs(result, trace.pst_file, 48);
+    add_coefs(result, trace.pst_pawn, 48);
+    add_coefs(result, trace.pst_rank, 40);
+    add_coefs(result, trace.pst_file, 40);
     add_coefs(result, trace.mobility, 5);
     add_coefs(result, trace.passer, 6);
     add_coefs(result, trace.phalanx, 6);
@@ -373,6 +397,7 @@ std::vector<i32> get_coefs(Trace trace)
     add_coef(result, trace.pawn_protected);
     add_coef(result, trace.pawn_doubled);
     add_coef(result, trace.pawn_shield);
+    add_coef(result, trace.passer_blocked);
 
     return result;
 };
@@ -382,9 +407,9 @@ std::string get_str_print_weights(std::vector<Pair> weights)
     std::string str;
     i32 index = 0;
 
-    // str += get_str_weights(weights, index, "MATERIAL", 5);
-    str += get_str_weights(weights, index, "PST_RANK", 48);
-    str += get_str_weights(weights, index, "PST_FILE", 48);
+    str += get_str_weights(weights, index, "PST_PAWN", 48);
+    str += get_str_weights(weights, index, "PST_RANK", 40);
+    str += get_str_weights(weights, index, "PST_FILE", 40);
     str += get_str_weights(weights, index, "MOBILITY", 5);
     str += get_str_weights(weights, index, "PASSER", 6);
     str += get_str_weights(weights, index, "PHALANX", 6);
@@ -399,6 +424,7 @@ std::string get_str_print_weights(std::vector<Pair> weights)
     str += get_str_weight(weights, index, "PAWN_PROTECTED");
     str += get_str_weight(weights, index, "PAWN_DOUBLED");
     str += get_str_weight(weights, index, "PAWN_SHIELD");
+    str += get_str_weight(weights, index, "PASSER_BLOCKED");
 
     return str;
 };
