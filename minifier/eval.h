@@ -138,6 +138,24 @@ inline Compressed get_compressed_data(std::vector<int> data, int scale)
 
 inline std::string get_eval_str()
 {
+    auto is_trigraph = [] (const std::string& str, size_t i) -> bool {
+        bool is_double_question = str[i] == '?' && i + 1 < str.size() && str[i + 1] == '?';
+
+        if (!is_double_question || i + 2 >= str.size()) {
+            return false;
+        }
+
+        char list[] = { '=', '/', '(', ')', '!', '<', '>', '-' };
+
+        for (auto c : list) {
+            if (c == str[i + 2]) {
+                return true;
+            }
+        }
+
+        return false;
+    };
+
     std::string result;
     std::string mg;
     std::string eg;
@@ -171,20 +189,32 @@ inline std::string get_eval_str()
 
     result += "#define DATA_STR \"";
 
-    for (auto c : mg) {
+    for (size_t i = 0; i < mg.size(); ++i) {
+        auto c = mg[i];
+
         if (c == '\\' || c == '\"') {
             result += "\\";
         }
 
         result += c;
+
+        if (is_trigraph(mg, i)) {
+            result += "\\";
+        }
     }
 
-    for (auto c : eg) {
+    for (size_t i = 0; i < eg.size(); ++i) {
+        auto c = eg[i];
+
         if (c == '\\' || c == '\"') {
             result += "\\";
         }
 
         result += c;
+
+        if (is_trigraph(eg, i)) {
+            result += "\\";
+        }
     }
 
     result += "\"\n\n";

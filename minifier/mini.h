@@ -652,6 +652,10 @@ inline std::vector<Constant> get_constants(std::string str)
 
         value.append(line.begin() + index, line.end());
 
+        while (is_space(value.back())) {
+            value.pop_back();
+        }
+
         result.push_back(Constant {
             .name = name,
             .value = value
