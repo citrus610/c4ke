@@ -3,7 +3,7 @@
 #define S(MG, EG) (MG + (EG << 16))
 
 i32 PHASE[] { 0, 1, 1, 2, 4, 0 },
-    VALUE[] { 100, 320, 330, 500, 900, 2000, 0 },
+    VALUE[] { 110, 319, 294, 518, 912, 2000, 0 },
     LAYOUT[] { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK },
     MATERIAL[] { S(80, 100), S(200, 300), S(250, 350), S(400, 600), S(800, 1000), 0 };
 
