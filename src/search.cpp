@@ -185,7 +185,7 @@ struct Thread {
                 continue;
 
             // SEE pruning in pvsearch
-            if (ply && best > -WIN && move_scores[i] < 1e6 && !board.see(move, -81 * depth - is_quiet * move_scores[i] / 64))
+            if (ply && best > -WIN && move_scores[i] < 1e6 && !board.see(move, -81 * depth))
                 continue;
 
             // Singular extension
