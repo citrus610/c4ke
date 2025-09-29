@@ -225,6 +225,9 @@ struct Thread {
 
                 reduction *= reduction > 0;
 
+                if (!is_quiet && reduction > 2)
+                    reduction = 2;
+
                 score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next - reduction);
 
                 if (score > alpha && reduction)
