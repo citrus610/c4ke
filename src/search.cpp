@@ -208,16 +208,14 @@ struct Thread {
             if (child.make(move))
                 continue;
 
-            legals++;
-
             stack_conthist[ply + 2] = &conthist[board.board[move_from(move)]][move_to(move)];
 
             // Don't do zero window search for qsearch
             // Late move reduction
-            if (depth > 2 && legals > 3) {
+            if (depth > 2 && legals > 2) {
                 i32 reduction =
                     // Base reduction
-                    log(depth) * log(legals) * 0.35 + 1 -
+                    log(depth) * log(legals + 1) * 0.35 + 1 -
                     // History reduction
                     is_quiet * move_scores[i] / 7792 +
                     // PV
@@ -234,12 +232,14 @@ struct Thread {
                     score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next);
             }
             // Zero window search
-            else if (depth && (!is_pv || legals > 1))
+            else if (depth && (!is_pv || legals))
                 score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next);
 
             // Principle variation search and qsearch
-            if (!depth || is_pv && (legals == 1 || score > alpha))
+            if (!depth || is_pv && (!legals || score > alpha))
                 score = -search(child, -beta, -alpha, ply + 1, depth_next, is_pv);
+
+            legals++;
 
             // Abort
             if (STOP)

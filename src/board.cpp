@@ -317,6 +317,7 @@ struct Board {
 
         // Scaling
         i32 x = 8 - POPCNT(pieces[PAWN] & colors[eval < 0]);
+
         return (i16(eval = stm ? -eval : eval) * phase + (eval + 0x8000 >> 16) * (128 - x * x) / 128 * (24 - phase)) / 24 + TEMPO;
     }
 
