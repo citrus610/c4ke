@@ -229,20 +229,20 @@ u64 ray(u64 mask, u64 occupied, auto func) {
     return mask;
 }
 
-u64 knight(u64 mask, u64 occupied = 0) {
-    return (mask << 6 | mask >> 10) & 0x3f3f3f3f3f3f3f3f | (mask << 10 | mask >> 6) & 0xfcfcfcfcfcfcfcfc | (mask << 17 | mask >> 15) & ~0x101010101010101 | (mask << 15 | mask >> 17) & ~0x8080808080808080;
-}
+// Get non-pawn attack mask
+u64 attack(u64 mask, u64 occupied, int type) {
+    // Knight
+    if (type < BISHOP)
+        return (mask << 6 | mask >> 10) & 0x3f3f3f3f3f3f3f3f | (mask << 10 | mask >> 6) & 0xfcfcfcfcfcfcfcfc | (mask << 17 | mask >> 15) & ~0x101010101010101 | (mask << 15 | mask >> 17) & ~0x8080808080808080;
 
-u64 bishop(u64 mask, u64 occupied) {
-    return ray(mask, occupied, nw) | ray(mask, occupied, ne) | ray(mask, occupied, sw) | ray(mask, occupied, se);
-}
-
-u64 rook(u64 mask, u64 occupied) {
-    return ray(mask, occupied, north) | ray(mask, occupied, south) | ray(mask, occupied, west) | ray(mask, occupied, east);
-}
-
-u64 king(u64 mask, u64 occupied = 0) {
-    return mask << 8 | mask >> 8 | (mask >> 1 | mask >> 9 | mask << 7) & ~0x8080808080808080 | (mask << 1 | mask << 9 | mask >> 7) & ~0x101010101010101;
+    // King
+    if (type > QUEEN)
+        return mask << 8 | mask >> 8 | (mask >> 1 | mask >> 9 | mask << 7) & ~0x8080808080808080 | (mask << 1 | mask << 9 | mask >> 7) & ~0x101010101010101;
+    
+    // Slider
+    return
+        (type > BISHOP) * (ray(mask, occupied, north) | ray(mask, occupied, south) | ray(mask, occupied, west) | ray(mask, occupied, east)) |
+        (type != ROOK) * (ray(mask, occupied, nw) | ray(mask, occupied, ne) | ray(mask, occupied, sw) | ray(mask, occupied, se));
 }
 
 // Shared states

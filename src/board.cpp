@@ -39,10 +39,10 @@ struct Board {
         return
             (nw(1ull << square) | ne(1ull << square)) & pieces[PAWN] & colors[BLACK] |
             (sw(1ull << square) | se(1ull << square)) & pieces[PAWN] & colors[WHITE] |
-            knight(1ull << square) & pieces[KNIGHT] |
-            bishop(1ull << square, colors[WHITE] | colors[BLACK]) & (pieces[BISHOP] | pieces[QUEEN]) |
-            rook(1ull << square, colors[WHITE] | colors[BLACK]) & (pieces[ROOK] | pieces[QUEEN]) |
-            king(1ull << square) & pieces[KING];
+            attack(1ull << square, 0, KNIGHT) & pieces[KNIGHT] |
+            attack(1ull << square, 0, KING) & pieces[KING] |
+            attack(1ull << square, colors[WHITE] | colors[BLACK], BISHOP) & (pieces[BISHOP] | pieces[QUEEN]) |
+            attack(1ull << square, colors[WHITE] | colors[BLACK], ROOK) & (pieces[ROOK] | pieces[QUEEN]);
     }
 
     i32 quiet(i16 move) {
@@ -175,16 +175,16 @@ struct Board {
         }
     }
 
-    void add_moves(i16*& list_end, u64 mask, u64 targets, u64 occupied, auto func) {
+    void add_moves(i16*& list_end, u64 targets, u64 occupied, u64 mask, int type) {
         for (; mask;) {
             i32 from = LSB(mask);
             mask &= mask - 1;
 
-            u64 attack = func(1ull << from, occupied) & targets;
+            u64 attacks = attack(1ull << from, occupied, type) & targets;
 
-            for (; attack;) {
-                i32 to = LSB(attack);
-                attack &= attack - 1;
+            for (; attacks;) {
+                i32 to = LSB(attacks);
+                attacks &= attacks - 1;
 
                 *list_end++ = move_make(from, to);
             }
@@ -207,16 +207,14 @@ struct Board {
         add_pawn_moves(list_end, (stm ? sw(pawns) : ne(pawns)) & pawns_targets, stm ? -9 : 9);
 
         // Knight
-        add_moves(list_end, pieces[KNIGHT] & colors[stm], targets, occupied, knight);
-
-        // Bishop
-        add_moves(list_end, (pieces[BISHOP] | pieces[QUEEN]) & colors[stm], targets, occupied, bishop);
-
-        // Rook
-        add_moves(list_end, (pieces[ROOK] | pieces[QUEEN]) & colors[stm], targets, occupied, rook);
+        add_moves(list_end, targets, occupied, pieces[KNIGHT] & colors[stm], KNIGHT);
+        
+        // Slider
+        add_moves(list_end, targets, occupied, (pieces[BISHOP] | pieces[QUEEN]) & colors[stm], BISHOP);
+        add_moves(list_end, targets, occupied, (pieces[ROOK] | pieces[QUEEN]) & colors[stm], ROOK);
 
         // King
-        add_moves(list_end, pieces[KING] & colors[stm], targets, occupied, king);
+        add_moves(list_end, targets, occupied, pieces[KING] & colors[stm], KING);
 
         // Castling
         if (is_all && !checkers) {
@@ -275,11 +273,7 @@ struct Board {
                     }
                     else {
                         // Mobility
-                        u64 mobility =
-                            type < BISHOP ? knight(1ull << square) :
-                            type > QUEEN ? king(1ull << square) :
-                            (type > BISHOP) * rook(1ull << square, colors[WHITE] | colors[BLACK]) |
-                            (type != ROOK) * bishop(1ull << square, colors[WHITE] | colors[BLACK]);
+                        u64 mobility = attack(1ull << square, colors[WHITE] | colors[BLACK], type);
 
                         eval += (get_data(type + INDEX_MOBILITY) + OFFSET_MOBILITY) * POPCNT(mobility & ~colors[color] & ~pawns_threats);
 
@@ -300,7 +294,7 @@ struct Board {
                             eval -= get_data(type + INDEX_THREAT) + OFFSET_THREAT;
 
                         // King attacker
-                        eval += POPCNT(mobility & king(pieces[KING] & colors[!color])) * (get_data(type + INDEX_KING_ATTACK) + OFFSET_KING_ATTACK) * (type < KING);
+                        eval += POPCNT(mobility & attack(pieces[KING] & colors[!color], 0, KING)) * (get_data(type + INDEX_KING_ATTACK) + OFFSET_KING_ATTACK) * (type < KING);
                     }
                 }
             }

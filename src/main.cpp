@@ -391,7 +391,7 @@ i32 main() {
             test_perft();
         }
         else {
-            Board board;
+            board.startpos();
 
             u64 time_1 = now();
             u64 nodes = perft(board, std::stoi(argv[2]), true);
