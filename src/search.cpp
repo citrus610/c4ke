@@ -342,15 +342,16 @@ struct Thread {
             // Aspiration window
             i32 delta = 10,
                 alpha = score,
-                beta = score;
+                beta = score,
+                reduction = 0;
 
             for (; score <= alpha || score >= beta;) {
                 // Update window
-                if (score <= alpha) alpha = score - delta;
-                if (score >= beta) beta = score + delta;
+                if (score <= alpha) alpha = score - delta, reduction = 0;
+                if (score >= beta) beta = score + delta, reduction++;
 
                 // Search
-                score = search(board, alpha, beta, 0, depth, TRUE);
+                score = search(board, alpha, beta, 0, max(depth - reduction, 1), TRUE);
 
                 // Scale delta
                 delta *= 1.5;
