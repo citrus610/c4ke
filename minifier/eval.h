@@ -223,7 +223,7 @@ inline std::string get_eval_str()
     result += index + "\n";
     result += offset + "\n";
 
-    result += "int get_data(int index) {\n";
+    result += "i32 get_data(i32 index) {\n";
     result += "    auto data = DATA_STR;\n\n";
     result += "    return data[index] + data[index + INDEX_EG] * 0x10000 - S(32, 32);\n";
     result += "}";

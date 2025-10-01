@@ -9,15 +9,15 @@ i32 PHASE[] { 0, 1, 1, 2, 4, 0 },
 
 #define SCALE 8
 
-#define BISHOP_PAIR S(32, 85)
-#define KING_OPEN S(-65, -21)
-#define KING_SEMIOPEN S(-35, 30)
-#define ROOK_OPEN S(25, -9)
-#define ROOK_SEMIOPEN S(16, 21)
-#define PAWN_PROTECTED S(23, 24)
-#define PAWN_DOUBLED S(11, 37)
-#define PAWN_SHIELD S(28, -13)
-#define PASSER_BLOCKED S(5, 50)
+#define BISHOP_PAIR S(29, 96)
+#define KING_OPEN S(-70, -12)
+#define KING_SEMIOPEN S(-34, 22)
+#define ROOK_OPEN S(24, -2)
+#define ROOK_SEMIOPEN S(17, 15)
+#define PAWN_PROTECTED S(24, 26)
+#define PAWN_DOUBLED S(12, 38)
+#define PAWN_SHIELD S(29, -13)
+#define PASSER_BLOCKED S(2, 84)
 
 #define TEMPO 20
 
@@ -40,7 +40,7 @@ i32 PHASE[] { 0, 1, 1, 2, 4, 0 },
 #define OFFSET_KING_ATTACK S(12, -14)
 #define OFFSET_PST S(-24, -17)
 
-int get_data(int index) {
+i32 get_data(i32 index) {
     auto data = DATA_STR;
 
     return data[index] + data[index + INDEX_EG] * 0x10000 - S(32, 32);
