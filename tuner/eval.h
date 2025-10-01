@@ -30,56 +30,25 @@ struct Trace
 };
 
 i32 MATERIAL[5] = {
-    S(80, 100), S(200, 300), S(250, 350), S(400, 600), S(800, 1000)
+    S(100, 150), S(350, 400), S(400, 450), S(600, 800), S(1000, 1200)
 };
 
-i32 PST_RANK[48] = {
-    S(0, 0), S(-24, 0), S(-24, -8), S(-8, -8), S(8, 0), S(40, 24), S(60, 80), S(0, 0), 
-    S(-16, -40), S(0, -24), S(8, -8), S(24, 24), S(32, 32), S(40, 8), S(16, 0), S(-120, 8),
-    S(0, -16), S(16, -8), S(16, 0), S(16, 0), S(16, 0), S(16, 0), S(-8, 0), S(-80, 16),
-    S(0, -24), S(-8, -24), S(-16, -16), S(-16, 0), S(0, 16), S(16, 16), S(8, 24), S(16, 8),
-    S(16, -88), S(24, -64), S(16, -24), S(0, 16), S(0, 40), S(-8, 40), S(-32, 56), S(-16, 32),
-    S(-8, -48), S(8, -16), S(-8, 0), S(-32, 24), S(-8, 40), S(40, 32), S(40, 16), S(40, -48),
-};
-
-i32 PST_FILE[48] = {
-    S(-8, 8), S(-16, 8), S(-8, 0), S(0, -8), S(8, 0), S(16, 0), S(16, 0), S(-8, 0), 
-    S(-32, -24), S(-8, -8), S(0, 8), S(16, 24), S(16, 24), S(16, 0), S(8, -8), S(-8, -24), 
-    S(-16, -8), S(0, 0), S(8, 0), S(0, 8), S(8, 8), S(0, 8), S(16, 0), S(-8, -8), 
-    S(-16, 0), S(-8, 8), S(0, 8), S(8, 0), S(16, -8), S(8, 0), S(8, 0), S(-8, -8), 
-    S(-16, -24), S(-8, -8), S(-8, 0), S(0, 8), S(0, 16), S(8, 16), S(16, 0), S(8, -8), 
-    S(-16, -40), S(16, -8), S(-8, 8), S(-32, 16), S(-32, 16), S(-16, 16), S(16, -8), S(0, -40),
-};
-
-i32 MOBILITY[5] = {
-    S(8, 5), S(7, 7), S(3, 5), S(3, 2), S(-5, -1)
-};
-
-i32 PASSER[6] = {
-    S(0, 10), S(-5, 20), S(-10, 30), S(10, 50), S(15, 100), S(25, 150)
-};
-
-i32 PHALANX[6] = {
-    S(8, 0), S(16, 8), S(24, 16), S(40, 80), S(70, 100), S(125, 150)
-};
-
-i32 THREAT[4] = {
-    S(50, 25), S(50, 50), S(80, 25), S(75, 0)
-};
-
-i32 KING_ATTACK[4] = {
-    S(20, 0), S(25, 0), S(25, 0), S(25, 0)
-};
-
-i32 BISHOP_PAIR = S(25, 55);
-i32 KING_OPEN = S(-75, 5);
-i32 KING_SEMIOPEN = S(-30, 15);
-i32 ROOK_OPEN = S(25, 5);
-i32 ROOK_SEMIOPEN = S(10, 15);
-i32 PAWN_PROTECTED = S(12, 16);
-i32 PAWN_DOUBLED = S(12, 40);
-i32 PAWN_SHIELD = S(30, -10);
-i32 PASSER_BLOCKED = S(5, 50);
+i32 PST_RANK[] = { S(0, 0), S(-17, 3), S(-31, -7), S(-17, -6), S(-3, 3), S(53, 37), S(53, 126), S(0, 0), S(-22, 38), S(-3, 51), S(9, 67), S(26, 94), S(38, 103), S(65, 73), S(40, 57), S(-121, 47), S(-15, 29), S(1, 32), S(4, 48), S(-1, 50), S(2, 55), S(10, 47), S(-21, 44), S(-86, 59), S(-46, 69), S(-58, 65), S(-57, 68), S(-67, 93), S(-46, 102), S(-29, 102), S(-48, 121), S(-61, 117), S(134, 114), S(141, 120), S(130, 155), S(124, 173), S(119, 192), S(138, 182), S(108, 191), S(85, 179), S(-17, -60), S(42, -22), S(-35, 6), S(-91, 36), S(-79, 61), S(8, 64), S(12, 45), S(15, -65) };
+i32 PST_FILE[] = { S(-22, 25), S(-10, 22), S(-7, 3), S(5, -13), S(16, -9), S(12, 2), S(14, 12), S(-17, 2), S(-34, 51), S(-11, 66), S(-1, 82), S(19, 86), S(22, 85), S(21, 72), S(10, 65), S(4, 44), S(-29, 45), S(-11, 52), S(-10, 51), S(-16, 62), S(-8, 60), S(-15, 59), S(-2, 50), S(-13, 35), S(-58, 98), S(-59, 104), S(-51, 106), S(-40, 92), S(-28, 82), S(-40, 89), S(-26, 82), S(-48, 81), S(129, 157), S(131, 166), S(133, 177), S(141, 182), S(143, 188), S(147, 182), S(160, 173), S(158, 172), S(9, -72), S(36, -13), S(-6, 20), S(-62, 43), S(-28, 32), S(-48, 29), S(28, -7), S(21, -68) };
+i32 MOBILITY[] = { S(9, 7), S(8, 7), S(2, 6), S(0, 17), S(-9, -6) };
+i32 PASSER[] = { S(-8, 4), S(-11, 23), S(-11, 62), S(13, 103), S(-1, 176), S(18, 196) };
+i32 PHALANX[] = { S(8, 3), S(19, 19), S(34, 35), S(67, 92), S(161, 235), S(147, 234) };
+i32 THREAT[] = { S(71, 25), S(78, 51), S(97, -5), S(84, -62) };
+i32 KING_ATTACK[] = { S(12, -11), S(24, -6), S(33, -14), S(18, 17) };
+i32 BISHOP_PAIR = S(29, 95);
+i32 KING_OPEN = S(-70, -12);
+i32 KING_SEMIOPEN = S(-34, 22);
+i32 ROOK_OPEN = S(24, -2);
+i32 ROOK_SEMIOPEN = S(17, 15);
+i32 PAWN_PROTECTED = S(24, 26);
+i32 PAWN_DOUBLED = S(12, 38);
+i32 PAWN_SHIELD = S(29, -13);
+i32 PASSER_BLOCKED = S(2, 84);
 
 i32 TEMPO = 20;
 
@@ -392,7 +361,44 @@ std::string get_str_print_weights(std::vector<Pair> weights)
     std::string str;
     i32 index = 0;
 
-    // str += get_str_weights(weights, index, "MATERIAL", 5);
+    std::vector<Pair> pst_rank;
+    std::vector<Pair> pst_file;
+    std::vector<Pair> material;
+
+    add_weights(material, MATERIAL, 5);
+
+    for (usize i = 0; i < 48; ++i) {
+        pst_rank.push_back(weights[i]);
+        pst_file.push_back(weights[i + 48]);
+    }
+
+    for (usize type = 0; type < 5; ++type) {
+        Pair pst_rank_avg = { 0.0, 0.0 };
+        Pair pst_file_avg = { 0.0, 0.0 };
+
+        for (usize i = 0; i < 8; ++i) {
+            pst_rank_avg[MG] += pst_rank[type * 8 + i][MG] / 8;
+            pst_rank_avg[EG] += pst_rank[type * 8 + i][EG] / 8;
+
+            pst_file_avg[MG] += pst_file[type * 8 + i][MG] / 8;
+            pst_file_avg[EG] += pst_file[type * 8 + i][EG] / 8;
+        }
+
+        material[type][MG] += pst_rank_avg[MG] + pst_file_avg[MG];
+        material[type][EG] += pst_rank_avg[EG] + pst_file_avg[EG];
+
+        for (usize i = 0; i < 8; ++i) {
+            weights[type * 8 + i][MG] -= pst_rank_avg[MG];
+            weights[type * 8 + i][EG] -= pst_rank_avg[EG];
+
+            weights[type * 8 + i + 48][MG] -= pst_file_avg[MG];
+            weights[type * 8 + i + 48][EG] -= pst_file_avg[EG];
+        }
+    }
+
+    i32 index_material = 0;
+
+    str += get_str_weights(material, index_material, "MATERIAL", 5);
     str += get_str_weights(weights, index, "PST_RANK", 48);
     str += get_str_weights(weights, index, "PST_FILE", 48);
     str += get_str_weights(weights, index, "MOBILITY", 5);

@@ -291,7 +291,7 @@ struct Board {
 
                         // Pawn threats
                         if (1ull << square & pawns_threats)
-                            eval -= get_data(type + INDEX_THREAT) + OFFSET_THREAT;
+                            eval -= (get_data(type + INDEX_THREAT) + OFFSET_THREAT) * SCALE;
 
                         // King attacker
                         eval += POPCNT(mobility & attack(pieces[KING] & colors[!color], 0, KING)) * (get_data(type + INDEX_KING_ATTACK) + OFFSET_KING_ATTACK) * (type < KING);

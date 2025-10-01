@@ -2,6 +2,8 @@
 
 #include "dataset.h"
 
+constexpr usize THREADS = 8;
+
 inline f64 get_linear(const Entry& entry, const std::vector<Pair>& weights)
 {
     assert(entry.coefs.size() == weights.size());
@@ -35,7 +37,37 @@ inline f64 get_mse(const Dataset& dataset, const std::vector<Pair>& weights, f64
 {
     f64 total = 0.0;
 
-    for (const auto& entry : dataset.data) {
+    usize workload = dataset.data.size() / THREADS;
+
+    std::vector<std::thread> threads;
+    std::mutex mtx;
+
+    for (usize tid = 0; tid < THREADS; ++tid) {
+        threads.emplace_back([&] (usize id) {
+            f64 thread_total = 0.0;
+
+            for (usize i = 0; i < workload; ++i) {
+                const auto& entry = dataset.data[id * workload + i];
+
+                f64 score = get_linear(entry, weights);
+                f64 delta = entry.wdl - get_sigmoid(score, K);
+
+                thread_total += delta * delta;
+            }
+
+            std::lock_guard<std::mutex> lk(mtx);
+
+            total += thread_total;
+        }, tid);
+    }
+
+    for (auto& t : threads) {
+        t.join();
+    }
+
+    for (usize i = THREADS * workload; i < dataset.data.size(); ++i) {
+        const auto& entry = dataset.data[i];
+
         f64 score = get_linear(entry, weights);
         f64 delta = entry.wdl - get_sigmoid(score, K);
 
@@ -102,7 +134,37 @@ inline std::vector<Pair> get_gradient(const Dataset& dataset, const std::vector<
 {
     std::vector<Pair> gradient(weights.size(), { 0.0, 0.0 });
 
-    for (const auto& entry : dataset.data) {
+    usize workload = dataset.data.size() / THREADS;
+
+    std::vector<std::thread> threads;
+    std::mutex mtx;
+
+    for (usize tid = 0; tid < THREADS; ++tid) {
+        threads.emplace_back([&] (usize id) {
+            std::vector<Pair> thread_gradient(weights.size(), { 0.0, 0.0 });
+
+            for (usize i = 0; i < workload; ++i) {
+                const auto& entry = dataset.data[id * workload + i];
+
+                update_gradient(thread_gradient, entry, weights, K);
+            }
+
+            std::lock_guard<std::mutex> lk(mtx);
+
+            for (usize i = 0; i < weights.size(); ++i) {
+                gradient[i][MG] += thread_gradient[i][MG];
+                gradient[i][EG] += thread_gradient[i][EG];
+            }
+        }, tid);
+    }
+
+    for (auto& t : threads) {
+        t.join();
+    }
+
+    for (usize i = THREADS * workload; i < dataset.data.size(); ++i) {
+        const auto& entry = dataset.data[i];
+
         update_gradient(gradient, entry, weights, K);
     }
 
