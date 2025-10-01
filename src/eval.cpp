@@ -5,7 +5,7 @@
 i32 PHASE[] { 0, 1, 1, 2, 4, 0 },
     VALUE[] { 110, 319, 294, 518, 912, 2000, 0 },
     LAYOUT[] { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK },
-    MATERIAL[] { S(80, 100), S(200, 300), S(250, 350), S(400, 600), S(800, 1000), 0 };
+    MATERIAL[] { S(104, 175), S(358, 538), S(374, 550), S(504, 989), S(1272, 1552), 0 };
 
 #define SCALE 8
 
@@ -21,7 +21,7 @@ i32 PHASE[] { 0, 1, 1, 2, 4, 0 },
 
 #define TEMPO 20
 
-#define DATA_STR "+*(*,31+13579<9%1343451(32213532>?==<>:7(0' \"--.&((*+++'-0134421-00/0/1/,+,././-99::;;==),' $\"+*21+( !  #!$ !#'11 '9+ ,3((+**+/6(01256211//111002777:;;=<57;=??@>!%),/0- .-+))+,+124443201112221/9::97877<<=>?\?>> '+.,,' 1..?  \"'+37 \"$,;;fzN #' ;"
+#define DATA_STR "0-+-/660-/13485 022223/'1//.130/121002.+.5,%&122%'')***&#&'***)(&((()()(&&')*)*'&&'(()**)-' $\",+21+)    #!# !#'31 !#\" ,5&(&%%&*5($&(,-)'%&&())((*%$%()),+\"#'),*+* %)-00. ,+)'')*(')+++)(&())***)'*++)()(('(**+*)) ',.--( --,6  #(-69 !#+==+.' #( @"
 
 #define INDEX_EG 121
 
@@ -33,12 +33,12 @@ i32 PHASE[] { 0, 1, 1, 2, 4, 0 },
 #define INDEX_THREAT 112
 #define INDEX_KING_ATTACK 116
 
-#define OFFSET_MOBILITY S(-9, -7)
-#define OFFSET_PASSER S(-2, 0)
-#define OFFSET_PHALANX S(1, 0)
-#define OFFSET_THREAT S(70, -45)
-#define OFFSET_KING_ATTACK S(11, -12)
-#define OFFSET_PST S(-19, -16)
+#define OFFSET_MOBILITY S(-9, -6)
+#define OFFSET_PASSER S(-1, 0)
+#define OFFSET_PHALANX S(1, 1)
+#define OFFSET_THREAT S(9, -8)
+#define OFFSET_KING_ATTACK S(12, -14)
+#define OFFSET_PST S(-24, -17)
 
 int get_data(int index) {
     auto data = DATA_STR;
