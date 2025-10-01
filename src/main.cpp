@@ -491,7 +491,7 @@ i32 main() {
                 tokens >> token >> time;
 
             STOP = FALSE;
-            LIMIT_SOFT = now() + time / 50;
+            LIMIT_SOFT = now() + time / 20;
             LIMIT_HARD = now() + time / 2;
 
 #ifdef OB
