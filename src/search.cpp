@@ -145,7 +145,10 @@ struct Thread {
                 // Hash move
                 move == tt.move ? 1e8 :
                 // Quiet moves
-                board.quiet(move) ? qhist[board.stm][move & 4095] + stack_conthist[ply][0][piece][move_to(move)] + stack_conthist[ply + 1][0][piece][move_to(move)] :
+                board.quiet(move) ?
+                    qhist[board.stm][move & 4095] +
+                    2 * stack_conthist[ply][0][piece][move_to(move)] +
+                    2 * stack_conthist[ply + 1][0][piece][move_to(move)] :
                 // Noisy moves
                 VALUE[victim] * 16 + VALUE[move_promo(move)] + nhist[victim][piece][move_to(move)] + board.see(move, 0) * 2e7 - 1e7;
         }
