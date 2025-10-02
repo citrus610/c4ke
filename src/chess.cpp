@@ -259,8 +259,8 @@ i16 BEST_MOVE;
 u64 LIMIT_SOFT,
     LIMIT_HARD,
     VISITED[STACK_SIZE];
-i32 VISITED_COUNT,
-    STOP;
+i32 VISITED_COUNT;
+atomic_int STOP;
 
 #ifdef OB
 void print_bitboard(u64 bitboard) {

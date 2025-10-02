@@ -152,7 +152,8 @@ const inline std::vector<std::string> KEYWORDS_SKIP = {
     "clear",
     "thread",
     "join",
-    "free"
+    "free",
+    "atomic_int"
 };
 
 const inline std::vector<std::string> KEYWORDS_STATEMENT = {
