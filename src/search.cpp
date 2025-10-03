@@ -41,7 +41,7 @@ struct Thread {
         depth *= depth > 0;
 
         // Abort
-        if (!id && !(nodes++ & 4095) && now() > LIMIT_HARD)
+        if (!id && !(++nodes & 4095) && now() > LIMIT_HARD)
             STOP++;
 
         if (STOP || ply >= MAX_PLY)
