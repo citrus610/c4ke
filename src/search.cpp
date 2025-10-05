@@ -77,9 +77,6 @@ struct Thread {
             if (!is_pv && !excluded && depth <= tt.depth && tt.bound != tt.score < beta)
                 return tt.score;
         }
-        else
-            // Internal iterative reduction
-            depth -= is_pv && depth > 3;
 
         // Static eval
         stack_eval[ply] = INF;
