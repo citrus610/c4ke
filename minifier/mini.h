@@ -1383,3 +1383,42 @@ inline std::vector<std::string> get_renamed(std::vector<std::string> tokens)
 
     return tokens;
 };
+
+inline std::vector<std::string> get_removed_redundant_math(std::vector<std::string> tokens)
+{
+    std::vector<std::string> result;
+
+    // Iterate all tokens
+    bool is_string = false;
+
+    for (size_t i = 0; i < tokens.size(); i++) {
+        auto& token = tokens[i];
+
+        // Check if in string
+        if (is_in_string(tokens, i)) {
+            is_string = !is_string;
+        }
+
+        if (!is_string) {
+            // Remove "+-"
+            if (token == "+" && i + 1 < tokens.size() && tokens[i + 1] == "-") {
+                result.push_back("-");
+                continue;
+            }
+
+            // Remove "+0" and "-0"
+            if ((token == "+" || token == "-") && i + 1 < tokens.size() && tokens[i + 1] == "0") {
+                continue;
+            }
+
+            if (token == "0" && i > 0 && (tokens[i - 1] == "+" || tokens[i - 1] == "-")) {
+                continue;
+            }
+        }
+
+        // Push
+        result.push_back(token);
+    }
+
+    return result;
+};

@@ -89,6 +89,9 @@ int main(int argc, char *argv[])
     // Rename
     tokens = get_renamed(tokens);
 
+    // Remove redundant math stuffs
+    tokens = get_removed_redundant_math(tokens);
+
     // Add to output
     for (auto& token : tokens) {
         output.append(token);

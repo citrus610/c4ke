@@ -183,6 +183,9 @@ inline std::string get_eval_str()
     int offset_pst_mg = 0;
     int offset_pst_eg = 0;
 
+    int offset_king_passer_mg = 0;
+    int offset_king_passer_eg = 0;
+
     for (auto& param : PARAMS) {
         auto compressed = get_compressed_data(param.data, param.scale);
 
@@ -194,6 +197,10 @@ inline std::string get_eval_str()
             offset_pst_mg += compressed.min_mg;
             offset_pst_eg += compressed.min_eg;
         }
+        else if (param.name == "KING_PASSER_US" || param.name == "KING_PASSER_THEM") {
+            offset_king_passer_mg += compressed.min_mg;
+            offset_king_passer_eg += compressed.min_eg;
+        }
         else {
             offset += "#define OFFSET_" + param.name + " S(" + std::to_string(compressed.min_mg) + ", " + std::to_string(compressed.min_eg) + ")\n";
         }
@@ -202,6 +209,7 @@ inline std::string get_eval_str()
     }
 
     offset += "#define OFFSET_PST S(" + std::to_string(offset_pst_mg) + ", " + std::to_string(offset_pst_eg) + ")\n";
+    offset += "#define OFFSET_KING_PASSER S(" + std::to_string(offset_king_passer_mg) + ", " + std::to_string(offset_king_passer_eg) + ")\n";
 
     result += "#define DATA_STR \"";
 
@@ -241,7 +249,7 @@ inline std::string get_eval_str()
 
     result += "i32 get_data(i32 index) {\n";
     result += "    auto data = DATA_STR;\n\n";
-    result += "    return data[index] + data[index + INDEX_EG] * 0x10000 - S(32, 32);\n";
+    result += "    return data[index] + (data[index + INDEX_EG] << 16) - S(32, 32);\n";
     result += "}";
 
     return result;
