@@ -85,10 +85,14 @@ struct Thread {
         if (!board.checkers) {
             // Get eval
             eval = stack_eval[ply] = board.eval() +
+                // Pawn corrhist
                 corrhist[board.stm][board.hash_pawn % CORRHIST_SIZE] / 137 +
+                // Non-pawn corrhist
                 corrhist[board.stm][board.hash_non_pawn[WHITE] % CORRHIST_SIZE] / 208 +
                 corrhist[board.stm][board.hash_non_pawn[BLACK] % CORRHIST_SIZE] / 208 +
+                // Contcorrhist 1-ply
                 stack_conthist[ply + 1][0][0][0] / 140 +
+                // Contcorrhist 2-ply
                 stack_conthist[ply][0][1][0] / 205;
 
             // Use tt score as better eval
@@ -129,10 +133,10 @@ struct Thread {
             }
         }
 
-        // Generate move
+        // Generate moves
         i32 move_count = board.movegen(move_list, depth || board.checkers);
 
-        // Score move
+        // Score moves
         for (i32 i = 0; i < move_count; i++) {
             i32 move = move_list[i],
                 piece = board.board[move_from(move)],
@@ -143,11 +147,21 @@ struct Thread {
                 move == tt.move ? 1e8 :
                 // Quiet moves
                 board.quiet(move) ?
+                    // Quiet history
                     qhist[board.stm][move & 4095] +
+                    // Conthist 2-ply
                     2 * stack_conthist[ply][0][piece][move_to(move)] +
+                    // Conthist 1-ply
                     2 * stack_conthist[ply + 1][0][piece][move_to(move)] :
                 // Noisy moves
-                VALUE[victim] * 16 + VALUE[move_promo(move)] + nhist[victim][piece][move_to(move)] + board.see(move, 0) * 2e7 - 1e7;
+                    // MVV
+                    VALUE[victim] * 16 +
+                    // Promo bonus
+                    VALUE[move_promo(move)] +
+                    // Noisy history
+                    nhist[victim][piece][move_to(move)] +
+                    // SEE
+                    board.see(move, 0) * 2e7 - 1e7;
         }
 
         // Iterate moves
@@ -221,6 +235,7 @@ struct Thread {
                     // PV
                     !is_pv;
 
+                // Clamp reduction
                 reduction *= reduction > 0;
 
                 if (!is_quiet && reduction > 2)
