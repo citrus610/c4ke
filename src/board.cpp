@@ -236,6 +236,9 @@ struct Board {
                 pawns_attacks = ne(pawns_us) | nw(pawns_us),
                 pawns_phalanx = west(pawns_us) & pawns_us;
 
+            i32 king_us = LSB(pieces[KING] & colors[color]),
+                king_them = LSB(pieces[KING] & colors[!color]);
+
             eval +=
                 // Bishop pair
                 (POPCNT(pieces[BISHOP] & colors[color]) > 1) * BISHOP_PAIR +
@@ -252,7 +255,12 @@ struct Board {
                     mask &= mask - 1;
 
                     // PST
-                    eval += MATERIAL[type] + (get_data(type * 8 + square / 8) + get_data(type * 8 + square % 8 + INDEX_PST_FILE) + OFFSET_PST) * SCALE;
+                    eval +=
+                        MATERIAL[type] + (
+                            get_data(type * 8 + square / 8) +
+                            get_data(type * 8 + square % 8 + INDEX_PST_FILE) +
+                            OFFSET_PST
+                        ) * SCALE;
 
                     // Update phase
                     phase += PHASE[type];
@@ -262,13 +270,20 @@ struct Board {
                         if (pawns_phalanx & 1ull << square)
                             eval += (get_data(square / 8 + INDEX_PHALANX) + OFFSET_PHALANX) * SCALE;
 
-                        // Passed pawns
+                        // Passed pawn
                         if (!(0x101010101010101 << square & (pawns_them | pawns_threats))) {
                             eval += (get_data(square / 8 + INDEX_PASSER) + OFFSET_PASSER) * SCALE;
 
                             // Blocked passed pawn
                             if (north(1ull << square) & colors[!color])
                                 eval -= PASSER_BLOCKED;
+
+                            // King distance
+                            eval += (
+                                get_data(max(abs(square / 8 - king_us / 8 + 1), abs(square % 8 - king_us % 8)) + INDEX_KING_PASSER_US) +
+                                get_data(max(abs(square / 8 - king_them / 8 + 1), abs(square % 8 - king_them % 8)) + INDEX_KING_PASSER_THEM) +
+                                OFFSET_KING_PASSER
+                            ) * SCALE;
                         }
                     }
                     else {
@@ -285,16 +300,16 @@ struct Board {
                         if (!(0x101010101010101 << square % 8 & pawns_us))
                             eval += (type > QUEEN) * KING_SEMIOPEN + (type == ROOK) * ROOK_SEMIOPEN;
 
-                        // Pawn shield
-                        if (type > QUEEN && square < A2)
-                            eval += POPCNT(pawns_us & 0x70700ull << 5 * (square % 8 > 2)) * PAWN_SHIELD;
+                        if (type > QUEEN)
+                            // Pawn shield
+                            eval += POPCNT(pawns_us & 0x70700ull << 5 * (square % 8 > 2)) * PAWN_SHIELD * (square < A2);
+                        else
+                            // King attacker
+                            eval += POPCNT(mobility & attack(pieces[KING] & colors[!color], 0, KING)) * (get_data(type + INDEX_KING_ATTACK) + OFFSET_KING_ATTACK);
 
                         // Pawn threats
                         if (1ull << square & pawns_threats)
                             eval -= (get_data(type + INDEX_THREAT) + OFFSET_THREAT) * SCALE;
-
-                        // King attacker
-                        eval += POPCNT(mobility & attack(pieces[KING] & colors[!color], 0, KING)) * (get_data(type + INDEX_KING_ATTACK) + OFFSET_KING_ATTACK) * (type < KING);
                     }
                 }
             }
