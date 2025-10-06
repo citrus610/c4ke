@@ -219,6 +219,8 @@ void test_see()
         bool result;
     };
 
+    i32 VALUE[] = { VALUE_PAWN, VALUE_KNIGHT, VALUE_BISHOP, VALUE_ROOK, VALUE_QUEEN, 2000, 0 };
+
     std::vector<Test> set = {
         Test {
             .fen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
@@ -418,6 +420,31 @@ i32 main() {
     cout << "id author citrus610 and cj5716" << endl;
     cout << "option name Hash type spin default 8 min 1 max 67108864" << endl;
     cout << "option name Threads type spin default 1 min 1 max 2048" << endl;
+
+    cout << "option name CORRHIST_PAWN_DIV type string default 137" << endl;
+    cout << "option name CORRHIST_NONPAWN_DIV type string default 208" << endl;
+    cout << "option name CORRHIST_CONT_1PLY_DIV type string default 140" << endl;
+    cout << "option name CORRHIST_CONT_2PLY_DIV type string default 205" << endl;
+    cout << "option name RFP_COEF type string default 66" << endl;
+    cout << "option name NMP_EVAL_BASE type string default 25" << endl;
+    cout << "option name FP_COEF type string default 96" << endl;
+    cout << "option name FP_BASE type string default 100" << endl;
+    cout << "option name FP_HIST_DIV type string default 32" << endl;
+    cout << "option name SEEP_COEF type string default 81" << endl;
+    cout << "option name SE_DEXT_MARGIN type string default 13" << endl;
+    cout << "option name LMR_COEF type string default 0.35" << endl;
+    cout << "option name LMR_BASE type string default 1.0" << endl;
+    cout << "option name LMR_HIST_DIV type string default 7792" << endl;
+    cout << "option name HIST_BONUS_COEF type string default 157" << endl;
+    cout << "option name HIST_BONUS_BASE type string default -54" << endl;
+    cout << "option name HIST_BONUS_MAX type string default 1485" << endl;
+    cout << "option name AW_DELTA type string default 10" << endl;
+    cout << "option name AW_GROWTH type string default 1.5" << endl;
+    cout << "option name VALUE_PAWN type string default 100" << endl;
+    cout << "option name VALUE_KNIGHT type string default 325" << endl;
+    cout << "option name VALUE_BISHOP type string default 350" << endl;
+    cout << "option name VALUE_ROOK type string default 500" << endl;
+    cout << "option name VALUE_QUEEN type string default 900" << endl;
 #endif
 
     cin >> token;
@@ -456,6 +483,31 @@ i32 main() {
             if (token == "Threads") {
                 tokens >> token >> THREADS;
             }
+
+            if (token == "CORRHIST_PAWN_DIV") { tokens >> token >> CORRHIST_PAWN_DIV; };
+            if (token == "CORRHIST_NONPAWN_DIV") { tokens >> token >> CORRHIST_NONPAWN_DIV; };
+            if (token == "CORRHIST_CONT_1PLY_DIV") { tokens >> token >> CORRHIST_CONT_1PLY_DIV; };
+            if (token == "CORRHIST_CONT_2PLY_DIV") { tokens >> token >> CORRHIST_CONT_2PLY_DIV; };
+            if (token == "RFP_COEF") { tokens >> token >> RFP_COEF; };
+            if (token == "NMP_EVAL_BASE") { tokens >> token >> NMP_EVAL_BASE; };
+            if (token == "FP_COEF") { tokens >> token >> FP_COEF; };
+            if (token == "FP_BASE") { tokens >> token >> FP_BASE; };
+            if (token == "FP_HIST_DIV") { tokens >> token >> FP_HIST_DIV; };
+            if (token == "SEEP_COEF") { tokens >> token >> SEEP_COEF; };
+            if (token == "SE_DEXT_MARGIN") { tokens >> token >> SE_DEXT_MARGIN; };
+            if (token == "LMR_COEF") { tokens >> token >> LMR_COEF; };
+            if (token == "LMR_BASE") { tokens >> token >> LMR_BASE; };
+            if (token == "LMR_HIST_DIV") { tokens >> token >> LMR_HIST_DIV; };
+            if (token == "HIST_BONUS_COEF") { tokens >> token >> HIST_BONUS_COEF; };
+            if (token == "HIST_BONUS_BASE") { tokens >> token >> HIST_BONUS_BASE; };
+            if (token == "HIST_BONUS_MAX") { tokens >> token >> HIST_BONUS_MAX; };
+            if (token == "AW_DELTA") { tokens >> token >> AW_DELTA; };
+            if (token == "AW_GROWTH") { tokens >> token >> AW_GROWTH; };
+            if (token == "VALUE_PAWN") { tokens >> token >> VALUE_PAWN; };
+            if (token == "VALUE_KNIGHT") { tokens >> token >> VALUE_KNIGHT; };
+            if (token == "VALUE_BISHOP") { tokens >> token >> VALUE_BISHOP; };
+            if (token == "VALUE_ROOK") { tokens >> token >> VALUE_ROOK; };
+            if (token == "VALUE_QUEEN") { tokens >> token >> VALUE_QUEEN; };
         }
 #endif
         // Uci position

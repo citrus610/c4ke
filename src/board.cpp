@@ -50,6 +50,8 @@ struct Board {
     }
 
     i32 see(i16 move, i32 threshold) {
+        i32 VALUE[] = { VALUE_PAWN, VALUE_KNIGHT, VALUE_BISHOP, VALUE_ROOK, VALUE_QUEEN, 2000, 0 };
+
         // Move data
         i32 from = move_from(move),
             to = move_to(move),
