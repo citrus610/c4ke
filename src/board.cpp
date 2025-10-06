@@ -236,6 +236,9 @@ struct Board {
                 pawns_attacks = ne(pawns_us) | nw(pawns_us),
                 pawns_phalanx = west(pawns_us) & pawns_us;
 
+            i32 king_us = LSB(pieces[KING] & colors[color]),
+                king_them = LSB(pieces[KING] & colors[!color]);
+
             eval +=
                 // Bishop pair
                 (POPCNT(pieces[BISHOP] & colors[color]) > 1) * BISHOP_PAIR +
@@ -269,6 +272,10 @@ struct Board {
                             // Blocked passed pawn
                             if (north(1ull << square) & colors[!color])
                                 eval -= PASSER_BLOCKED;
+
+                            // King distance
+                            eval += (get_data(max(abs(square / 8 - king_us / 8 + 1), std::abs(square % 8 - king_us % 8)) + INDEX_KING_PASSER_US) + OFFSET_KING_PASSER_US) * SCALE;
+                            eval += (get_data(max(abs(square / 8 - king_them / 8 + 1), std::abs(square % 8 - king_them % 8)) + INDEX_KING_PASSER_THEM) + OFFSET_KING_PASSER_THEM) * SCALE;
                         }
                     }
                     else {
