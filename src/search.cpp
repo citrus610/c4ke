@@ -107,7 +107,8 @@ struct Thread {
                 if (eval >= beta)
                     return eval;
 
-                if ((best = eval) > alpha) alpha = best;
+                if ((best = eval) > alpha)
+                    alpha = best;
             }
             else if (!is_pv && !excluded) {
                 // Reverse futility pruning
@@ -287,7 +288,7 @@ struct Thread {
                     break;
 
                 // History bonus
-                i32 bonus = min(157 * depth - 54, 1485);
+                i32 bonus = min(157 * depth - 54, 1485) + (stack_eval[ply] <= best) * 150;
 
                 if (is_quiet) {
                     // Update quiet history

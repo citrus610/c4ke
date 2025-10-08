@@ -153,7 +153,9 @@ const inline std::vector<std::string> KEYWORDS_SKIP = {
     "thread",
     "join",
     "free",
-    "atomic_int"
+    "atomic_int",
+    "mutex",
+    "lock_guard"
 };
 
 const inline std::vector<std::string> KEYWORDS_STATEMENT = {
@@ -1407,11 +1409,11 @@ inline std::vector<std::string> get_removed_redundant_math(std::vector<std::stri
             }
 
             // Remove "+0" and "-0"
-            if ((token == "+" || token == "-") && i + 1 < tokens.size() && tokens[i + 1] == "0") {
+            if ((token == "+" || token == "-") && i + 1 < tokens.size() && tokens[i + 1] == "0" && (i + 2 >= tokens.size() || tokens[i + 2] != ".")) {
                 continue;
             }
 
-            if (token == "0" && i > 0 && (tokens[i - 1] == "+" || tokens[i - 1] == "-")) {
+            if (token == "0" && i > 0 && (tokens[i - 1] == "+" || tokens[i - 1] == "-") && (i + 1 >= tokens.size() || tokens[i + 1] != ".")) {
                 continue;
             }
         }
