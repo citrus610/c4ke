@@ -21,7 +21,7 @@ struct Board {
             pieces[board[square] / 2] ^= 1ull << square,
             colors[board[square] & 1] ^= 1ull << square,
 
-            (board[square] / 2 < KNIGHT ? hash_pawn : hash_non_pawn[board[square] & 1]) ^= KEYS[board[square]][square];
+            (board[square] < WHITE_KNIGHT ? hash_pawn : hash_non_pawn[board[square] & 1]) ^= KEYS[board[square]][square];
 
         // Place new piece
         if (piece < PIECE_NONE)
@@ -30,7 +30,7 @@ struct Board {
             pieces[piece / 2] ^= 1ull << square,
             colors[piece & 1] ^= 1ull << square,
 
-            (piece / 2 < KNIGHT ? hash_pawn : hash_non_pawn[piece & 1]) ^= KEYS[piece][square];
+            (piece < WHITE_KNIGHT ? hash_pawn : hash_non_pawn[piece & 1]) ^= KEYS[piece][square];
 
         board[square] = piece;
     }
