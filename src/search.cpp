@@ -367,6 +367,7 @@ struct Thread {
 
                 // Update window
                 if (score <= alpha)
+                    beta = (alpha + beta) / 2,
                     alpha = max(score - delta, -INF),
                     reduction = 0;
                 else if (score >= beta)
