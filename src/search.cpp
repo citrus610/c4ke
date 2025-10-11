@@ -348,7 +348,7 @@ struct Thread {
         #define MAX_DEPTH 256
 #endif
         id = ID;
-        i32 score = 0;
+        i32 score;
 
         // Iterative deepening
         for (i32 depth = 1; depth < MAX_DEPTH; depth++) {
@@ -357,17 +357,23 @@ struct Thread {
 
             // Aspiration window
             i32 delta = 10,
-                alpha = score,
-                beta = score,
+                alpha = depth > 3 ? max(score - delta, -INF) : -INF,
+                beta = depth > 3 ? min(score + delta, INF) : INF,
                 reduction = 0;
 
-            for (; score <= alpha || score >= beta;) {
-                // Update window
-                if (score <= alpha) alpha = score - delta, reduction = 0;
-                if (score >= beta) beta = score + delta, reduction++;
-
+            for (;;) {
                 // Search
                 score = search(board, alpha, beta, 0, max(depth - reduction, 1), TRUE);
+
+                // Update window
+                if (score <= alpha)
+                    alpha = max(score - delta, -INF),
+                    reduction = 0;
+                else if (score >= beta)
+                    beta = min(score + delta, INF),
+                    reduction++;
+                else
+                    break;
 
                 // Scale delta
                 delta *= 1.5;
