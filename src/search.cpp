@@ -319,6 +319,7 @@ struct Thread {
 
         // Return mate score
         if (!legals) {
+            if (excluded) return alpha;
             if (board.checkers) return ply - INF;
             if (depth) return DRAW;
         }
