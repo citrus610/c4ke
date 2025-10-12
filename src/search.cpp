@@ -100,17 +100,13 @@ struct Thread {
             // Improving
             is_improving = ply > 1 && stack_eval[ply] > stack_eval[ply - 2];
 
-            if (!depth) {
-                // Standpat
-                if (eval >= beta)
-                    return eval;
+            // Standpat
+            if (!depth && (alpha = max(alpha, best = eval)) >= beta)
+                return eval;
 
-                if ((best = eval) > alpha)
-                    alpha = best;
-            }
-            else if (!is_pv && !excluded) {
+            if (!is_pv && !excluded) {
                 // Reverse futility pruning
-                if (depth < 9 && eval < WIN && eval > beta + 66 * (depth - is_improving))
+                if (depth && depth < 9 && eval < WIN && eval > beta + 66 * (depth - is_improving))
                     return eval;
 
                 // Null move pruning
