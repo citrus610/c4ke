@@ -30,8 +30,7 @@ struct Thread {
             score,
             move_scores[MAX_MOVE];
 
-        i16 best_move = MOVE_NONE,
-            move_list[MAX_MOVE],
+        i16 move_list[MAX_MOVE],
             quiet_list[MAX_MOVE],
             noisy_list[MAX_MOVE];
 
@@ -267,7 +266,7 @@ struct Thread {
             // Alpha raised
             if (score > alpha) {
                 alpha = score;
-                best_move = move;
+                tt.move = move;
 
                 // Set exact bound
                 bound = BOUND_EXACT;
@@ -323,7 +322,7 @@ struct Thread {
         }
 
         // Update corrhist
-        if (!board.checkers && (!best_move || board.quiet(best_move)) && bound != best < stack_eval[ply]) {
+        if (!board.checkers && (!bound || board.quiet(tt.move)) && bound != best < stack_eval[ply]) {
             i32 bonus = clamp((best - stack_eval[ply]) * depth, -CORRHIST_BONUS_MAX, CORRHIST_BONUS_MAX) * CORRHIST_BONUS_SCALE;
 
             update_history(corrhist[board.stm][board.hash_pawn % CORRHIST_SIZE], bonus);
@@ -335,7 +334,7 @@ struct Thread {
 
         // Update transposition
         if (!excluded)
-            slot = { board.hash, best_move || !tt.key ? best_move : slot.move, best, depth, bound };
+            slot = { board.hash, tt.move, best, depth, bound };
 
         return best;
     }
