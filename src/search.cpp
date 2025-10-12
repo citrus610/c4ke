@@ -66,8 +66,7 @@ struct Thread {
         visited[ply] = board.hash;
 
         // Probe transposition table
-        TTEntry& slot = TTABLE[board.hash >> TT_SHIFT];
-        TTEntry tt = slot;
+        TTEntry tt = TTABLE[board.hash >> TT_SHIFT];
 
         if (tt.key != i16(board.hash))
             tt = {};
@@ -328,7 +327,7 @@ struct Thread {
 
         // Update transposition
         if (!excluded)
-            slot = { board.hash, tt.move, best, depth, bound };
+            TTABLE[board.hash >> TT_SHIFT] = { board.hash, tt.move, best, depth, bound };
 
         return best;
     }
