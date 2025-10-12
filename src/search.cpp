@@ -19,7 +19,7 @@ struct Thread {
     i32 id,
         stack_eval[STACK_SIZE];
 
-    i32 search(Board& board, i32 alpha, i32 beta, i32 ply, i32 depth, i32 is_pv = FALSE, i16 excluded = MOVE_NONE) {
+    i32 search(Board& board, i32 alpha, i32 beta, i32 ply, i32 depth, i32 is_pv = FALSE, i32 excluded = MOVE_NONE) {
         // All search variables
         i32 eval,
             best = -INF,
@@ -170,15 +170,14 @@ struct Thread {
             swap(move_list[i], move_list[next_index]);
             swap(move_scores[i], move_scores[next_index]);
 
-            i16 move = move_list[i];
+            // Search data
+            i32 move = move_list[i],
+                is_quiet = board.quiet(move),
+                depth_next = depth - 1;
 
             // Skip excluded move in singularity search
             if (move == excluded)
                 continue;
-
-            // Search data
-            i32 is_quiet = board.quiet(move),
-                depth_next = depth - 1;
 
             // Quiet pruning and SEE pruning in qsearch
             if (!depth && best > -WIN && move_scores[i] < 1e6)

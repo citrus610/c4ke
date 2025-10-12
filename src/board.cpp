@@ -45,11 +45,11 @@ struct Board {
             attack(1ull << square, colors[WHITE] | colors[BLACK], ROOK) & (pieces[ROOK] | pieces[QUEEN]);
     }
 
-    i32 quiet(i16 move) {
+    i32 quiet(i32 move) {
         return board[move_to(move)] > BLACK_KING && !move_promo(move) && !(board[move_from(move)] < WHITE_KNIGHT && move_to(move) == enpassant);
     }
 
-    i32 see(i16 move, i32 threshold) {
+    i32 see(i32 move, i32 threshold) {
         // Move data
         i32 from = move_from(move),
             to = move_to(move),
@@ -103,7 +103,7 @@ struct Board {
         return side != stm;
     }
 
-    u64 make(i16 move) {
+    u64 make(i32 move) {
         // Get move data
         i32 from = move_from(move),
             to = move_to(move),
