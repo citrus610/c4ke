@@ -159,7 +159,7 @@ u64 now() {
 u64 KEYS[13][65];
 
 // Move
-i16 move_make(i32 from, i32 to, i32 promo = PAWN) {
+i32 move_make(i32 from, i32 to, i32 promo = PAWN) {
     return from | to << 6 | promo << 12;
 }
 
@@ -175,7 +175,7 @@ i32 move_promo(i16 move) {
     return move >> 12;
 }
 
-void move_print(i16 move) {
+void move_print(i32 move) {
     cout.put(97 + move_from(move) % 8).put(49 + move_from(move) / 8).put(97 + move_to(move) % 8).put(49 + move_to(move) / 8).put(" nbrq"[move_promo(move)]) << endl;
 }
 
@@ -230,7 +230,7 @@ u64 ray(u64 mask, u64 occupied, auto func) {
 }
 
 // Get non-pawn attack mask
-u64 attack(u64 mask, u64 occupied, int type) {
+u64 attack(u64 mask, u64 occupied, i32 type) {
     // Knight
     if (type < BISHOP)
         return (mask << 6 | mask >> 10) & 0x3f3f3f3f3f3f3f3f | (mask << 10 | mask >> 6) & 0xfcfcfcfcfcfcfcfc | (mask << 17 | mask >> 15) & ~0x101010101010101 | (mask << 15 | mask >> 17) & ~0x8080808080808080;
@@ -255,7 +255,7 @@ struct TTEntry {
 };
 
 TTEntry* TTABLE;
-i16 BEST_MOVE;
+i32 BEST_MOVE;
 u64 LIMIT_SOFT,
     LIMIT_HARD,
     VISITED[STACK_SIZE];
