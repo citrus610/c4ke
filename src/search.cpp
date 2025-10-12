@@ -68,15 +68,14 @@ struct Thread {
 
         // Probe transposition table
         TTEntry& slot = TTABLE[board.hash >> TT_SHIFT];
-        TTEntry tt {};
+        TTEntry tt = slot;
 
-        if (slot.key == i16(board.hash)) {
-            tt = slot;
+        if (tt.key != i16(board.hash))
+            tt = {};
 
-            // Cutoff
-            if (!is_pv && !excluded && depth <= tt.depth && tt.bound != tt.score < beta)
-                return tt.score;
-        }
+        // Cutoff
+        else if (!is_pv && !excluded && depth <= tt.depth && tt.bound != tt.score < beta)
+            return tt.score;
 
         // Static eval
         stack_eval[ply] = INF;
