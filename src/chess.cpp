@@ -159,7 +159,7 @@ u64 now() {
 u64 KEYS[13][65];
 
 // Move
-i32 move_make(i32 from, i32 to, i32 promo = PAWN) {
+i16 move_make(i32 from, i32 to, i32 promo = PAWN) {
     return from | to << 6 | promo << 12;
 }
 
@@ -233,11 +233,11 @@ u64 ray(u64 mask, u64 occupied, auto func) {
 u64 attack(u64 mask, u64 occupied, i32 type) {
     // Knight
     if (type < BISHOP)
-        return (mask << 6 | mask >> 10) & 0x3f3f3f3f3f3f3f3f | (mask << 10 | mask >> 6) & 0xfcfcfcfcfcfcfcfc | (mask << 17 | mask >> 15) & ~0x101010101010101 | (mask << 15 | mask >> 17) & ~0x8080808080808080;
+        return (mask << 6 | mask >> 10) & 0x3f3f3f3f3f3f3f3full | (mask << 10 | mask >> 6) & 0xfcfcfcfcfcfcfcfcull | (mask << 17 | mask >> 15) & ~0x101010101010101ull | (mask << 15 | mask >> 17) & ~0x8080808080808080ull;
 
     // King
     if (type > QUEEN)
-        return mask << 8 | mask >> 8 | (mask >> 1 | mask >> 9 | mask << 7) & ~0x8080808080808080 | (mask << 1 | mask << 9 | mask >> 7) & ~0x101010101010101;
+        return mask << 8 | mask >> 8 | (mask >> 1 | mask >> 9 | mask << 7) & ~0x8080808080808080ull | (mask << 1 | mask << 9 | mask >> 7) & ~0x101010101010101ull;
     
     // Slider
     return
@@ -255,11 +255,11 @@ struct TTEntry {
 };
 
 TTEntry* TTABLE;
-i32 BEST_MOVE;
 u64 LIMIT_SOFT,
     LIMIT_HARD,
     VISITED[STACK_SIZE];
-i32 VISITED_COUNT;
+i32 BEST_MOVE,
+    VISITED_COUNT;
 atomic_int STOP;
 
 #ifdef OB
