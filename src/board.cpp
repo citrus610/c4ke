@@ -197,12 +197,12 @@ struct Board {
         u64 occupied = colors[WHITE] | colors[BLACK],
             targets = is_all ? ~colors[stm] : colors[!stm],
             pawns = pieces[PAWN] & colors[stm],
-            pawns_push = (stm ? south(pawns) : north(pawns)) & ~occupied & (is_all ? ~0ull : 0xff000000000000ff),
+            pawns_push = (stm ? south(pawns) : north(pawns)) & ~occupied & (is_all ? ~0ull : 0xff000000000000ffull),
             pawns_targets = colors[!stm] | u64(enpassant < SQUARE_NONE) << enpassant;
 
         // Pawn
         add_pawn_moves(list_end, pawns_push, stm ? -8 : 8);
-        add_pawn_moves(list_end, (stm ? south(pawns_push & 0xff0000000000) : north(pawns_push & 0xff0000ull)) & ~occupied, stm ? -16 : 16);
+        add_pawn_moves(list_end, (stm ? south(pawns_push & 0xff0000000000ull) : north(pawns_push & 0xff0000ull)) & ~occupied, stm ? -16 : 16);
         add_pawn_moves(list_end, (stm ? se(pawns) : nw(pawns)) & pawns_targets, stm ? -7 : 7);
         add_pawn_moves(list_end, (stm ? sw(pawns) : ne(pawns)) & pawns_targets, stm ? -9 : 9);
 
@@ -271,7 +271,7 @@ struct Board {
                             eval += (get_data(square / 8 + INDEX_PHALANX) + OFFSET_PHALANX) * SCALE;
 
                         // Passed pawn
-                        if (!(0x101010101010101 << square & (pawns_them | pawns_threats))) {
+                        if (!(0x101010101010101ull << square & (pawns_them | pawns_threats))) {
                             eval += (get_data(square / 8 + INDEX_PASSER) + OFFSET_PASSER) * SCALE;
 
                             // Blocked passed pawn
@@ -293,11 +293,11 @@ struct Board {
                         eval += (get_data(type + INDEX_MOBILITY) + OFFSET_MOBILITY) * POPCNT(mobility & ~colors[color] & ~pawns_threats);
 
                         // Open file
-                        if (!(0x101010101010101 << square % 8 & pieces[PAWN]))
+                        if (!(0x101010101010101ull << square % 8 & pieces[PAWN]))
                             eval += (type > QUEEN) * KING_OPEN + (type == ROOK) * ROOK_OPEN;
 
                         // Semi open file
-                        if (!(0x101010101010101 << square % 8 & pawns_us))
+                        if (!(0x101010101010101ull << square % 8 & pawns_us))
                             eval += (type > QUEEN) * KING_SEMIOPEN + (type == ROOK) * ROOK_SEMIOPEN;
 
                         if (type > QUEEN)
@@ -419,7 +419,8 @@ struct Board {
     void startpos() {
         *this = Board{};
 
-        for (i32 i = 0; i < 64; i++) board[i] = PIECE_NONE;
+        for (i32 i = 0; i < 64; i++)
+            board[i] = PIECE_NONE;
 
         for (i32 i = 0; i < 8; i++)
             edit(i + A1, LAYOUT[i] * 2 + WHITE),

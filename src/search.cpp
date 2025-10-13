@@ -326,7 +326,7 @@ struct Thread {
 
         // Update transposition
         if (!excluded)
-            TTABLE[board.hash >> TT_SHIFT] = { board.hash, tt.move, best, depth, bound };
+            TTABLE[board.hash >> TT_SHIFT] = { i16(board.hash), tt.move, i16(best), u8(depth), bound };
 
         return best;
     }
