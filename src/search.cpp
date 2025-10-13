@@ -19,7 +19,7 @@ struct Thread {
     i32 id,
         stack_eval[STACK_SIZE];
 
-    i32 search(Board& board, i32 alpha, i32 beta, i32 ply, i32 depth, i32 is_pv = FALSE, i16 excluded = MOVE_NONE) {
+    i32 search(Board& board, i32 alpha, i32 beta, i32 ply, i32 depth, i32 is_pv = FALSE, i32 excluded = MOVE_NONE) {
         // All search variables
         i32 eval,
             best = -INF,
@@ -30,8 +30,7 @@ struct Thread {
             score,
             move_scores[MAX_MOVE];
 
-        i16 best_move = MOVE_NONE,
-            move_list[MAX_MOVE],
+        i16 move_list[MAX_MOVE],
             quiet_list[MAX_MOVE],
             noisy_list[MAX_MOVE];
 
@@ -67,16 +66,14 @@ struct Thread {
         visited[ply] = board.hash;
 
         // Probe transposition table
-        TTEntry& slot = TTABLE[board.hash >> TT_SHIFT];
-        TTEntry tt {};
+        TTEntry tt = TTABLE[board.hash >> TT_SHIFT];
 
-        if (slot.key == i16(board.hash)) {
-            tt = slot;
+        if (tt.key != i16(board.hash))
+            tt = {};
 
-            // Cutoff
-            if (!is_pv && !excluded && depth <= tt.depth && tt.bound != tt.score < beta)
-                return tt.score;
-        }
+        // Cutoff
+        else if (!is_pv && !excluded && depth <= tt.depth && tt.bound != tt.score < beta)
+            return tt.score;
 
         // Static eval
         stack_eval[ply] = INF;
@@ -102,17 +99,13 @@ struct Thread {
             // Improving
             is_improving = ply > 1 && stack_eval[ply] > stack_eval[ply - 2];
 
-            if (!depth) {
-                // Standpat
-                if (eval >= beta)
-                    return eval;
+            // Standpat
+            if (!depth && (alpha = max(alpha, best = eval)) >= beta)
+                return eval;
 
-                if ((best = eval) > alpha)
-                    alpha = best;
-            }
-            else if (!is_pv && !excluded) {
+            if (!is_pv && !excluded) {
                 // Reverse futility pruning
-                if (depth < 9 && eval < WIN && eval > beta + 66 * (depth - is_improving))
+                if (depth && depth < 9 && eval < WIN && eval > beta + 66 * (depth - is_improving))
                     return eval;
 
                 // Null move pruning
@@ -177,15 +170,14 @@ struct Thread {
             swap(move_list[i], move_list[next_index]);
             swap(move_scores[i], move_scores[next_index]);
 
-            i16 move = move_list[i];
+            // Search data
+            i32 move = move_list[i],
+                is_quiet = board.quiet(move),
+                depth_next = depth - 1;
 
             // Skip excluded move in singularity search
             if (move == excluded)
                 continue;
-
-            // Search data
-            i32 is_quiet = board.quiet(move),
-                depth_next = depth - 1;
 
             // Quiet pruning and SEE pruning in qsearch
             if (!depth && best > -WIN && move_scores[i] < 1e6)
@@ -225,7 +217,9 @@ struct Thread {
 
             stack_conthist[ply + 2] = &conthist[board.board[move_from(move)]][move_to(move)];
 
-            // Don't do zero window search for qsearch
+            // Set this as a dummy value to drop straight into ZWS if we don't do LMR
+            score = beta;
+
             // Late move reduction
             if (depth > 2 && legals > 2) {
                 i32 reduction =
@@ -237,22 +231,18 @@ struct Thread {
                     !is_pv;
 
                 // Clamp reduction
-                reduction *= reduction > 0;
-
                 if (!is_quiet && reduction > 2)
                     reduction = 2;
 
-                score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next - reduction);
-
-                if (score > alpha && reduction)
-                    score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next);
+                if (reduction > 0) score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next - reduction);
             }
-            // Zero window search
-            else if (depth && (!is_pv || legals))
+
+            // Zero window search (don't do it for qsearch)
+            if (score > alpha && depth && legals)
                 score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next);
 
-            // Principle variation search and qsearch
-            if (!depth || is_pv && (!legals || score > alpha))
+            // Principal variation search and qsearch
+            if (!depth || !legals || is_pv && score > alpha)
                 score = -search(child, -beta, -alpha, ply + 1, depth_next, is_pv);
 
             legals++;
@@ -268,7 +258,7 @@ struct Thread {
             // Alpha raised
             if (score > alpha) {
                 alpha = score;
-                best_move = move;
+                tt.move = move;
 
                 // Set exact bound
                 bound = BOUND_EXACT;
@@ -324,7 +314,7 @@ struct Thread {
         }
 
         // Update corrhist
-        if (!board.checkers && (!best_move || board.quiet(best_move)) && bound != best < stack_eval[ply]) {
+        if (!board.checkers && (!bound || board.quiet(tt.move)) && bound != best < stack_eval[ply]) {
             i32 bonus = clamp((best - stack_eval[ply]) * depth, -CORRHIST_BONUS_MAX, CORRHIST_BONUS_MAX) * CORRHIST_BONUS_SCALE;
 
             update_history(corrhist[board.stm][board.hash_pawn % CORRHIST_SIZE], bonus);
@@ -336,7 +326,7 @@ struct Thread {
 
         // Update transposition
         if (!excluded)
-            slot = { i16(board.hash), best_move || !tt.key ? best_move : slot.move, i16(best), u8(depth), bound };
+            TTABLE[board.hash >> TT_SHIFT] = { board.hash, tt.move, best, depth, bound };
 
         return best;
     }

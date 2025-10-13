@@ -19,18 +19,18 @@ struct Board {
             hash ^= KEYS[board[square]][square],
 
             pieces[board[square] / 2] ^= 1ull << square,
-            colors[board[square] & 1] ^= 1ull << square,
+            colors[board[square] % 2] ^= 1ull << square,
 
-            (board[square] < WHITE_KNIGHT ? hash_pawn : hash_non_pawn[board[square] & 1]) ^= KEYS[board[square]][square];
+            (board[square] < WHITE_KNIGHT ? hash_pawn : hash_non_pawn[board[square] % 2]) ^= KEYS[board[square]][square];
 
         // Place new piece
         if (piece < PIECE_NONE)
             hash ^= KEYS[piece][square],
 
             pieces[piece / 2] ^= 1ull << square,
-            colors[piece & 1] ^= 1ull << square,
+            colors[piece % 2] ^= 1ull << square,
 
-            (piece < WHITE_KNIGHT ? hash_pawn : hash_non_pawn[piece & 1]) ^= KEYS[piece][square];
+            (piece < WHITE_KNIGHT ? hash_pawn : hash_non_pawn[piece % 2]) ^= KEYS[piece][square];
 
         board[square] = piece;
     }
@@ -45,11 +45,11 @@ struct Board {
             attack(1ull << square, colors[WHITE] | colors[BLACK], ROOK) & (pieces[ROOK] | pieces[QUEEN]);
     }
 
-    i32 quiet(i16 move) {
+    i32 quiet(i32 move) {
         return board[move_to(move)] > BLACK_KING && !move_promo(move) && !(board[move_from(move)] < WHITE_KNIGHT && move_to(move) == enpassant);
     }
 
-    i32 see(i16 move, i32 threshold) {
+    i32 see(i32 move, i32 threshold) {
         // Move data
         i32 from = move_from(move),
             to = move_to(move),
@@ -103,7 +103,7 @@ struct Board {
         return side != stm;
     }
 
-    u64 make(i16 move) {
+    u64 make(i32 move) {
         // Get move data
         i32 from = move_from(move),
             to = move_to(move),
@@ -175,7 +175,7 @@ struct Board {
         }
     }
 
-    void add_moves(i16*& list_end, u64 targets, u64 occupied, u64 mask, int type) {
+    void add_moves(i16*& list_end, u64 targets, u64 occupied, u64 mask, i32 type) {
         for (; mask;) {
             i32 from = LSB(mask);
             mask &= mask - 1;
