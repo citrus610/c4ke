@@ -131,8 +131,6 @@ using u64 = uint64_t;
 #define CORRHIST_BONUS_SCALE 8
 
 #define STACK_SIZE 264
-#define VISIT_SIZE 2048
-#define VISIT_BYTES 16384
 
 #ifdef OB
     i32 TT_BITS = 20;
@@ -233,11 +231,11 @@ u64 ray(u64 mask, u64 occupied, auto func) {
 u64 attack(u64 mask, u64 occupied, i32 type) {
     // Knight
     if (type < BISHOP)
-        return (mask << 6 | mask >> 10) & 0x3f3f3f3f3f3f3f3full | (mask << 10 | mask >> 6) & 0xfcfcfcfcfcfcfcfcull | (mask << 17 | mask >> 15) & ~0x101010101010101ull | (mask << 15 | mask >> 17) & ~0x8080808080808080ull;
+        return (mask << 6 | mask >> 10) & 0x3f3f3f3f3f3f3f3f | (mask << 10 | mask >> 6) & 0xfcfcfcfcfcfcfcfc | (mask << 17 | mask >> 15) & ~0x101010101010101 | (mask << 15 | mask >> 17) & ~0x8080808080808080;
 
     // King
     if (type > QUEEN)
-        return mask << 8 | mask >> 8 | (mask >> 1 | mask >> 9 | mask << 7) & ~0x8080808080808080ull | (mask << 1 | mask << 9 | mask >> 7) & ~0x101010101010101ull;
+        return mask << 8 | mask >> 8 | (mask >> 1 | mask >> 9 | mask << 7) & ~0x8080808080808080 | (mask << 1 | mask << 9 | mask >> 7) & ~0x101010101010101;
     
     // Slider
     return
