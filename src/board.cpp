@@ -35,14 +35,14 @@ struct Board {
         board[square] = piece;
     }
 
-    u64 attackers(i32 square) {
+    u64 attackers(u64 mask) {
         return
-            (nw(1ull << square) | ne(1ull << square)) & pieces[PAWN] & colors[BLACK] |
-            (sw(1ull << square) | se(1ull << square)) & pieces[PAWN] & colors[WHITE] |
-            attack(1ull << square, 0, KNIGHT) & pieces[KNIGHT] |
-            attack(1ull << square, 0, KING) & pieces[KING] |
-            attack(1ull << square, colors[WHITE] | colors[BLACK], BISHOP) & (pieces[BISHOP] | pieces[QUEEN]) |
-            attack(1ull << square, colors[WHITE] | colors[BLACK], ROOK) & (pieces[ROOK] | pieces[QUEEN]);
+            (nw(mask) | ne(mask)) & pieces[PAWN] & colors[BLACK] |
+            (sw(mask) | se(mask)) & pieces[PAWN] & colors[WHITE] |
+            attack(mask, 0, KNIGHT) & pieces[KNIGHT] |
+            attack(mask, 0, KING) & pieces[KING] |
+            attack(mask, colors[WHITE] | colors[BLACK], BISHOP) & (pieces[BISHOP] | pieces[QUEEN]) |
+            attack(mask, colors[WHITE] | colors[BLACK], ROOK) & (pieces[ROOK] | pieces[QUEEN]);
     }
 
     i32 quiet(i32 move) {
@@ -76,7 +76,7 @@ struct Board {
         colors[stm] ^= 1ull << from;
 
         // Loop until one side runs out of attackers, or fail to beat the threshold
-        for (; u64 threats = attackers(to) & colors[side];) {
+        for (; u64 threats = attackers(1ull << to) & colors[side];) {
             // Get the least valuable attacker
             i32 type = PAWN;
 
@@ -88,7 +88,7 @@ struct Board {
             // Negamax
             // Check if we beat the threshold
             if ((threshold = VALUE[type] - threshold) < 0) {
-                side ^= type == KING && attackers(to) & colors[side];
+                side ^= type == KING && attackers(1ull << to) & colors[side];
                 break;
             }
 
@@ -110,7 +110,8 @@ struct Board {
             piece = board[from];
 
         // Update halfmove
-        halfmove += board[to] > BLACK_KING && piece > BLACK_PAWN ? 1 : -halfmove;
+        halfmove++;
+        halfmove *= board[to] > BLACK_KING && piece > BLACK_PAWN;
 
         // Move piece
         edit(to, move_promo(move) ? move_promo(move) * 2 + stm : piece);
@@ -120,7 +121,8 @@ struct Board {
         hash ^= KEYS[PIECE_NONE][enpassant];
 
         if (piece < WHITE_KNIGHT && to == enpassant)
-            edit(to ^ 8, PIECE_NONE), hash ^= KEYS[PIECE_NONE][enpassant];
+            edit(to ^ 8, PIECE_NONE),
+            hash ^= KEYS[PIECE_NONE][enpassant];
 
         enpassant = piece < WHITE_KNIGHT && abs(from - to) == 16 ? to ^ 8 : SQUARE_NONE;
 
@@ -130,13 +132,11 @@ struct Board {
         hash ^= KEYS[PIECE_NONE][castled];
 
         if (piece > BLACK_QUEEN && (castled |= 3 << stm * 2) && abs(from - to) == 2) {
-            i32 dt = (from + to) / 2;
-
-            if ((attackers(dt) | attackers(to)) & colors[!stm])
+            if (attackers(1ull << (from + to) / 2) & colors[!stm])
                 return TRUE;
 
             edit(to + (to > from ? 1 : -2), PIECE_NONE);
-            edit(dt, ROOK * 2 + stm);
+            edit((from + to) / 2, WHITE_ROOK + stm);
         }
 
         if (from == H1 || to == H1) castled |= CASTLED_WK;
@@ -153,10 +153,10 @@ struct Board {
         stm ^= 1;
 
         // In check
-        checkers = attackers(LSB(pieces[KING] & colors[stm])) & colors[!stm];
+        checkers = attackers(pieces[KING] & colors[stm]) & colors[!stm];
 
         // Check if not legal
-        return attackers(LSB(pieces[KING] & colors[!stm])) & colors[stm];
+        return attackers(pieces[KING] & colors[!stm]) & colors[stm];
     }
 
     void add_pawn_moves(i16*& list_end, u64 targets, i32 offset) {
@@ -412,7 +412,7 @@ struct Board {
         fen >> token;
 
         // Check
-        checkers = attackers(LSB(pieces[KING] & colors[stm])) & colors[!stm];
+        checkers = attackers(pieces[KING] & colors[stm]) & colors[!stm];
     }
 #endif
 

@@ -37,7 +37,8 @@ struct Thread {
         u8 bound = BOUND_UPPER;
 
         // Clamp depth for qsearch
-        depth *= depth > 0;
+        if (depth < 0)
+            depth = 0;
 
         // Abort
         if (!id && !(++nodes & 4095) && now() > LIMIT_HARD)
@@ -67,6 +68,9 @@ struct Thread {
 
         // Probe transposition table
         TTEntry tt = TTABLE[board.hash >> TT_SHIFT];
+
+        if (tt.score > WIN) tt.score = INF - ply;
+        if (tt.score < -WIN) tt.score = ply - INF;
 
         if (tt.key != i16(board.hash))
             tt = {};
@@ -132,9 +136,7 @@ struct Thread {
 
         // Score moves
         for (i32 i = 0; i < move_count; i++) {
-            i32 move = move_list[i],
-                piece = board.board[move_from(move)],
-                victim = board.board[move_to(move)] / 2 % TYPE_NONE;
+            i32 move = move_list[i];
 
             move_scores[i] =
                 // Hash move
@@ -144,16 +146,16 @@ struct Thread {
                     // Quiet history
                     qhist[board.stm][move & 4095] +
                     // Conthist 2-ply
-                    2 * stack_conthist[ply][0][piece][move_to(move)] +
+                    2 * stack_conthist[ply][0][board.board[move_from(move)]][move_to(move)] +
                     // Conthist 1-ply
-                    2 * stack_conthist[ply + 1][0][piece][move_to(move)] :
+                    2 * stack_conthist[ply + 1][0][board.board[move_from(move)]][move_to(move)] :
                 // Noisy moves
                     // MVV
-                    VALUE[victim] * 16 +
+                    VALUE[board.board[move_to(move)] / 2 % TYPE_NONE] * 16 +
                     // Promo bonus
                     VALUE[move_promo(move)] +
                     // Noisy history
-                    nhist[victim][piece][move_to(move)] +
+                    nhist[board.board[move_to(move)] / 2 % TYPE_NONE][board.board[move_from(move)]][move_to(move)] +
                     // SEE
                     board.see(move, 0) * 2e7 - 1e7;
         }
@@ -230,11 +232,12 @@ struct Thread {
                     // PV
                     !is_pv;
 
-                // Clamp reduction
+                // Clamp noisy reduction
                 if (!is_quiet && reduction > 2)
                     reduction = 2;
 
-                if (reduction > 0) score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next - reduction);
+                if (reduction > 0)
+                    score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next - reduction);
             }
 
             // Zero window search (don't do it for qsearch)

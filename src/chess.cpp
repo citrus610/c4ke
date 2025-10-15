@@ -108,8 +108,8 @@ using u64 = uint64_t;
 #define MAX_PLY 256
 #define MAX_MOVE 256
 
-#define WIN 32000
-#define INF 32256
+#define WIN 3e4
+#define INF 32000
 #define DRAW 0
 
 #define CASTLED_NONE 0
@@ -252,7 +252,7 @@ struct TTEntry {
         bound;
 };
 
-TTEntry* TTABLE;
+TTEntry* TTABLE = (TTEntry*)calloc(1ull << TT_BITS, 8);
 u64 LIMIT_SOFT,
     LIMIT_HARD,
     VISITED[STACK_SIZE];
