@@ -374,7 +374,6 @@ i32 main() {
 
     // Search data
     Board board;
-    TTABLE = (TTEntry*)calloc(1ull << TT_BITS, 8);
 
 #ifdef OB_MINI
     // Bench
