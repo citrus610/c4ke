@@ -1403,8 +1403,7 @@ inline std::vector<std::string> get_removed_redundant_math(std::vector<std::stri
 
         if (!is_string) {
             // Remove "+-"
-            if (token == "+" && i + 1 < tokens.size() && tokens[i + 1] == "-") {
-                result.push_back("-");
+            if (token == "+" && i + 1 < tokens.size() && tokens[i + 1].front() == '-') {
                 continue;
             }
 
