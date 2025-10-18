@@ -29,9 +29,6 @@ int main()
     f64 lr = 0.1;
     f64 lr_drop_rate = 1.0;
 
-    std::atomic_int a;
-    std::atomic<i32> a;
-
     usize epoch_max = 2000;
     usize lr_drop_interval = 200;
 
