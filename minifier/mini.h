@@ -154,6 +154,7 @@ const inline std::vector<std::string> KEYWORDS_SKIP = {
     "join",
     "free",
     "atomic_int",
+    "atomic",
     "mutex",
     "lock_guard"
 };
