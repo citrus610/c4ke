@@ -414,7 +414,7 @@ inline std::string get_unified()
 };
 
 // Remove the OB code
-inline std::string get_removed_ob(std::string str, bool bench)
+inline std::string get_removed_ob(std::string str, bool is_bench)
 {
     std::string result;
 
@@ -438,7 +438,7 @@ inline std::string get_removed_ob(std::string str, bool bench)
         auto found_ifdef = line.find("#ifdef OB");
 
         if (found_ifdef != std::string::npos) {
-            if (line.find("#ifdef OB_MINI") != std::string::npos && bench) {
+            if (line.find("#ifdef OB_MINI") != std::string::npos && is_bench) {
                 is_ob = false;
                 is_ob_mini = true;
                 is_ob_mini_else = false;
@@ -616,7 +616,7 @@ struct Constant
 };
 
 // Get all constants
-inline std::vector<Constant> get_constants(std::string str)
+inline std::vector<Constant> get_constants(std::string str, bool is_bench)
 {
     std::vector<Constant> result;
 
@@ -657,6 +657,21 @@ inline std::vector<Constant> get_constants(std::string str)
 
         while (is_space(value.back())) {
             value.pop_back();
+        }
+
+        // Replace values for TCEC build
+        // Use 512 threads
+        if (!is_bench && name == "THREADS") {
+            value = "512";
+        }
+
+        // Use 256 GB hash
+        if (!is_bench && name == "TT_BITS") {
+            value = "35";
+        }
+
+        if (!is_bench && name == "TT_SHIFT") {
+            value = "29";
         }
 
         result.push_back(Constant {

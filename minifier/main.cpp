@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
     str = get_replaced_scores(str);
 
     // Find all the constants
-    auto constants = get_constants(str);
+    auto constants = get_constants(str, is_bench);
 
     // Remove define
     str = get_removed_define(str);
@@ -67,18 +67,18 @@ int main(int argc, char *argv[])
     // Get scopes stats
     std::vector<Scope> dummy;
     auto global_scope = get_scope(ScopeType::GLOBAL, "global", {}, dummy, 0, tokens).first;
-    auto stat_str = print_scope(global_scope, 0);
-
+    
     // For debuging purpose
+    // auto stat_str = print_scope(global_scope, 0);
     // auto file_stat = std::ofstream("stat.txt", std::ios::out);
     // file_stat << stat_str;
     // file_stat.close();
 
     // Transform from stats to names' ids
     auto scope_id = get_scope_id(global_scope, {});
-    auto id_str = print_scope_id(scope_id, 0);
-
+    
     // For debuging purpose
+    // auto id_str = print_scope_id(scope_id, 0);
     // auto file_id = std::ofstream("id.txt", std::ios::out);
     // file_id << id_str;
     // file_id.close();
