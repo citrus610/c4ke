@@ -33,7 +33,7 @@ make c4ke
 ```
 To build c4ke-mini on Linux, run:
 ```
-make c4ke-mini
+make mini
 ```
 
 ## Minification
