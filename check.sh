@@ -11,9 +11,9 @@ then
     exit 1
 fi
 
-make c4ke-mini || exit 1
+make c4ke-tcec || exit 1
 
-SIZE=$(du -b c4ke-mini | awk '{print $1}')
+SIZE=$(du -b c4ke-tcec | awk '{print $1}')
 
 echo "size: $SIZE"
 echo "bench: $NODES"

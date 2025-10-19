@@ -617,7 +617,7 @@ struct Constant
 };
 
 // Get all constants
-inline std::vector<Constant> get_constants(std::string str, bool is_bench)
+inline std::vector<Constant> get_constants(std::string str, bool is_tcec)
 {
     std::vector<Constant> result;
 
@@ -662,16 +662,16 @@ inline std::vector<Constant> get_constants(std::string str, bool is_bench)
 
         // Replace values for TCEC build
         // Use 512 threads
-        if (!is_bench && name == "THREADS") {
+        if (is_tcec && name == "THREADS") {
             value = "512";
         }
 
         // Use 256 GB hash
-        if (!is_bench && name == "TT_BITS") {
+        if (is_tcec && name == "TT_BITS") {
             value = "35";
         }
 
-        if (!is_bench && name == "TT_SHIFT") {
+        if (is_tcec && name == "TT_SHIFT") {
             value = "29";
         }
 

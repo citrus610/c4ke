@@ -32,6 +32,9 @@ int main(int argc, char *argv[])
     // Check if we allow bench in minified code
     bool is_bench = argc > 1 && std::string(argv[1]) == "bench";
 
+    // Check TCEC build
+    bool is_tcec = argc > 1 && std::string(argv[1]) == "tcec";
+
     // Create output file
     std::string output;
 
@@ -47,7 +50,7 @@ int main(int argc, char *argv[])
     str = get_replaced_scores(str);
 
     // Find all the constants
-    auto constants = get_constants(str, is_bench);
+    auto constants = get_constants(str, is_tcec);
 
     // Remove define
     str = get_removed_define(str);
