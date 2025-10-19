@@ -413,7 +413,7 @@ i32 main() {
     string token;
 
 #ifdef OB
-    cout << "id name c4ke" << endl;
+    cout << "id name c4ke v1.0" << endl;
     cout << "id author citrus610 and cj5716" << endl;
     cout << "option name Hash type spin default 8 min 1 max 67108864" << endl;
     cout << "option name Threads type spin default 1 min 1 max 2048" << endl;
@@ -484,10 +484,24 @@ i32 main() {
         else if (token[0] == 'g') {
             u64 time;
 
+#ifdef OB
+            time = 1ull << 32;
+
+            while (tokens >> token) {
+                if (token == "wtime" && board.stm == WHITE) {
+                    tokens >> time;
+                }
+
+                if (token == "btime" && board.stm == BLACK) {
+                    tokens >> time;
+                }
+            }
+#else
             tokens >> token >> time;
 
             if (board.stm)
                 tokens >> token >> time;
+#endif
 
             STOP = FALSE;
             LIMIT_SOFT = now() + time / 20;
@@ -501,6 +515,33 @@ i32 main() {
 
             for (i32 id = 0; id < THREADS; id++)
                 threads[id] = jthread([=] { Thread{}.start(board, id); });
+
+#ifdef OB
+            bool is_quitting = false;
+
+            if (time == 1ull << 32) {
+                while (getline(cin, token)) {
+                    if (token == "stop") {
+                        break;
+                    }
+
+                    if (token == "quit") {
+                        is_quitting = true;
+                        break;
+                    }
+
+                    if (token == "isready") {
+                        cout << "readyok" << endl;
+                    }
+                }
+
+                STOP++;
+            }
+
+            if (is_quitting) {
+                break;
+            }
+#endif
         }
         // Uci quit
         else if (token[0] == 'q')
