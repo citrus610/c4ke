@@ -1,6 +1,6 @@
 #!/bin/sh
 
-make clean c4ke c4ke-mini-bench || exit 1
+make clean c4ke mini-bench || exit 1
 
 NODES=$(./c4ke bench | awk '{v=$1}END{print v}')
 NODES_MINI=$(./c4ke-mini-bench bench | awk '{v=$1}END{print v}')
@@ -11,7 +11,7 @@ then
     exit 1
 fi
 
-make c4ke-tcec || exit 1
+make tcec || exit 1
 
 SIZE=$(du -b c4ke-tcec | awk '{print $1}')
 
