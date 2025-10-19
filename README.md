@@ -17,9 +17,10 @@ It supports the following subset of the UCI protocol:
 - `go wtime ... btime ...`
 - `quit`
 
-Additional support for non-4k builds:
+Additional support for non-4K builds:
 - `ucinewgame`
 - `position fen ... moves ...`
+- `go infinite`
 
 The first message is always regarded as `uci` due to the space restriction
 
@@ -78,7 +79,6 @@ The minifier isn't general-purpose and won't work on all c++ code
       - Double extensions
       - Multicut
   - Reductions
-    - Internal iterative reductions
     - Late move reductions
 - Static evaluation correction history
   - Pawn correction history
@@ -101,6 +101,7 @@ The minifier isn't general-purpose and won't work on all c++ code
   - Passed pawn
   - Blocked passed pawn
   - Pawn phalanx
+  - Passed pawn kings proximity
 - King safety
   - King on open file
   - King on semi-open file
@@ -108,8 +109,8 @@ The minifier isn't general-purpose and won't work on all c++ code
   - King ring attack
 
 ## Thanks
-- Members of the MinusKelvin discord server
-- The following engines that I use as references:
+- Members of the MinusKelvin discord server for helping me and allowing me into their [OpenBench](https://analoghors.pythonanywhere.com/) instance
+- The following engines that I used as references:
   - [ice4](https://github.com/MinusKelvin/ice4)
   - [4ku](https://github.com/kz04px/4ku)
 
