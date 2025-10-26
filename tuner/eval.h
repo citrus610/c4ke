@@ -56,7 +56,7 @@ i32 PASSER_BLOCKED = S(2, 84);
 
 i32 TEMPO = 20;
 
-inline Trace get_trace(Board& board)
+inline Trace get_trace(Board& board, f64 wdl)
 {
     auto trace = Trace();
 
@@ -243,7 +243,7 @@ inline Trace get_trace(Board& board)
     }
 
     // Scaling
-    i32 x = 8 - bitboard::get_count(board.pieces[piece::type::PAWN] & board.colors[score < 0]);
+    i32 x = 8 - bitboard::get_count(board.pieces[piece::type::PAWN] & board.colors[wdl < 0.5]);
     i32 scale = 128 - x * x;
     i32 mg = get_mg(score);
     i32 eg = get_eg(score);

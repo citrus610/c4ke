@@ -29,15 +29,6 @@ Entry get_data_entry(const std::string& str)
 
     board.set(str);
 
-    auto trace = get_trace(board);
-
-    result.coefs = get_coefs(trace);
-    result.delta[MG] = f64(get_mg(trace.delta));
-    result.delta[EG] = f64(get_eg(trace.delta));
-    result.scale = trace.scale;
-    result.phase = trace.phase;
-    result.is_white = board.stm == color::WHITE;
-
     usize index_1 = str.find('|');
     usize index_2 = str.find('|', index_1 + 1);
 
@@ -75,6 +66,15 @@ Entry get_data_entry(const std::string& str)
     else {
         result.wdl = 0.5;
     }
+
+    auto trace = get_trace(board, result.wdl);
+
+    result.coefs = get_coefs(trace);
+    result.delta[MG] = f64(get_mg(trace.delta));
+    result.delta[EG] = f64(get_eg(trace.delta));
+    result.scale = trace.scale;
+    result.phase = trace.phase;
+    result.is_white = board.stm == color::WHITE;
 
     return result;
 };
