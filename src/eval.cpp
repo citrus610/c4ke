@@ -5,7 +5,7 @@
 i32 PHASE[] { 0, 1, 1, 2, 4, 0 },
     VALUE[] { 110, 319, 294, 518, 912, 2000, 0 },
     LAYOUT[] { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK },
-    MATERIAL[] { S(106, 180), S(357, 566), S(374, 577), S(501, 1037), S(1307, 1668), 0 };
+    MATERIAL[] { S(106, 202), S(361, 577), S(378, 587), S(507, 1051), S(1308, 1728), 0 };
 
 #define SCALE 8
 
@@ -21,27 +21,29 @@ i32 PHASE[] { 0, 1, 1, 2, 4, 0 },
 
 #define TEMPO 20
 
-#define DATA_STR "0-+-/580-/13485 022223/'1//.130/1210/2.,.6,$$022%'')***&#&'***)(&((()()(&&'(*)*'&&'(()**)-( %\",*21,*    \" $ !#'52 !#\" ,6&!\"\" \"#%! +-**)()'%##%*6'#%'+,(&$%%((('')$#$'((+*!!&)+)*(\"$'*-., **(&'()'&(***)'%'(()))(&)**('(''&'))*)'' &*,++'!*+*1  $,3== \"$,@?+/' $) B*.)'#! \"\" %),.0-"
+#define DATA_STR "\"%%&(+-' #$%&%)&\"$%'))((#&'(+,+*()./162//22997.(-/03485 022223/'1//.02001210/2.-/4+#%234$&(***)(&((()(*(&&')*)*(&''(()**),' $\",+0/*( !! # # \"#'42 !#\" 06( \"%$'(+' 0/--.,+$%$#&%$\"\"\"!##$#!##! !\"$\"&%\"!!#&%**$!\"&-,853/19=@#%(+,(&$%%(((''($$$'((+* !&),*+'!$'*--,!%&)))(&#&''(((&%(()'&'%%$&()*(&% %)+)*& ()(-  $,4@; \"$,CB+.' $' @+/)&#! \"$ &*.131"
 
-#define INDEX_EG 137
+#define INDEX_EG 169
 
-#define INDEX_PST_RANK 0
-#define INDEX_PST_FILE 48
-#define INDEX_MOBILITY 95
-#define INDEX_PASSER 100
-#define INDEX_PHALANX 106
-#define INDEX_THREAT 112
-#define INDEX_KING_ATTACK 116
-#define INDEX_KING_PASSER_US 121
-#define INDEX_KING_PASSER_THEM 129
+#define INDEX_PST_PAWN -8
+#define INDEX_PST_RANK 40
+#define INDEX_PST_FILE 80
+#define INDEX_MOBILITY 127
+#define INDEX_PASSER 132
+#define INDEX_PHALANX 138
+#define INDEX_THREAT 144
+#define INDEX_KING_ATTACK 148
+#define INDEX_KING_PASSER_US 153
+#define INDEX_KING_PASSER_THEM 161
 
-#define OFFSET_MOBILITY S(-9, -4)
-#define OFFSET_PASSER S(1, -3)
+#define OFFSET_PST_PAWN S(-10, -7)
+#define OFFSET_MOBILITY S(-7, -2)
+#define OFFSET_PASSER S(-1, -3)
 #define OFFSET_PHALANX S(1, 1)
-#define OFFSET_THREAT S(9, -8)
-#define OFFSET_KING_ATTACK S(12, -14)
-#define OFFSET_PST S(-24, -15)
-#define OFFSET_KING_PASSER S(-14, -15)
+#define OFFSET_THREAT S(9, -7)
+#define OFFSET_KING_ATTACK S(9, -14)
+#define OFFSET_PST S(-24, -14)
+#define OFFSET_KING_PASSER S(-22, -16)
 
 i32 get_data(i32 index) {
     auto data = DATA_STR;

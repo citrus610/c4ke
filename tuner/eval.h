@@ -6,8 +6,9 @@ constexpr i32 PHASE[] = { 0, 1, 1, 2, 4, 0 };
 
 struct Trace
 {
-    i32 pst_rank[2][48] {};
-    i32 pst_file[2][48] {};
+    i32 pst_pawn[2][48] {};
+    i32 pst_rank[2][40] {};
+    i32 pst_file[2][40] {};
     i32 mobility[2][5] {};
     i32 passer[2][6] {};
     i32 phalanx[2][6] {};
@@ -35,8 +36,16 @@ i32 MATERIAL[5] = {
     S(100, 150), S(350, 400), S(400, 450), S(600, 800), S(1000, 1200)
 };
 
-i32 PST_RANK[] = { S(0, 0), S(-17, 3), S(-31, -7), S(-17, -6), S(-3, 3), S(53, 37), S(53, 126), S(0, 0), S(-22, 38), S(-3, 51), S(9, 67), S(26, 94), S(38, 103), S(65, 73), S(40, 57), S(-121, 47), S(-15, 29), S(1, 32), S(4, 48), S(-1, 50), S(2, 55), S(10, 47), S(-21, 44), S(-86, 59), S(-46, 69), S(-58, 65), S(-57, 68), S(-67, 93), S(-46, 102), S(-29, 102), S(-48, 121), S(-61, 117), S(134, 114), S(141, 120), S(130, 155), S(124, 173), S(119, 192), S(138, 182), S(108, 191), S(85, 179), S(-17, -60), S(42, -22), S(-35, 6), S(-91, 36), S(-79, 61), S(8, 64), S(12, 45), S(15, -65) };
-i32 PST_FILE[] = { S(-22, 25), S(-10, 22), S(-7, 3), S(5, -13), S(16, -9), S(12, 2), S(14, 12), S(-17, 2), S(-34, 51), S(-11, 66), S(-1, 82), S(19, 86), S(22, 85), S(21, 72), S(10, 65), S(4, 44), S(-29, 45), S(-11, 52), S(-10, 51), S(-16, 62), S(-8, 60), S(-15, 59), S(-2, 50), S(-13, 35), S(-58, 98), S(-59, 104), S(-51, 106), S(-40, 92), S(-28, 82), S(-40, 89), S(-26, 82), S(-48, 81), S(129, 157), S(131, 166), S(133, 177), S(141, 182), S(143, 188), S(147, 182), S(160, 173), S(158, 172), S(9, -72), S(36, -13), S(-6, 20), S(-62, 43), S(-28, 32), S(-48, 29), S(28, -7), S(21, -68) };
+i32 PST_PAWN[] = {
+    S(-15, 70), S(-1, 73), S(-4, 63), S(1, 47), S(13, 71), S(12, 68), S(20, 65), S(-23, 50),
+    S(-29, 57), S(-21, 55), S(-16, 44), S(-12, 47), S(2, 48), S(-26, 54), S(-4, 51), S(-27, 41),
+    S(-18, 67), S(-11, 68), S(-3, 43), S(11, 33), S(18, 34), S(19, 41), S(7, 58), S(-2, 42),
+    S(-9, 97), S(5, 81), S(5, 57), S(16, 31), S(42, 34), S(43, 40), S(23, 73), S(16, 64),
+    S(30, 131), S(31, 136), S(67, 71), S(83, 17), S(101, 12), S(137, 41), S(91, 106), S(53, 108),
+    S(92, 226), S(105, 198), S(91, 195), S(153, 113), S(122, 119), S(105, 134), S(-20, 213), S(-57, 246)
+};
+i32 PST_RANK[] = { S(-22, 38), S(-3, 51), S(9, 67), S(26, 94), S(38, 103), S(65, 73), S(40, 57), S(-121, 47), S(-15, 29), S(1, 32), S(4, 48), S(-1, 50), S(2, 55), S(10, 47), S(-21, 44), S(-86, 59), S(-46, 69), S(-58, 65), S(-57, 68), S(-67, 93), S(-46, 102), S(-29, 102), S(-48, 121), S(-61, 117), S(134, 114), S(141, 120), S(130, 155), S(124, 173), S(119, 192), S(138, 182), S(108, 191), S(85, 179), S(-17, -60), S(42, -22), S(-35, 6), S(-91, 36), S(-79, 61), S(8, 64), S(12, 45), S(15, -65) };
+i32 PST_FILE[] = { S(-34, 51), S(-11, 66), S(-1, 82), S(19, 86), S(22, 85), S(21, 72), S(10, 65), S(4, 44), S(-29, 45), S(-11, 52), S(-10, 51), S(-16, 62), S(-8, 60), S(-15, 59), S(-2, 50), S(-13, 35), S(-58, 98), S(-59, 104), S(-51, 106), S(-40, 92), S(-28, 82), S(-40, 89), S(-26, 82), S(-48, 81), S(129, 157), S(131, 166), S(133, 177), S(141, 182), S(143, 188), S(147, 182), S(160, 173), S(158, 172), S(9, -72), S(36, -13), S(-6, 20), S(-62, 43), S(-28, 32), S(-48, 29), S(28, -7), S(21, -68) };
 i32 MOBILITY[] = { S(9, 7), S(8, 7), S(2, 6), S(0, 17), S(-9, -6) };
 i32 PASSER[] = { S(-8, 4), S(-11, 23), S(-11, 62), S(13, 103), S(-1, 176), S(18, 196) };
 i32 PHALANX[] = { S(8, 3), S(19, 19), S(34, 35), S(67, 92), S(161, 235), S(147, 234) };
@@ -56,7 +65,7 @@ i32 PASSER_BLOCKED = S(2, 84);
 
 i32 TEMPO = 20;
 
-inline Trace get_trace(Board& board)
+inline Trace get_trace(Board& board, f64 wdl)
 {
     auto trace = Trace();
 
@@ -109,13 +118,26 @@ inline Trace get_trace(Board& board)
                     material += MATERIAL[type];
                 }
 
-                // PST rank
-                score += PST_RANK[type * 8 + square / 8];
-                trace.pst_rank[color][type * 8 + square / 8] += 1;
+                // PST
+                if (type == piece::type::PAWN) {
+                    i32 pawn_square = square;
 
-                // PST file
-                score += PST_FILE[type * 8 + square % 8];
-                trace.pst_file[color][type * 8 + square % 8] += 1;
+                    if (king_square_us % 8 < 4) {
+                        pawn_square ^= 7;
+                    }
+
+                    score += PST_PAWN[pawn_square - 8];
+                    trace.pst_pawn[color][pawn_square - 8] += 1;
+                }
+                else {
+                    // PST rank
+                    score += PST_RANK[type * 8 + square / 8 - 8];
+                    trace.pst_rank[color][type * 8 + square / 8 - 8] += 1;
+    
+                    // PST file
+                    score += PST_FILE[type * 8 + square % 8 - 8];
+                    trace.pst_file[color][type * 8 + square % 8 - 8] += 1;
+                }
 
                 if (type == piece::type::PAWN) {
                     // Pawn phalanx
@@ -243,7 +265,7 @@ inline Trace get_trace(Board& board)
     }
 
     // Scaling
-    i32 x = 8 - bitboard::get_count(board.pieces[piece::type::PAWN] & board.colors[score < 0]);
+    i32 x = 8 - bitboard::get_count(board.pieces[piece::type::PAWN] & board.colors[wdl < 0.5]);
     i32 scale = 128 - x * x;
     i32 mg = get_mg(score);
     i32 eg = get_eg(score);
@@ -326,8 +348,9 @@ std::vector<Pair> get_init_weights()
     std::vector<Pair> result;
 
     // add_weights(result, MATERIAL, 5);
-    add_weights(result, PST_RANK, 48);
-    add_weights(result, PST_FILE, 48);
+    add_weights(result, PST_PAWN, 48);
+    add_weights(result, PST_RANK, 40);
+    add_weights(result, PST_FILE, 40);
     add_weights(result, MOBILITY, 5);
     add_weights(result, PASSER, 6);
     add_weights(result, PHALANX, 6);
@@ -354,8 +377,9 @@ std::vector<i32> get_coefs(Trace trace)
     std::vector<i32> result;
 
     // add_coefs(result, trace.material, 5);
-    add_coefs(result, trace.pst_rank, 48);
-    add_coefs(result, trace.pst_file, 48);
+    add_coefs(result, trace.pst_pawn, 48);
+    add_coefs(result, trace.pst_rank, 40);
+    add_coefs(result, trace.pst_file, 40);
     add_coefs(result, trace.mobility, 5);
     add_coefs(result, trace.passer, 6);
     add_coefs(result, trace.phalanx, 6);
@@ -382,6 +406,7 @@ std::string get_str_print_weights(std::vector<Pair> weights)
     std::string str;
     i32 index = 0;
 
+    std::vector<Pair> pst_pawn;
     std::vector<Pair> pst_rank;
     std::vector<Pair> pst_file;
     std::vector<Pair> material;
@@ -389,39 +414,62 @@ std::string get_str_print_weights(std::vector<Pair> weights)
     add_weights(material, MATERIAL, 5);
 
     for (usize i = 0; i < 48; ++i) {
-        pst_rank.push_back(weights[i]);
-        pst_file.push_back(weights[i + 48]);
+        pst_pawn.push_back(weights[i]);
+    }
+
+    for (usize i = 0; i < 40; ++i) {
+        pst_rank.push_back(weights[i + 48]);
+        pst_file.push_back(weights[i + 48 + 40]);
     }
 
     for (usize type = 0; type < 5; ++type) {
-        Pair pst_rank_avg = { 0.0, 0.0 };
-        Pair pst_file_avg = { 0.0, 0.0 };
+        if (type == 0) {
+            Pair pst_pawn_avg = { 0.0, 0.0 };
 
-        for (usize i = 0; i < 8; ++i) {
-            pst_rank_avg[MG] += pst_rank[type * 8 + i][MG] / 8;
-            pst_rank_avg[EG] += pst_rank[type * 8 + i][EG] / 8;
+            for (usize i = 0; i < 48; ++i) {
+                pst_pawn_avg[MG] += pst_pawn[i][MG] / 48;
+                pst_pawn_avg[EG] += pst_pawn[i][EG] / 48;
+            }
 
-            pst_file_avg[MG] += pst_file[type * 8 + i][MG] / 8;
-            pst_file_avg[EG] += pst_file[type * 8 + i][EG] / 8;
+            material[type][MG] += pst_pawn_avg[MG];
+            material[type][EG] += pst_pawn_avg[EG];
+
+            for (usize i = 0; i < 48; ++i) {
+                weights[i][MG] -= pst_pawn_avg[MG];
+                weights[i][EG] -= pst_pawn_avg[EG];
+            }
         }
-
-        material[type][MG] += pst_rank_avg[MG] + pst_file_avg[MG];
-        material[type][EG] += pst_rank_avg[EG] + pst_file_avg[EG];
-
-        for (usize i = 0; i < 8; ++i) {
-            weights[type * 8 + i][MG] -= pst_rank_avg[MG];
-            weights[type * 8 + i][EG] -= pst_rank_avg[EG];
-
-            weights[type * 8 + i + 48][MG] -= pst_file_avg[MG];
-            weights[type * 8 + i + 48][EG] -= pst_file_avg[EG];
+        else {
+            Pair pst_rank_avg = { 0.0, 0.0 };
+            Pair pst_file_avg = { 0.0, 0.0 };
+    
+            for (usize i = 0; i < 8; ++i) {
+                pst_rank_avg[MG] += pst_rank[(type - 1) * 8 + i][MG] / 8;
+                pst_rank_avg[EG] += pst_rank[(type - 1) * 8 + i][EG] / 8;
+    
+                pst_file_avg[MG] += pst_file[(type - 1) * 8 + i][MG] / 8;
+                pst_file_avg[EG] += pst_file[(type - 1) * 8 + i][EG] / 8;
+            }
+    
+            material[type][MG] += pst_rank_avg[MG] + pst_file_avg[MG];
+            material[type][EG] += pst_rank_avg[EG] + pst_file_avg[EG];
+    
+            for (usize i = 0; i < 8; ++i) {
+                weights[(type - 1) * 8 + i + 48][MG] -= pst_rank_avg[MG];
+                weights[(type - 1) * 8 + i + 48][EG] -= pst_rank_avg[EG];
+    
+                weights[(type - 1) * 8 + i + 48 + 40][MG] -= pst_file_avg[MG];
+                weights[(type - 1) * 8 + i + 48 + 40][EG] -= pst_file_avg[EG];
+            }
         }
     }
 
     i32 index_material = 0;
 
     str += get_str_weights(material, index_material, "MATERIAL", 5);
-    str += get_str_weights(weights, index, "PST_RANK", 48);
-    str += get_str_weights(weights, index, "PST_FILE", 48);
+    str += get_str_weights(weights, index, "PST_PAWN", 48);
+    str += get_str_weights(weights, index, "PST_RANK", 40);
+    str += get_str_weights(weights, index, "PST_FILE", 40);
     str += get_str_weights(weights, index, "MOBILITY", 5);
     str += get_str_weights(weights, index, "PASSER", 6);
     str += get_str_weights(weights, index, "PHALANX", 6);
