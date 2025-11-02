@@ -395,6 +395,7 @@ struct Thread {
 #else
         if (!id)
 #endif
+            STOP++,
             cout << "bestmove ", move_print(BEST_MOVE);
     }
 };
