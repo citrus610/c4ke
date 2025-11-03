@@ -5,7 +5,7 @@
 i32 PHASE[] { 0, 1, 1, 2, 4, 0 },
     VALUE[] { 110, 319, 294, 518, 912, 2000, 0 },
     LAYOUT[] { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK },
-    MATERIAL[] { S(106, 180), S(357, 566), S(374, 577), S(501, 1037), S(1307, 1668), 0 };
+    MATERIAL[] { S(97, 191), S(364, 567), S(379, 575), S(506, 1038), S(1295, 1696), 0 };
 
 #define SCALE 8
 
@@ -21,9 +21,9 @@ i32 PHASE[] { 0, 1, 1, 2, 4, 0 },
 
 #define TEMPO 20
 
-#define DATA_STR "0-+-/580-/13485 022223/'1//.130/1210/2.,.6,$$022%'')***&#&'***)(&((()()(&&'(*)*'&&'(()**)-( %\",*21,*    \" $ !#'52 !#\" ,6&!\"\" \"#%! +-**)()'%##%*6'#%'+,(&$%%((('')$#$'((+*!!&)+)*(\"$'*-., **(&'()'&(***)'%'(()))(&)**('(''&'))*)'' &*,++'!*+*1  $,3== \"$,@?+/' $) B*.)'#! \"\" %),.0-"
+#define DATA_STR "0-+-/570,/13684 /12243/'1//.120/121001.-.5,$%133$&&()))%\"%'))*('%'('(')'%%&()()&%%&''(*)(,' $!+)10+) ##\"$ & !#&42  #!** ( +6' \"$#%'*& /-++*(('%$$%*6'#%(+,(%$%&((('')$#$'((+*!!&)*++'\"$'*--, **'&'()'&(***)'$'(()))(&))*('(''&')*+)'& &*,++'!*+*0  $,3>> #%-CB+/( =3M &) A+/*'#! \"$ &*.020"
 
-#define INDEX_EG 137
+#define INDEX_EG 141
 
 #define INDEX_PST_RANK 0
 #define INDEX_PST_FILE 48
@@ -31,17 +31,19 @@ i32 PHASE[] { 0, 1, 1, 2, 4, 0 },
 #define INDEX_PASSER 100
 #define INDEX_PHALANX 106
 #define INDEX_THREAT 112
-#define INDEX_KING_ATTACK 116
-#define INDEX_KING_PASSER_US 121
-#define INDEX_KING_PASSER_THEM 129
+#define INDEX_PUSH_THREAT 116
+#define INDEX_KING_ATTACK 120
+#define INDEX_KING_PASSER_US 125
+#define INDEX_KING_PASSER_THEM 133
 
-#define OFFSET_MOBILITY S(-9, -4)
-#define OFFSET_PASSER S(1, -3)
-#define OFFSET_PHALANX S(1, 1)
-#define OFFSET_THREAT S(9, -8)
+#define OFFSET_MOBILITY S(-8, -4)
+#define OFFSET_PASSER S(-2, -3)
+#define OFFSET_PHALANX S(1, 0)
+#define OFFSET_THREAT S(10, -8)
+#define OFFSET_PUSH_THREAT S(19, -25)
 #define OFFSET_KING_ATTACK S(12, -14)
-#define OFFSET_PST S(-24, -15)
-#define OFFSET_KING_PASSER S(-14, -15)
+#define OFFSET_PST S(-23, -15)
+#define OFFSET_KING_PASSER S(-19, -16)
 
 i32 get_data(i32 index) {
     auto data = DATA_STR;

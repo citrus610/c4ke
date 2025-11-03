@@ -234,7 +234,9 @@ struct Board {
                 pawns_them = pieces[PAWN] & colors[!color],
                 pawns_threats = se(pawns_them) | sw(pawns_them),
                 pawns_attacks = ne(pawns_us) | nw(pawns_us),
-                pawns_phalanx = west(pawns_us) & pawns_us;
+                pawns_phalanx = west(pawns_us) & pawns_us,
+                pawns_them_push = south(pawns_them) & ~(colors[WHITE] | colors[BLACK]),
+                pawns_push_threats = se(pawns_them_push) | sw(pawns_them_push);
 
             i32 king_us = LSB(pieces[KING] & colors[color]),
                 king_them = LSB(pieces[KING] & colors[!color]);
@@ -310,6 +312,10 @@ struct Board {
                         // Pawn threats
                         if (1ull << square & pawns_threats)
                             eval -= (get_data(type + INDEX_THREAT) + OFFSET_THREAT) * SCALE;
+
+                        // Pawn push threats
+                        if (1ull << square & pawns_push_threats)
+                            eval -= get_data(type + INDEX_PUSH_THREAT) + OFFSET_PUSH_THREAT;
                     }
                 }
             }

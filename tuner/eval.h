@@ -12,6 +12,7 @@ struct Trace
     i32 passer[2][6] {};
     i32 phalanx[2][6] {};
     i32 threat[2][4] {};
+    i32 push_threat[2][4] {};
     i32 king_attack[2][5] {};
     i32 king_passer_us[2][8] {};
     i32 king_passer_them[2][8] {};
@@ -41,6 +42,7 @@ i32 MOBILITY[] = { S(9, 7), S(8, 7), S(2, 6), S(0, 17), S(-9, -6) };
 i32 PASSER[] = { S(-8, 4), S(-11, 23), S(-11, 62), S(13, 103), S(-1, 176), S(18, 196) };
 i32 PHALANX[] = { S(8, 3), S(19, 19), S(34, 35), S(67, 92), S(161, 235), S(147, 234) };
 i32 THREAT[] = { S(71, 25), S(78, 51), S(97, -5), S(84, -62) };
+i32 PUSH_THREAT[] = { S(71, 25), S(78, 51), S(97, -5), S(84, -62) };
 i32 KING_ATTACK[] = { S(12, -11), S(24, -6), S(33, -14), S(18, 17) };
 i32 KING_PASSER_US[] = { S(0, 0), S(0, 25), S(-50, 40), S(-25, -15), S(-15, -40), S(-10, -40), S(-10, -45), S(-5, -50) };
 i32 KING_PASSER_THEM[] = { S(-100, -100), S(-100, -80), S(-50, -50), S(0, 0), S(20, 25), S(25, 40), S(50, 50), S(50, 75) };
@@ -56,7 +58,7 @@ i32 PASSER_BLOCKED = S(2, 84);
 
 i32 TEMPO = 20;
 
-inline Trace get_trace(Board& board)
+inline Trace get_trace(Board& board, f64 wdl)
 {
     auto trace = Trace();
 
@@ -72,6 +74,7 @@ inline Trace get_trace(Board& board)
         u64 pawns_threats = attack::get_pawn_span<color::BLACK>(pawns_them);
         u64 pawns_attacks = attack::get_pawn_span<color::WHITE>(pawns_us);
         u64 pawns_phalanx = bitboard::get_shift<direction::WEST>(pawns_us) & pawns_us;
+        u64 pawns_push_threats = attack::get_pawn_span<color::BLACK>(bitboard::get_shift<direction::SOUTH>(pawns_them) & ~occupied);
 
         i8 king_square_us = bitboard::get_lsb(board.pieces[piece::type::KING] & board.colors[color]);
         i8 king_square_them = bitboard::get_lsb(board.pieces[piece::type::KING] & board.colors[!color]);
@@ -220,6 +223,12 @@ inline Trace get_trace(Board& board)
                         trace.threat[color][type - 1] -= 1;
                     }
 
+                    // Pawn push threats
+                    if (1ULL << square & pawns_push_threats) {
+                        score -= PUSH_THREAT[type - 1];
+                        trace.push_threat[color][type - 1] -= 1;
+                    }
+
                     // King attacker
                     if (type < piece::type::KING) {
                         i32 king_attack = bitboard::get_count(attack & attack::get_king(bitboard::get_lsb(board.pieces[piece::type::KING] & board.colors[!color])));
@@ -243,7 +252,7 @@ inline Trace get_trace(Board& board)
     }
 
     // Scaling
-    i32 x = 8 - bitboard::get_count(board.pieces[piece::type::PAWN] & board.colors[score < 0]);
+    i32 x = 8 - bitboard::get_count(board.pieces[piece::type::PAWN] & board.colors[wdl < 0.5]);
     i32 scale = 128 - x * x;
     i32 mg = get_mg(score);
     i32 eg = get_eg(score);
@@ -332,6 +341,7 @@ std::vector<Pair> get_init_weights()
     add_weights(result, PASSER, 6);
     add_weights(result, PHALANX, 6);
     add_weights(result, THREAT, 4);
+    add_weights(result, PUSH_THREAT, 4);
     add_weights(result, KING_ATTACK, 4);
     add_weights(result, KING_PASSER_US, 8);
     add_weights(result, KING_PASSER_THEM, 8);
@@ -360,6 +370,7 @@ std::vector<i32> get_coefs(Trace trace)
     add_coefs(result, trace.passer, 6);
     add_coefs(result, trace.phalanx, 6);
     add_coefs(result, trace.threat, 4);
+    add_coefs(result, trace.push_threat, 4);
     add_coefs(result, trace.king_attack, 4);
     add_coefs(result, trace.king_passer_us, 8);
     add_coefs(result, trace.king_passer_them, 8);
@@ -426,6 +437,7 @@ std::string get_str_print_weights(std::vector<Pair> weights)
     str += get_str_weights(weights, index, "PASSER", 6);
     str += get_str_weights(weights, index, "PHALANX", 6);
     str += get_str_weights(weights, index, "THREAT", 4);
+    str += get_str_weights(weights, index, "PUSH_THREAT", 4);
     str += get_str_weights(weights, index, "KING_ATTACK", 4);
     str += get_str_weights(weights, index, "KING_PASSER_US", 8);
     str += get_str_weights(weights, index, "KING_PASSER_THEM", 8);
