@@ -7,7 +7,8 @@ struct Board {
     i32 stm,
         castled,
         enpassant = SQUARE_NONE,
-        halfmove;
+        halfmove,
+        accumulator[2][NNUE_HIDDEN];
     u64 checkers,
         hash,
         hash_pawn,
@@ -15,22 +16,32 @@ struct Board {
 
     void edit(i32 square, i32 piece) {
         // Remove any pieces that exist in this square
-        if (board[square] < PIECE_NONE)
-            hash ^= KEYS[board[square]][square],
+        if (board[square] < PIECE_NONE) {
+            hash ^= KEYS[board[square]][square];
 
-            pieces[board[square] / 2] ^= 1ull << square,
-            colors[board[square] % 2] ^= 1ull << square,
+            pieces[board[square] / 2] ^= 1ull << square;
+            colors[board[square] % 2] ^= 1ull << square;
 
             (board[square] < WHITE_KNIGHT ? hash_pawn : hash_non_pawn[board[square] % 2]) ^= KEYS[board[square]][square];
+            
+            for (i32 i = 0; i < NNUE_HIDDEN; i++)
+                accumulator[WHITE][i] -= L0_W[ft(board[square], square, WHITE)][i],
+                accumulator[BLACK][i] -= L0_W[ft(board[square], square, BLACK)][i];
+        }
 
         // Place new piece
-        if (piece < PIECE_NONE)
-            hash ^= KEYS[piece][square],
+        if (piece < PIECE_NONE) {
+            hash ^= KEYS[piece][square];
 
-            pieces[piece / 2] ^= 1ull << square,
-            colors[piece % 2] ^= 1ull << square,
+            pieces[piece / 2] ^= 1ull << square;
+            colors[piece % 2] ^= 1ull << square;
 
             (piece < WHITE_KNIGHT ? hash_pawn : hash_non_pawn[piece % 2]) ^= KEYS[piece][square];
+
+            for (i32 i = 0; i < NNUE_HIDDEN; i++)
+                accumulator[WHITE][i] += L0_W[ft(piece, square, WHITE)][i],
+                accumulator[BLACK][i] += L0_W[ft(piece, square, BLACK)][i];
+        }
 
         board[square] = piece;
     }
@@ -226,120 +237,22 @@ struct Board {
     }
 
     i32 eval() {
-        i32 eval = 0,
-            phase = 0;
+        i32 eval = 0;
 
-        for (i32 color = WHITE; color < 2; color++) {
-            u64 pawns_us = pieces[PAWN] & colors[color],
-                pawns_them = pieces[PAWN] & colors[!color],
-                pawns_threats = se(pawns_them) | sw(pawns_them),
-                pawns_attacks = ne(pawns_us) | nw(pawns_us),
-                pawns_phalanx = west(pawns_us) & pawns_us,
-                pawns_them_push = south(pawns_them) & ~(colors[WHITE] | colors[BLACK]),
-                pawns_push_threats = se(pawns_them_push) | sw(pawns_them_push);
+        for (i32 i = 0; i < NNUE_HIDDEN; i++)
+            eval += screlu(accumulator[stm][i]) * L1_W[WHITE][i] + screlu(accumulator[!stm][i]) * L1_W[BLACK][i];
 
-            i32 king_us = LSB(pieces[KING] & colors[color]),
-                king_them = LSB(pieces[KING] & colors[!color]);
-
-            eval +=
-                // Bishop pair
-                (POPCNT(pieces[BISHOP] & colors[color]) > 1) * BISHOP_PAIR +
-                // Pawn protected
-                POPCNT(pawns_us & pawns_attacks) * PAWN_PROTECTED -
-                // Pawn doubled
-                POPCNT(pawns_us & (north(pawns_us) | north(north(pawns_us)))) * PAWN_DOUBLED;
-
-            for (i32 type = PAWN; type < TYPE_NONE; type++) {
-                u64 mask = pieces[type] & colors[color];
-
-                for (; mask;) {
-                    i32 square = LSB(mask);
-                    mask &= mask - 1;
-
-                    // PST
-                    eval +=
-                        MATERIAL[type] + (
-                            get_data(type * 8 + square / 8) +
-                            get_data(type * 8 + square % 8 + INDEX_PST_FILE) +
-                            OFFSET_PST
-                        ) * SCALE;
-
-                    // Update phase
-                    phase += PHASE[type];
-
-                    if (!type) {
-                        // Pawn phalanx
-                        if (pawns_phalanx & 1ull << square)
-                            eval += (get_data(square / 8 + INDEX_PHALANX) + OFFSET_PHALANX) * SCALE;
-
-                        // Passed pawn
-                        if (!(0x101010101010101u << square & (pawns_them | pawns_threats))) {
-                            eval += (get_data(square / 8 + INDEX_PASSER) + OFFSET_PASSER) * SCALE;
-
-                            // Blocked passed pawn
-                            if (north(1ull << square) & colors[!color])
-                                eval -= PASSER_BLOCKED;
-
-                            // King distance
-                            eval += (
-                                get_data(max(abs(square / 8 - king_us / 8 + 1), abs(square % 8 - king_us % 8)) + INDEX_KING_PASSER_US) +
-                                get_data(max(abs(square / 8 - king_them / 8 + 1), abs(square % 8 - king_them % 8)) + INDEX_KING_PASSER_THEM) +
-                                OFFSET_KING_PASSER
-                            ) * SCALE;
-                        }
-                    }
-                    else {
-                        // Mobility
-                        u64 mobility = attack(1ull << square, colors[WHITE] | colors[BLACK], type);
-
-                        eval += (get_data(type + INDEX_MOBILITY) + OFFSET_MOBILITY) * POPCNT(mobility & ~colors[color] & ~pawns_threats);
-
-                        // Open file
-                        if (!(0x101010101010101u << square % 8 & pieces[PAWN]))
-                            eval += (type > QUEEN) * KING_OPEN + (type == ROOK) * ROOK_OPEN;
-
-                        // Semi open file
-                        if (!(0x101010101010101u << square % 8 & pawns_us))
-                            eval += (type > QUEEN) * KING_SEMIOPEN + (type == ROOK) * ROOK_SEMIOPEN;
-
-                        if (type > QUEEN)
-                            // Pawn shield
-                            eval += POPCNT(pawns_us & 0x70700 << 5 * (square % 8 > 2)) * PAWN_SHIELD * (square < A2);
-                        else
-                            // King attacker
-                            eval += POPCNT(mobility & attack(pieces[KING] & colors[!color], 0, KING)) * (get_data(type + INDEX_KING_ATTACK) + OFFSET_KING_ATTACK);
-
-                        // Pawn threats
-                        if (1ull << square & pawns_threats)
-                            eval -= (get_data(type + INDEX_THREAT) + OFFSET_THREAT) * SCALE;
-
-                        // Pawn push threats
-                        if (1ull << square & pawns_push_threats)
-                            eval -= get_data(type + INDEX_PUSH_THREAT) + OFFSET_PUSH_THREAT;
-                    }
-                }
-            }
-
-            // Flip board
-            colors[WHITE] = BSWAP(colors[WHITE]);
-            colors[BLACK] = BSWAP(colors[BLACK]);
-
-            for (i32 type = PAWN; type < TYPE_NONE; type++)
-                pieces[type] = BSWAP(pieces[type]);
-
-            eval = -eval;
-        }
-
-        // Scaling
-        i32 x = 8 - POPCNT(pieces[PAWN] & colors[eval < 0]);
-
-        return (i16(eval = stm ? -eval : eval) * phase + (eval + 0x8000 >> 16) * (128 - x * x) / 128 * (24 - phase)) / 24 + TEMPO;
+        return clamp((eval / NNUE_SCALE_L0 + L1_B) * NNUE_SCALE_EVAL / NNUE_SCALE_L0_L1, -30000, 30000);
     }
 
 #ifdef OB_MINI
     void from_fen(istream& fen) {
         memset(this, 0, sizeof(Board));
         memset(board, PIECE_NONE, 64);
+
+        // Accumulator
+        for (i32 i = 0; i < NNUE_HIDDEN; i++)
+            accumulator[WHITE][i] = accumulator[BLACK][i] = L0_B[i];
 
         string token;
 
@@ -427,6 +340,9 @@ struct Board {
 
         for (i32 i = 0; i < 64; i++)
             board[i] = PIECE_NONE;
+
+        for (i32 i = 0; i < NNUE_HIDDEN; i++)
+            accumulator[WHITE][i] = accumulator[BLACK][i] = L0_B[i];
 
         for (i32 i = 0; i < 8; i++)
             edit(i + A1, LAYOUT[i] * 2 + WHITE),

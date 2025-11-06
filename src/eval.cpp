@@ -1,52 +1,43 @@
 #include "chess.cpp"
 
-#define S(MG, EG) (MG + (EG << 16))
+#define DATA_STR "MXTMMKKN4.*,-,&\"P]WD?JTPcOG6<5@LOHDK3rIORIS|MLLGFY[RNUO:VNUNJ5;F``bdhhg`LJHIJGLLojkilknqqo`MUtT:;[GE;I[^` HLI?:y:?@CEECFeefgggegFEGHGFEEeggggggf[OM0)'IU[otK1+=9 UUbYXu|7QRUOD13f`\\UPHC8GJKMMLIG63444448fJPJ?\\nFOLJ1Z)#.$l(d\\fOAMBHONNMM@=@FEFIITdf[RB>P]]\\VOJEDGB?A7QL\\TI= BOO[` BOIIU`WQRTOJIM8EDGKXd`PTZ\\[VSR! !!!   dSOQW^NLNMUTC=>1 GNY]ds=RFLOJIMONNOPSSTTMJRJRFTRTHb8k7c?@RILI&UNGVMvJNNLMM9NOIMNNR?APORUlllkkjihPQNMMMRPjnonoopkaXWsg|QG?4(?6\\^VrN3CH;3Feig[RULn*))-22.3GJJJJJHG !   !\" -''?!E@b^\\|M[LI+-j]]bu|YWGIPBM^?;>;:9@LMMOLJJOPM^^\\\\[]]^o9=QD\\M]UQUY|5:V]nO^NP9LJ?M\\YXaJEUTLKIF6VOSWVKNTHVRZRZRI_U[BQOSEEHFFdVLjMKNE>ZLWNRMGS]bivuutsrrsRQQQRRSR--++*,-.XBT_|Z8ZMF HX+>:#2Cpdn|Yy;|rB4P|r_Px||! ||||||e|  || !   \"5 N"
 
-i32 PHASE[] { 0, 1, 1, 2, 4, 0 },
-    VALUE[] { 110, 319, 294, 518, 912, 2000, 0 },
+#define NNUE_INPUT 768
+#define NNUE_INPUT_DECOMPOSED 56
+#define NNUE_HIDDEN 8
+
+#define NNUE_SCALE_L0 2116
+#define NNUE_SCALE_L1 46
+#define NNUE_SCALE_L0_L1 97336
+#define NNUE_SCALE_EVAL 400
+
+#define INDEX_L0_WEIGHT_R1 0
+#define INDEX_L0_WEIGHT_R2 8
+#define INDEX_L0_WEIGHT_F1 16
+#define INDEX_L0_WEIGHT_F2 24
+#define INDEX_L0_WEIGHT_P1 32
+#define INDEX_L0_WEIGHT_P2 44
+#define INDEX_L0_BIAS 672
+#define INDEX_L1_WEIGHT 684
+#define INDEX_L1_BIAS 708
+
+i32 VALUE[] { 110, 319, 294, 518, 912, 2000, 0 },
     LAYOUT[] { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK },
-    MATERIAL[] { S(97, 191), S(364, 567), S(379, 575), S(506, 1038), S(1295, 1696), 0 };
-
-#define SCALE 8
-
-#define BISHOP_PAIR S(29, 97)
-#define KING_OPEN S(-70, -9)
-#define KING_SEMIOPEN S(-34, 14)
-#define ROOK_OPEN S(24, -5)
-#define ROOK_SEMIOPEN S(17, 17)
-#define PAWN_PROTECTED S(24, 28)
-#define PAWN_DOUBLED S(13, 36)
-#define PAWN_SHIELD S(29, -16)
-#define PASSER_BLOCKED S(5, 60)
-
-#define TEMPO 20
-
-#define DATA_STR "0-+-/570,/13684 /12243/'1//.120/121001.-.5,$%133$&&()))%\"%'))*('%'('(')'%%&()()&%%&''(*)(,' $!+)10+) ##\"$ & !#&42  #!** ( +6' \"$#%'*& /-++*(('%$$%*6'#%(+,(%$%&((('')$#$'((+*!!&)*++'\"$'*--, **'&'()'&(***)'$'(()))(&))*('(''&')*+)'& &*,++'!*+*0  $,3>> #%-CB+/( =3M &) A+/*'#! \"$ &*.020"
-
-#define INDEX_EG 141
-
-#define INDEX_PST_RANK 0
-#define INDEX_PST_FILE 48
-#define INDEX_MOBILITY 95
-#define INDEX_PASSER 100
-#define INDEX_PHALANX 106
-#define INDEX_THREAT 112
-#define INDEX_PUSH_THREAT 116
-#define INDEX_KING_ATTACK 120
-#define INDEX_KING_PASSER_US 125
-#define INDEX_KING_PASSER_THEM 133
-
-#define OFFSET_MOBILITY S(-8, -4)
-#define OFFSET_PASSER S(-2, -3)
-#define OFFSET_PHALANX S(1, 0)
-#define OFFSET_THREAT S(10, -8)
-#define OFFSET_PUSH_THREAT S(19, -25)
-#define OFFSET_KING_ATTACK S(12, -14)
-#define OFFSET_PST S(-23, -15)
-#define OFFSET_KING_PASSER S(-19, -16)
+    L0_W[NNUE_INPUT][NNUE_HIDDEN],
+    L0_B[NNUE_HIDDEN],
+    L1_W[2][NNUE_HIDDEN],
+    L1_B;
 
 i32 get_data(i32 index) {
-    auto data = DATA_STR;
+    return DATA_STR[index] - 78;
+}
 
-    return data[index] + (data[index + INDEX_EG] << 16) - S(32, 32);
+i32 ft(i32 piece, i32 square, i32 stm) {
+    return 384 * (piece % 2 != stm) + 64 * (piece / 2) + square ^ 56 * stm;
+}
+
+i32 screlu(i32 x) {
+    x = clamp(x, 0, NNUE_SCALE_L0);
+
+    return x * x;
 }
