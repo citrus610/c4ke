@@ -372,6 +372,23 @@ i32 main() {
         for (i32 k = 0; k < 64; k++)
             KEYS[i][k] = rng();
 
+    // Net init
+    for (i32 i = 0; i < NNUE_HIDDEN; i++) {
+        for (i32 k = 0; k < NNUE_INPUT; k++) {
+            L0_W[k][i] =
+                get_data(i * NNUE_INPUT_DECOMPOSED + INDEX_L0_WEIGHT_R1 + (k % 64) / 8) * get_data(i * NNUE_INPUT_DECOMPOSED + INDEX_L0_WEIGHT_F1 + k % 8) + 
+                get_data(i * NNUE_INPUT_DECOMPOSED + INDEX_L0_WEIGHT_P1 + k / 64) * get_data(i * NNUE_INPUT_DECOMPOSED + INDEX_L0_WEIGHT_R2 + (k % 64) / 8) +
+                get_data(i * NNUE_INPUT_DECOMPOSED + INDEX_L0_WEIGHT_P2 + k / 64) * get_data(i * NNUE_INPUT_DECOMPOSED + INDEX_L0_WEIGHT_F2 + k % 8);
+        }
+
+        L0_B[i] = get_data(INDEX_L0_BIAS + i) * NNUE_SCALE_L1;
+
+        L1_W[WHITE][i] = get_data(INDEX_L1_WEIGHT + i);
+        L1_W[BLACK][i] = get_data(INDEX_L1_WEIGHT + i + NNUE_HIDDEN);
+    }
+
+    L1_B = get_data(INDEX_L1_BIAS) * NNUE_SCALE_L0;
+
     // Search data
     Board board;
 
