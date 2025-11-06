@@ -4,7 +4,7 @@
 
 #define NNUE_INPUT 768
 #define NNUE_INPUT_DECOMPOSED 56
-#define NNUE_HIDDEN 8
+#define NNUE_HIDDEN 12
 
 #define NNUE_SCALE_L0 2116
 #define NNUE_SCALE_L1 46
