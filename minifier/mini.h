@@ -663,7 +663,7 @@ inline std::vector<Constant> get_constants(std::string str, bool is_tcec)
         // Replace values for TCEC build
         // Use 512 threads
         if (is_tcec && name == "THREADS") {
-            value = "512";
+            value = "256";
         }
 
         // Use 256 GB hash

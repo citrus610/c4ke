@@ -49,7 +49,7 @@ struct Thread {
 
         // Oracle
         if (ply) {
-            // Repetiion
+            // Repetition
             for (i32 i = 4; i <= ply; i += 2)
                 if (board.hash == visited[ply - i])
                     return DRAW;
