@@ -412,7 +412,6 @@ i32 main() {
     // Uci
     string token;
     cin >> token;
-    cout << "uciok\n";
 
 #ifdef OB
     cout << "id name c4ke v1.1" << endl;
@@ -420,6 +419,8 @@ i32 main() {
     cout << "option name Hash type spin default 8 min 1 max 67108864" << endl;
     cout << "option name Threads type spin default 1 min 1 max 2048" << endl;
 #endif
+
+    cout << "uciok\n";
 
     for (; getline(cin, token);) {
         stringstream tokens(token);
@@ -548,4 +549,5 @@ i32 main() {
     }
 
     free(TTABLE);
+
 };
