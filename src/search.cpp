@@ -152,8 +152,6 @@ struct Thread {
                 // Noisy moves
                     // MVV
                     VALUE[board.board[move_to(move)] / 2 % TYPE_NONE] * 16 +
-                    // Promo bonus
-                    VALUE[move_promo(move)] +
                     // Noisy history
                     nhist[board.board[move_to(move)] / 2 % TYPE_NONE][board.board[move_from(move)]][move_to(move)] +
                     // SEE

@@ -164,14 +164,8 @@ struct Board {
             i32 to = LSB(targets);
             targets &= targets - 1;
 
-            if (to < 8 || to > 55)
-                // Prmotion
-                *list_end++ = move_make(to - offset, to, KNIGHT),
-                *list_end++ = move_make(to - offset, to, BISHOP),
-                *list_end++ = move_make(to - offset, to, ROOK),
-                *list_end++ = move_make(to - offset, to, QUEEN);
-            else
-                *list_end++ = move_make(to - offset, to);
+            // Prmotion
+            *list_end++ = move_make(to - offset, to, (to < 8 || to > 55) * QUEEN);
         }
     }
 
