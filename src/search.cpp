@@ -184,7 +184,7 @@ struct Thread {
                 break;
 
             // Late move pruning
-            if (!is_pv && !board.checkers && quiet_count > 1 + depth * depth >> !is_improving && is_quiet)
+            if (ply && best > -WIN && quiet_count > 1 + depth * depth >> !is_improving && is_quiet)
                 continue;
 
             // Futility pruning

@@ -549,5 +549,4 @@ i32 main() {
     }
 
     free(TTABLE);
-
 };
