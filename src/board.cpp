@@ -7,7 +7,8 @@ struct Board {
     i32 stm,
         castled,
         enpassant = SQUARE_NONE,
-        halfmove;
+        halfmove,
+        phases[2];
     u64 checkers,
         hash,
         hash_pawn,
@@ -21,7 +22,9 @@ struct Board {
             pieces[board[square] / 2] ^= 1ull << square,
             colors[board[square] % 2] ^= 1ull << square,
 
-            (board[square] < WHITE_KNIGHT ? hash_pawn : hash_non_pawn[board[square] % 2]) ^= KEYS[board[square]][square];
+            (board[square] < WHITE_KNIGHT ? hash_pawn : hash_non_pawn[board[square] % 2]) ^= KEYS[board[square]][square],
+            
+            phases[board[square] % 2] -= PHASE[board[square] / 2];
 
         // Place new piece
         if (piece < PIECE_NONE)
@@ -30,7 +33,9 @@ struct Board {
             pieces[piece / 2] ^= 1ull << square,
             colors[piece % 2] ^= 1ull << square,
 
-            (piece < WHITE_KNIGHT ? hash_pawn : hash_non_pawn[piece % 2]) ^= KEYS[piece][square];
+            (piece < WHITE_KNIGHT ? hash_pawn : hash_non_pawn[piece % 2]) ^= KEYS[piece][square],
+
+            phases[piece % 2] += PHASE[piece / 2];
 
         board[square] = piece;
     }
@@ -220,7 +225,7 @@ struct Board {
 
     i32 eval() {
         i32 eval = 0,
-            phase = 0;
+            phase = phases[WHITE] + phases[BLACK];
 
         for (i32 color = WHITE; color < 2; color++) {
             u64 pawns_us = pieces[PAWN] & colors[color],
@@ -256,9 +261,6 @@ struct Board {
                             get_data(type * 8 + square % 8 + INDEX_PST_FILE) +
                             OFFSET_PST
                         ) * SCALE;
-
-                    // Update phase
-                    phase += PHASE[type];
 
                     if (!type) {
                         // Pawn phalanx
@@ -324,9 +326,11 @@ struct Board {
         }
 
         // Scaling
-        i32 x = 8 - POPCNT(pieces[PAWN] & colors[eval < 0]);
+        i32 strong = eval < 0,
+            x = 8 - POPCNT(pieces[PAWN] & colors[strong]),
+            scale = x > 7 && phases[strong] - phases[!strong] < 2 ? 32 : 128 - x * x;
 
-        return (i16(eval = stm ? -eval : eval) * phase + (eval + 0x8000 >> 16) * (128 - x * x) / 128 * (24 - phase)) / 24 + TEMPO;
+        return (i16(eval = stm ? -eval : eval) * phase + (eval + 0x8000 >> 16) * scale / 128 * (24 - phase)) / 24 + TEMPO;
     }
 
 #ifdef OB_MINI
