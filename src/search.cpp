@@ -255,7 +255,7 @@ struct Thread {
 
             // Update root moves nodes count
             if (!ply)
-                nodes_table[move & 4095] = nodes - nodes_start;
+                nodes_table[move & 4095] += nodes - nodes_start;
 
             // Update score
             if (score > best)
@@ -385,7 +385,7 @@ struct Thread {
                 cout << "info depth " << depth << " score cp " << score << " pv ", move_print(BEST_MOVE);
 
             // Check time
-            if (!id && now() > TIME_START + TIME_SOFT * (2 - 1.5 * double(nodes_table[BEST_MOVE]) / double(nodes)))
+            if (!id && now() > TIME_START + TIME_SOFT * (2 - 1.5 * nodes_table[BEST_MOVE] / nodes))
                 STOP++;
 
             if (STOP)
