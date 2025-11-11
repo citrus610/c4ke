@@ -385,7 +385,7 @@ struct Thread {
                 cout << "info depth " << depth << " score cp " << score << " pv ", move_print(BEST_MOVE);
 
             // Check time
-            if (!id && now() > TIME_START + TIME_SOFT * (2 - 1.5 * nodes_table[BEST_MOVE] / nodes))
+            if (!id && now() > TIME_START + TIME_SOFT * (2 - 1.5 * nodes_table[BEST_MOVE & 4095] / nodes))
                 STOP++;
 
             if (STOP)
