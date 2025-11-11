@@ -64,6 +64,7 @@ inline Trace get_trace(Board& board, f64 wdl)
 
     i32 score = 0;
     i32 phase = 0;
+    i32 phases[2] = { 0 };
 
     i32 material = 0;
 
@@ -105,6 +106,7 @@ inline Trace get_trace(Board& board, f64 wdl)
 
                 // Phase
                 phase += PHASE[type];
+                phases[color] += PHASE[type];
 
                 // Material
                 if (type < piece::type::KING) {
@@ -252,8 +254,9 @@ inline Trace get_trace(Board& board, f64 wdl)
     }
 
     // Scaling
-    i32 x = 8 - bitboard::get_count(board.pieces[piece::type::PAWN] & board.colors[wdl < 0.5]);
-    i32 scale = 128 - x * x;
+    i32 strong = wdl < 0.5;
+    i32 x = 8 - bitboard::get_count(board.pieces[piece::type::PAWN] & board.colors[strong]);
+    i32 scale = x > 7 && phases[strong] - phases[!strong] < 2 ? 32 : 128 - x * x;
     i32 mg = get_mg(score);
     i32 eg = get_eg(score);
     
@@ -334,7 +337,6 @@ std::vector<Pair> get_init_weights()
 {
     std::vector<Pair> result;
 
-    // add_weights(result, MATERIAL, 5);
     add_weights(result, PST_RANK, 48);
     add_weights(result, PST_FILE, 48);
     add_weights(result, MOBILITY, 5);
@@ -363,7 +365,6 @@ std::vector<i32> get_coefs(Trace trace)
 {
     std::vector<i32> result;
 
-    // add_coefs(result, trace.material, 5);
     add_coefs(result, trace.pst_rank, 48);
     add_coefs(result, trace.pst_file, 48);
     add_coefs(result, trace.mobility, 5);
