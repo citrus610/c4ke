@@ -69,9 +69,6 @@ struct Thread {
         // Probe transposition table
         TTEntry tt = TTABLE[board.hash >> TT_SHIFT];
 
-        if (tt.score > WIN) tt.score = INF - ply;
-        if (tt.score < -WIN) tt.score = ply - INF;
-
         if (tt.key != i16(board.hash))
             tt = {};
 
@@ -348,8 +345,8 @@ struct Thread {
 
             // Aspiration window
             i32 delta = 10,
-                alpha = depth > 3 ? max(score - delta, -INF) : -INF,
-                beta = depth > 3 ? min(score + delta, INF) : INF,
+                alpha = depth > 3 ? score - delta : -INF,
+                beta = depth > 3 ? score + delta : INF,
                 reduction = 0;
 
             for (;;) {
@@ -359,10 +356,10 @@ struct Thread {
                 // Update window
                 if (score <= alpha)
                     beta = (alpha + beta) / 2,
-                    alpha = max(score - delta, -INF),
+                    alpha = score - delta,
                     reduction = 0;
                 else if (score >= beta)
-                    beta = min(score + delta, INF),
+                    beta = score + delta,
                     reduction++;
                 else
                     break;
