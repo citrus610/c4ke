@@ -253,8 +253,9 @@ struct TTEntry {
 };
 
 TTEntry* TTABLE = (TTEntry*)calloc(1ull << TT_BITS, 8);
-u64 LIMIT_SOFT,
-    LIMIT_HARD,
+u64 TIME_START,
+    TIME_SOFT,
+    TIME_LIMIT,
     VISITED[STACK_SIZE];
 i32 BEST_MOVE,
     VISITED_COUNT;

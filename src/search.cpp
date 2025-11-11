@@ -15,6 +15,7 @@ struct Thread {
         conthist[12][64],
         *stack_conthist[STACK_SIZE];
     u64 nodes,
+        nodes_table[4096],
         visited[STACK_SIZE];
     i32 id,
         stack_eval[STACK_SIZE];
@@ -41,7 +42,7 @@ struct Thread {
             depth = 0;
 
         // Abort
-        if (!id && !(++nodes & 4095) && now() > LIMIT_HARD)
+        if (!id && !(++nodes & 4095) && now() > TIME_LIMIT)
             STOP++;
 
         if (STOP || ply >= MAX_PLY)
@@ -172,6 +173,9 @@ struct Thread {
                 is_quiet = board.quiet(move),
                 depth_next = depth - 1;
 
+            // Start nodes count
+            u64 nodes_start = nodes;
+
             // Skip excluded move in singularity search
             if (move == excluded)
                 continue;
@@ -248,6 +252,10 @@ struct Thread {
             // Abort
             if (STOP)
                 return DRAW;
+
+            // Update root moves nodes count
+            if (!ply)
+                nodes_table[move & 4095] = nodes - nodes_start;
 
             // Update score
             if (score > best)
@@ -377,7 +385,7 @@ struct Thread {
                 cout << "info depth " << depth << " score cp " << score << " pv ", move_print(BEST_MOVE);
 
             // Check time
-            if (!id && now() > LIMIT_SOFT)
+            if (!id && now() > TIME_START + TIME_SOFT * (2 - 1.5 * nodes_table[BEST_MOVE] / nodes))
                 STOP++;
 
             if (STOP)
