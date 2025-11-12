@@ -19,6 +19,7 @@ struct Trace
     i32 bishop_pair[2] {};
     i32 king_open[2] {};
     i32 king_semiopen[2] {};
+    i32 king_pawn_threat[2] {};
     i32 rook_open[2] {};
     i32 rook_semiopen[2] {};
     i32 pawn_protected[2] {};
@@ -49,6 +50,7 @@ i32 KING_PASSER_THEM[] = { S(-100, -100), S(-100, -80), S(-50, -50), S(0, 0), S(
 i32 BISHOP_PAIR = S(29, 95);
 i32 KING_OPEN = S(-70, -12);
 i32 KING_SEMIOPEN = S(-34, 22);
+i32 KING_PAWN_THREAT = S(-20, 22);
 i32 ROOK_OPEN = S(24, -2);
 i32 ROOK_SEMIOPEN = S(17, 15);
 i32 PAWN_PROTECTED = S(24, 26);
@@ -97,6 +99,12 @@ inline Trace get_trace(Board& board, f64 wdl)
 
         score -= pawn_doubled * PAWN_DOUBLED;
         trace.pawn_doubled[color] -= pawn_doubled;
+
+        // King threatening pawns
+        i32 pawn_threaten = bitboard::get_count(attack::get_king(king_square_us) & pawns_them);
+
+        score += pawn_threaten * KING_PAWN_THREAT;
+        trace.king_pawn_threat[color] += pawn_threaten;
 
         for (i8 type = piece::type::PAWN; type < 6; ++type) {
             u64 mask = board.pieces[type] & board.colors[color];
@@ -351,6 +359,7 @@ std::vector<Pair> get_init_weights()
     add_weight(result, BISHOP_PAIR);
     add_weight(result, KING_OPEN);
     add_weight(result, KING_SEMIOPEN);
+    add_weight(result, KING_PAWN_THREAT);
     add_weight(result, ROOK_OPEN);
     add_weight(result, ROOK_SEMIOPEN);
     add_weight(result, PAWN_PROTECTED);
@@ -379,6 +388,7 @@ std::vector<i32> get_coefs(Trace trace)
     add_coef(result, trace.bishop_pair);
     add_coef(result, trace.king_open);
     add_coef(result, trace.king_semiopen);
+    add_coef(result, trace.king_pawn_threat);
     add_coef(result, trace.rook_open);
     add_coef(result, trace.rook_semiopen);
     add_coef(result, trace.pawn_protected);
@@ -446,6 +456,7 @@ std::string get_str_print_weights(std::vector<Pair> weights)
     str += get_str_weight(weights, index, "BISHOP_PAIR");
     str += get_str_weight(weights, index, "KING_OPEN");
     str += get_str_weight(weights, index, "KING_SEMIOPEN");
+    str += get_str_weight(weights, index, "KING_PAWN_THREAT");
     str += get_str_weight(weights, index, "ROOK_OPEN");
     str += get_str_weight(weights, index, "ROOK_SEMIOPEN");
     str += get_str_weight(weights, index, "PAWN_PROTECTED");
