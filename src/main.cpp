@@ -341,8 +341,9 @@ void bench()
         Thread engine {};
 
         STOP = FALSE;
-        LIMIT_SOFT = UINT64_MAX;
-        LIMIT_HARD = UINT64_MAX;
+        TIME_START = now();
+        TIME_SOFT = UINT64_MAX;
+        TIME_LIMIT = UINT64_MAX;
         VISITED_COUNT = 0;
 
         u64 time_1 = now();
@@ -504,8 +505,9 @@ i32 main() {
 #endif
 
             STOP = FALSE;
-            LIMIT_SOFT = now() + time / 20;
-            LIMIT_HARD = now() + time / 2;
+            TIME_START = now();
+            TIME_SOFT = time / 20;
+            TIME_LIMIT = TIME_START + time / 2;
 
 #ifdef OB
             vector<jthread> threads(THREADS);
