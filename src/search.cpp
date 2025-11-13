@@ -105,27 +105,25 @@ struct Thread {
             if (!depth && (alpha = max(alpha, best = eval)) >= beta)
                 return eval;
 
-            if (!is_pv && !excluded) {
-                // Reverse futility pruning
-                if (depth && depth < 9 && eval < WIN && eval > beta + 66 * (depth - is_improving))
-                    return eval;
+            // Reverse futility pruning
+            if (!is_pv && !excluded && depth && depth < 9 && eval < WIN && eval > beta + 66 * depth - 66 * is_improving)
+                return eval;
 
-                // Null move pruning
-                if (depth > 2 && eval > beta + 25 && board.colors[board.stm] & ~board.pieces[PAWN] & ~board.pieces[KING]) {
-                    Board child = board;
+            // Null move pruning
+            if (!is_pv && !excluded && depth > 2 && eval > beta + 25 && board.colors[board.stm] & ~board.pieces[PAWN] & ~board.pieces[KING]) {
+                Board child = board;
 
-                    child.stm ^= 1;
-                    child.hash ^= KEYS[PIECE_NONE][0];
-                    child.hash ^= KEYS[PIECE_NONE][child.enpassant];
-                    child.enpassant = SQUARE_NONE;
+                child.stm ^= 1;
+                child.hash ^= KEYS[PIECE_NONE][0];
+                child.hash ^= KEYS[PIECE_NONE][child.enpassant];
+                child.enpassant = SQUARE_NONE;
 
-                    stack_conthist[ply + 2] = conthist[WHITE_PAWN];
+                stack_conthist[ply + 2] = conthist[WHITE_PAWN];
 
-                    score = -search(child, -beta, -alpha, ply + 1, depth - 5 - depth / 3);
+                score = -search(child, -beta, -alpha, ply + 1, depth - 5 - depth / 3);
 
-                    if (score >= beta)
-                        return score < WIN ? score : beta;
-                }
+                if (score >= beta)
+                    return score < WIN ? score : beta;
             }
         }
 
