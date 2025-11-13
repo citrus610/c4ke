@@ -242,7 +242,7 @@ struct Board {
                 // Pawn doubled
                 POPCNT(pawns_us & (north(pawns_us) | north(north(pawns_us)))) * PAWN_DOUBLED +
                 // King threatening pawns
-                POPCNT(attack(pieces[KING] & colors[color], 0, KING) & pawns_them) * KING_PAWN_THREAT;
+                POPCNT(attack(1ull << king_us, 0, KING) & pawns_them) * KING_PAWN_THREAT;
 
             for (i32 type = PAWN; type < TYPE_NONE; type++) {
                 u64 mask = pieces[type] & colors[color];
@@ -302,7 +302,7 @@ struct Board {
                             eval += POPCNT(pawns_us & 0x70700 << 5 * (square % 8 > 2)) * PAWN_SHIELD * (square < A2);
                         else
                             // King attacker
-                            eval += POPCNT(mobility & attack(pieces[KING] & colors[!color], 0, KING)) * (get_data(type + INDEX_KING_ATTACK) + OFFSET_KING_ATTACK);
+                            eval += POPCNT(mobility & attack(1ull << king_them, 0, KING)) * (get_data(type + INDEX_KING_ATTACK) + OFFSET_KING_ATTACK);
 
                         // Pawn threats
                         if (1ull << square & pawns_threats)
@@ -420,7 +420,7 @@ struct Board {
 #endif
 
     void startpos() {
-        *this = Board{};
+        *this = {};
 
         for (i32 i = 0; i < 64; i++)
             board[i] = PIECE_NONE;
