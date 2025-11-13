@@ -300,7 +300,7 @@ struct Board {
                         if (type > QUEEN)
                             // Pawn shield
                             eval += POPCNT(pawns_us & 0x70700 << 5 * (square % 8 > 2)) * PAWN_SHIELD * (square < A2);
-                        else
+                        else if (pieces[QUEEN])
                             // King attacker
                             eval += POPCNT(mobility & attack(1ull << king_them, 0, KING)) * (get_data(type + INDEX_KING_ATTACK) + OFFSET_KING_ATTACK);
 
