@@ -1,5 +1,7 @@
 #include "chess.cpp"
 
+// data: lichess-big3 - loss: 0.074724
+
 #define S(MG, EG) (MG + (EG << 16))
 
 i32 PHASE[] { 0, 1, 1, 2, 4, 0 },

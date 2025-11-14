@@ -195,7 +195,7 @@ struct Thread {
                 continue;
 
             // Singular extension
-            if (ply && depth > 7 && !excluded && move == tt.move && tt.depth > depth - 4 && tt.bound && abs(tt.score) < WIN) {
+            if (ply && depth > 5 && !excluded && move == tt.move && tt.depth > depth - 4 && tt.bound && abs(tt.score) < WIN) {
                 i32 singular_beta = tt.score - depth;
                 score = search(board, singular_beta - 1, singular_beta, ply, (depth - 1) / 2, FALSE, move);
 
