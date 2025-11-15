@@ -227,7 +227,9 @@ struct Thread {
                     // History reduction
                     is_quiet * move_scores[i] / 7792 +
                     // PV
-                    !is_pv;
+                    !is_pv -
+                    // Improving
+                    !!child.checkers;
 
                 // Clamp noisy reduction
                 if (!is_quiet && reduction > 2)
