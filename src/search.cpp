@@ -159,7 +159,7 @@ struct Thread {
             // Sort next move
             i32 next_index = i;
 
-            for (i32 k = i + 1; k < move_count; k++)
+            for (i32 k = i; k < move_count; k++)
                 if (move_scores[k] > move_scores[next_index])
                     next_index = k;
             
@@ -197,7 +197,8 @@ struct Thread {
             // Singular extension
             if (ply && depth > 5 && !excluded && move == tt.move && tt.depth > depth - 4 && tt.bound && abs(tt.score) < WIN) {
                 i32 singular_beta = tt.score - depth;
-                score = search(board, singular_beta - 1, singular_beta, ply, (depth - 1) / 2, FALSE, move);
+                
+                score = search(board, singular_beta - 1, singular_beta, ply, depth_next / 2, FALSE, move);
 
                 // Single extension + double extension
                 if (score < singular_beta)
@@ -312,10 +313,8 @@ struct Thread {
         }
 
         // Return mate score
-        if (!legals) {
-            if (board.checkers) return ply - INF;
-            if (depth) return DRAW;
-        }
+        if (!legals && board.checkers) return ply - INF;
+        if (!legals && depth) return DRAW;
 
         // Update corrhist
         if (!board.checkers && (!bound || board.quiet(tt.move)) && bound != best < stack_eval[ply]) {
