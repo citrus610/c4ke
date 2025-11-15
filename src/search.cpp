@@ -228,7 +228,7 @@ struct Thread {
                     is_quiet * move_scores[i] / 7792 +
                     // PV
                     !is_pv -
-                    // Improving
+                    // Giving check
                     !!child.checkers;
 
                 // Clamp noisy reduction
