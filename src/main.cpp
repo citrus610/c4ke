@@ -156,6 +156,38 @@ i32 main() {
     cout << "id author citrus610 and cj5716" << endl;
     cout << "option name Hash type spin default 8 min 1 max 67108864" << endl;
     cout << "option name Threads type spin default 1 min 1 max 2048" << endl;
+
+    cout << "option name CORRHIST_WEIGHT_PAWN type string default 137" << endl;
+    cout << "option name CORRHIST_WEIGHT_NONPAWN type string default 208" << endl;
+    cout << "option name CORRHIST_WEIGHT_CONT_1PLY type string default 140" << endl;
+    cout << "option name CORRHIST_WEIGHT_CONT_2PLY type string default 205" << endl;
+    cout << "option name RFP_COEF type string default 66" << endl;
+    cout << "option name NMP_BETA_MARGIN type string default 25" << endl;
+    cout << "option name CONTHIST_1PLY type string default 2.0" << endl;
+    cout << "option name CONTHIST_2PLY type string default 2.0" << endl;
+    cout << "option name FP_COEF type string default 96" << endl;
+    cout << "option name FP_BASE type string default 100" << endl;
+    cout << "option name FP_HIST_DV type string default 32" << endl;
+    cout << "option name SEEP_COEF type string default 81" << endl;
+    cout << "option name SE_DEXT_MARGIN type string default 13" << endl;
+    cout << "option name LMR_COEF type string default 0.35" << endl;
+    cout << "option name LMR_BASE type string default 1.0" << endl;
+    cout << "option name LMR_HIST_DIV type string default 7792" << endl;
+    cout << "option name HIST_BONUS_COEF type string default 157" << endl;
+    cout << "option name HIST_BONUS_BASE type string default -54" << endl;
+    cout << "option name HIST_BONUS_MAX type string default 1485" << endl;
+    cout << "option name HIST_FAIL_COEF type string default 150" << endl;
+    cout << "option name ASP_DELTA type string default 10" << endl;
+    cout << "option name ASP_GROWTH type string default 1.5" << endl;
+    cout << "option name VALUE_PAWN type string default 110" << endl;
+    cout << "option name VALUE_KNIGHT type string default 319" << endl;
+    cout << "option name VALUE_BISHOP type string default 294" << endl;
+    cout << "option name VALUE_ROOK type string default 518" << endl;
+    cout << "option name VALUE_QUEEN type string default 912" << endl;
+    cout << "option name TM_SOFT type string default 0.05" << endl;
+    cout << "option name TM_HARD type string default 0.5" << endl;
+    cout << "option name TM_BM_MAX type string default 2.0" << endl;
+    cout << "option name TM_BM_COEF type string default 1.5" << endl;
 #endif
 
     cout << "uciok\n";
@@ -193,6 +225,40 @@ i32 main() {
             if (token == "Threads") {
                 tokens >> token >> THREADS;
             }
+
+            if (token == "CORRHIST_WEIGHT_PAWN") { tokens >> token >> CORRHIST_WEIGHT_PAWN; }
+            if (token == "CORRHIST_WEIGHT_NONPAWN") { tokens >> token >> CORRHIST_WEIGHT_NONPAWN; }
+            if (token == "CORRHIST_WEIGHT_CONT_1PLY") { tokens >> token >> CORRHIST_WEIGHT_CONT_1PLY; }
+            if (token == "CORRHIST_WEIGHT_CONT_2PLY") { tokens >> token >> CORRHIST_WEIGHT_CONT_2PLY; }
+            if (token == "RFP_COEF") { tokens >> token >> RFP_COEF; }
+            if (token == "NMP_BETA_MARGIN") { tokens >> token >> NMP_BETA_MARGIN; }
+            if (token == "CONTHIST_1PLY") { tokens >> token >> CONTHIST_1PLY; }
+            if (token == "CONTHIST_2PLY") { tokens >> token >> CONTHIST_2PLY; }
+            if (token == "FP_COEF") { tokens >> token >> FP_COEF; }
+            if (token == "FP_BASE") { tokens >> token >> FP_BASE; }
+            if (token == "FP_HIST_DV") { tokens >> token >> FP_HIST_DV; }
+            if (token == "SEEP_COEF") { tokens >> token >> SEEP_COEF; }
+            if (token == "SE_DEXT_MARGIN") { tokens >> token >> SE_DEXT_MARGIN; }
+            if (token == "LMR_COEF") { tokens >> token >> LMR_COEF; }
+            if (token == "LMR_BASE") { tokens >> token >> LMR_BASE; }
+            if (token == "LMR_HIST_DIV") { tokens >> token >> LMR_HIST_DIV; }
+            if (token == "HIST_BONUS_COEF") { tokens >> token >> HIST_BONUS_COEF; }
+            if (token == "HIST_BONUS_BASE") { tokens >> token >> HIST_BONUS_BASE; }
+            if (token == "HIST_BONUS_MAX") { tokens >> token >> HIST_BONUS_MAX; }
+            if (token == "HIST_FAIL_COEF") { tokens >> token >> HIST_FAIL_COEF; }
+            if (token == "ASP_DELTA") { tokens >> token >> ASP_DELTA; }
+            if (token == "ASP_GROWTH") { tokens >> token >> ASP_GROWTH; }
+            if (token == "VALUE_PAWN") { tokens >> token >> VALUE_PAWN; }
+            if (token == "VALUE_KNIGHT") { tokens >> token >> VALUE_KNIGHT; }
+            if (token == "VALUE_BISHOP") { tokens >> token >> VALUE_BISHOP; }
+            if (token == "VALUE_ROOK") { tokens >> token >> VALUE_ROOK; }
+            if (token == "VALUE_QUEEN") { tokens >> token >> VALUE_QUEEN; }
+            if (token == "TM_SOFT") { tokens >> token >> TM_SOFT; }
+            if (token == "TM_HARD") { tokens >> token >> TM_HARD; }
+            if (token == "TM_BM_MAX") { tokens >> token >> TM_BM_MAX; }
+            if (token == "TM_BM_COEF") { tokens >> token >> TM_BM_COEF; }
+
+            cout << FP_HIST_DV << endl;
         }
 #endif
         // Uci position
@@ -243,8 +309,8 @@ i32 main() {
 
             STOP = FALSE;
             TIME_START = now();
-            TIME_SOFT = time / 20;
-            TIME_LIMIT = TIME_START + time / 2;
+            TIME_SOFT = time * TM_SOFT;
+            TIME_LIMIT = TIME_START + time * TM_HARD;
 
 #ifdef OB
             vector<jthread> threads(THREADS);
