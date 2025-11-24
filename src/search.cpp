@@ -202,7 +202,7 @@ struct Thread {
 
                 // Single extension + double extension
                 if (score < singular_beta)
-                    depth_next += 1 + (!is_pv && score + 13 < singular_beta);
+                    depth_next += 1 + (!is_pv && score < singular_beta - 13) + (!is_pv && score < singular_beta - 40 && is_quiet);
 
                 // Multicut
                 else if (score >= beta)
