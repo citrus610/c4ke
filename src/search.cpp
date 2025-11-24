@@ -194,26 +194,31 @@ struct Thread {
             if (ply && best > -WIN && move_scores[i] < 1e6 && !board.see(move, -81 * depth))
                 continue;
 
+            // Make
+            Board child = board;
+
+            if (child.make(move))
+                continue;
+
             // Singular extension
             if (ply && depth > 5 && !excluded && move == tt.move && tt.depth > depth - 4 && tt.bound && abs(tt.score) < WIN) {
                 i32 singular_beta = tt.score - depth;
                 
                 score = search(board, singular_beta - 1, singular_beta, ply, depth_next / 2, FALSE, move);
 
-                // Single extension + double extension
+                // Extensions
                 if (score < singular_beta)
-                    depth_next += 1 + (!is_pv && score < singular_beta - 13) + (!is_pv && score < singular_beta - 40 && is_quiet);
-
+                    depth_next +=
+                        // Single extension
+                        1 +
+                        // Double extension
+                        (!is_pv && score < singular_beta - 13) +
+                        // Triple extension
+                        (!is_pv && score < singular_beta - 40 && is_quiet);
                 // Multicut
                 else if (score >= beta)
                     return score;
             }
-
-            // Make
-            Board child = board;
-
-            if (child.make(move))
-                continue;
 
             stack_conthist[ply + 2] = &conthist[board.board[move_from(move)]][move_to(move)];
 
