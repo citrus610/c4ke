@@ -174,10 +174,6 @@ struct Thread {
             // Start nodes count
             u64 nodes_start = nodes;
 
-            // Skip excluded move in singularity search
-            if (move == excluded)
-                continue;
-
             // Quiet pruning and SEE pruning in qsearch
             if (!depth && best > -WIN && move_scores[i] < 1e6)
                 break;
@@ -197,7 +193,7 @@ struct Thread {
             // Make
             Board child = board;
 
-            if (child.make(move))
+            if (child.make(move) || move == excluded)
                 continue;
 
             // Singular extension
@@ -229,11 +225,11 @@ struct Thread {
             if (depth > 2 && legals > 2) {
                 i32 reduction =
                     // Base reduction
-                    log(depth) * log(legals + 1) * 0.35 + 1 -
-                    // History reduction
-                    is_quiet * move_scores[i] / 7792 +
+                    log(depth) * log(legals + 1) * 0.35 + 1 +
                     // PV
-                    !is_pv;
+                    !is_pv -
+                    // History reduction
+                    is_quiet * move_scores[i] / 7792;
 
                 // Clamp noisy reduction
                 if (!is_quiet && reduction > 2)
