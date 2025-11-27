@@ -156,6 +156,47 @@ i32 main() {
     cout << "id author citrus610 and cj5716" << endl;
     cout << "option name Hash type spin default 8 min 1 max 67108864" << endl;
     cout << "option name Threads type spin default 1 min 1 max 2048" << endl;
+
+    cout << "option name CORRHIST_DIV_PAWN type string default 137" << endl;
+    cout << "option name CORRHIST_DIV_NONPAWN type string default 208" << endl;
+    cout << "option name CORRHIST_DIV_CONT_1PLY type string default 140" << endl;
+    cout << "option name CORRHIST_DIV_CONT_2PLY type string default 205" << endl;
+    cout << "option name RFP_MAX_DEPTH type string default 144" << endl;
+    cout << "option name RFP_COEF type string default 66" << endl;
+    cout << "option name NMP_BETA_MARGIN type string default 25" << endl;
+    cout << "option name NMP_RED_COEF type string default 48" << endl;
+    cout << "option name NMP_RED_BIAS type string default 80" << endl;
+    cout << "option name CONTHIST_1PLY type string default 2.0" << endl;
+    cout << "option name CONTHIST_2PLY type string default 2.0" << endl;
+    cout << "option name FP_MAX_DEPTH type string default 160" << endl;
+    cout << "option name FP_COEF type string default 96" << endl;
+    cout << "option name FP_BIAS type string default 100" << endl;
+    cout << "option name FP_DIV_HIST type string default 32" << endl;
+    cout << "option name SEEP_COEF type string default 81" << endl;
+    cout << "option name SE_MIN_DEPTH type string default 80" << endl;
+    cout << "option name SE_MARGIN_DOUBLE type string default 13" << endl;
+    cout << "option name SE_MARGIN_TRIPLE type string default 40" << endl;
+    cout << "option name LMR_MIN_DEPTH type string default 32" << endl;
+    cout << "option name LMR_MIN_MOVE type string default 32" << endl;
+    cout << "option name LMR_COEF type string default 0.35" << endl;
+    cout << "option name LMR_BIAS type string default 1.0" << endl;
+    cout << "option name LMR_DIV_HIST type string default 7792" << endl;
+    cout << "option name LMR_MIN_RED_NOISY type string default 32" << endl;
+    cout << "option name HIST_BONUS_COEF type string default 157" << endl;
+    cout << "option name HIST_BONUS_BIAS type string default -54" << endl;
+    cout << "option name HIST_BONUS_MAX type string default 1485" << endl;
+    cout << "option name HIST_WORSE_COEF type string default 150" << endl;
+    cout << "option name ASP_DELTA type string default 160" << endl;
+    cout << "option name ASP_GROWTH type string default 1.5" << endl;
+    cout << "option name TM_BM_MAX type string default 2.0" << endl;
+    cout << "option name TM_BM_DELTA type string default 1.5" << endl;
+    cout << "option name TM_SOFT type string default 0.05" << endl;
+    cout << "option name TM_HARD type string default 0.5" << endl;
+    cout << "option name VALUE_P type string default 110" << endl;
+    cout << "option name VALUE_N type string default 319" << endl;
+    cout << "option name VALUE_B type string default 294" << endl;
+    cout << "option name VALUE_R type string default 518" << endl;
+    cout << "option name VALUE_Q type string default 912" << endl;
 #endif
 
     cout << "uciok\n";
@@ -193,6 +234,47 @@ i32 main() {
             if (token == "Threads") {
                 tokens >> token >> THREADS;
             }
+
+            if (token == "CORRHIST_DIV_PAWN") { tokens >> token >> CORRHIST_DIV_PAWN; }
+            if (token == "CORRHIST_DIV_NONPAWN") { tokens >> token >> CORRHIST_DIV_NONPAWN; }
+            if (token == "CORRHIST_DIV_CONT_1PLY") { tokens >> token >> CORRHIST_DIV_CONT_1PLY; }
+            if (token == "CORRHIST_DIV_CONT_2PLY") { tokens >> token >> CORRHIST_DIV_CONT_2PLY; }
+            if (token == "RFP_MAX_DEPTH") { tokens >> token >> RFP_MAX_DEPTH; }
+            if (token == "RFP_COEF") { tokens >> token >> RFP_COEF; }
+            if (token == "NMP_BETA_MARGIN") { tokens >> token >> NMP_BETA_MARGIN; }
+            if (token == "NMP_RED_COEF") { tokens >> token >> NMP_RED_COEF; }
+            if (token == "NMP_RED_BIAS") { tokens >> token >> NMP_RED_BIAS; }
+            if (token == "CONTHIST_1PLY") { tokens >> token >> CONTHIST_1PLY; }
+            if (token == "CONTHIST_2PLY") { tokens >> token >> CONTHIST_2PLY; }
+            if (token == "FP_MAX_DEPTH") { tokens >> token >> FP_MAX_DEPTH; }
+            if (token == "FP_COEF") { tokens >> token >> FP_COEF; }
+            if (token == "FP_BIAS") { tokens >> token >> FP_BIAS; }
+            if (token == "FP_DIV_HIST") { tokens >> token >> FP_DIV_HIST; }
+            if (token == "SEEP_COEF") { tokens >> token >> SEEP_COEF; }
+            if (token == "SE_MIN_DEPTH") { tokens >> token >> SE_MIN_DEPTH; }
+            if (token == "SE_MARGIN_DOUBLE") { tokens >> token >> SE_MARGIN_DOUBLE; }
+            if (token == "SE_MARGIN_TRIPLE") { tokens >> token >> SE_MARGIN_TRIPLE; }
+            if (token == "LMR_MIN_DEPTH") { tokens >> token >> LMR_MIN_DEPTH; }
+            if (token == "LMR_MIN_MOVE") { tokens >> token >> LMR_MIN_MOVE; }
+            if (token == "LMR_COEF") { tokens >> token >> LMR_COEF; }
+            if (token == "LMR_BIAS") { tokens >> token >> LMR_BIAS; }
+            if (token == "LMR_DIV_HIST") { tokens >> token >> LMR_DIV_HIST; }
+            if (token == "LMR_MIN_RED_NOISY") { tokens >> token >> LMR_MIN_RED_NOISY; }
+            if (token == "HIST_BONUS_COEF") { tokens >> token >> HIST_BONUS_COEF; }
+            if (token == "HIST_BONUS_BIAS") { tokens >> token >> HIST_BONUS_BIAS; }
+            if (token == "HIST_BONUS_MAX") { tokens >> token >> HIST_BONUS_MAX; }
+            if (token == "HIST_WORSE_COEF") { tokens >> token >> HIST_WORSE_COEF; }
+            if (token == "ASP_DELTA") { tokens >> token >> ASP_DELTA; }
+            if (token == "ASP_GROWTH") { tokens >> token >> ASP_GROWTH; }
+            if (token == "TM_BM_MAX") { tokens >> token >> TM_BM_MAX; }
+            if (token == "TM_BM_DELTA") { tokens >> token >> TM_BM_DELTA; }
+            if (token == "TM_SOFT") { tokens >> token >> TM_SOFT; }
+            if (token == "TM_HARD") { tokens >> token >> TM_HARD; }
+            if (token == "VALUE_P") { tokens >> token >> VALUE_P; }
+            if (token == "VALUE_N") { tokens >> token >> VALUE_N; }
+            if (token == "VALUE_B") { tokens >> token >> VALUE_B; }
+            if (token == "VALUE_R") { tokens >> token >> VALUE_R; }
+            if (token == "VALUE_Q") { tokens >> token >> VALUE_Q; }
         }
 #endif
         // Uci position
@@ -243,8 +325,8 @@ i32 main() {
 
             STOP = FALSE;
             TIME_START = now();
-            TIME_SOFT = time / 20;
-            TIME_LIMIT = TIME_START + time / 2;
+            TIME_SOFT = time * TM_SOFT;
+            TIME_LIMIT = TIME_START + time * TM_HARD;
 
 #ifdef OB
             vector<jthread> threads(THREADS);
