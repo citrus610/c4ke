@@ -187,7 +187,7 @@ i32 main() {
                 TT_SHIFT = 64 - TT_BITS;
 
                 free(TTABLE);
-                TTABLE = (TTEntry*)calloc(1ull << TT_BITS, sizeof(TTEntry));
+                TTABLE = (atomic<TTEntry>*)calloc(1ull << TT_BITS, sizeof(atomic<TTEntry>));
             }
 
             if (token == "Threads") {

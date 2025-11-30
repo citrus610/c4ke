@@ -252,7 +252,7 @@ struct TTEntry {
         bound;
 };
 
-TTEntry* TTABLE = (TTEntry*)calloc(1ull << TT_BITS, 8);
+auto TTABLE = (atomic<TTEntry>*)calloc(1ull << TT_BITS, 8);
 u64 TIME_START,
     TIME_SOFT,
     TIME_LIMIT,
