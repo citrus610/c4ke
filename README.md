@@ -77,6 +77,7 @@ The minifier isn't general-purpose and won't work on all c++ code
   - Extensions
     - Singular extensions
       - Double extensions
+      - Triple extensions
       - Multicut
   - Reductions
     - Late move reductions
@@ -95,6 +96,7 @@ The minifier isn't general-purpose and won't work on all c++ code
 - Rook on open file
 - Rook on semi-open file
 - Pawn threats
+- Pawn push threats
 - Pawn structure
   - Protected pawn
   - Doubled pawn
@@ -107,6 +109,13 @@ The minifier isn't general-purpose and won't work on all c++ code
   - King on semi-open file
   - Pawn shield
   - King ring attack
+  - Queenless attack
+- King attack pawns
+- Endgame scaling
+### Time management
+- Soft limit
+- Hard limit
+- Best move's node count scaling
 
 ## Thanks
 - Members of the MinusKelvin discord server for helping me and allowing me into their [OpenBench](https://analoghors.pythonanywhere.com/) instance
