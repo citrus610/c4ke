@@ -80,7 +80,7 @@ struct Thread {
         // Static eval
         stack_eval[ply] = INF;
         
-        // Pruning
+        // Check guard
         if (!board.checkers) {
             // Get eval
             eval = stack_eval[ply] = board.eval() +
@@ -100,6 +100,10 @@ struct Thread {
 
             // Improving
             is_improving = ply > 1 && stack_eval[ply] > stack_eval[ply - 2];
+
+            // Razoring
+            if (!is_pv && !excluded && depth < 6 && stack_eval[ply] + 200 * depth < alpha)
+                depth = 0;
 
             // Standpat
             if (!depth && (alpha = max(alpha, best = eval)) >= beta)
