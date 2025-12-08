@@ -156,7 +156,8 @@ const inline std::vector<std::string> KEYWORDS_SKIP = {
     "atomic_int",
     "atomic",
     "mutex",
-    "lock_guard"
+    "lock_guard",
+    "max_element"
 };
 
 const inline std::vector<std::string> KEYWORDS_STATEMENT = {
@@ -334,39 +335,22 @@ inline bool is_function(const std::vector<std::string>& tokens, size_t index)
 // Get name
 inline std::string get_name(size_t index)
 {
-    // Init all usable character
-    std::string CHARACTERS;
-
-    for (int i = 0; i < 26; i++) {
-        CHARACTERS.push_back('a' + i);
-    }
-
-    for (int i = 0; i < 26; i++) {
-        CHARACTERS.push_back('A' + i);
-    }
-
-    CHARACTERS.push_back('_');
-
-    for (int i = 0; i < 10; i++) {
-        CHARACTERS.push_back('0' + i);
-    }
-
-    const size_t FIRST_CHAR_COUNT = 26 + 26 + 1;
-    const size_t REMAIN_CHAR_COUNT = 26 + 26 + 1 + 10;
+    const std::string CHARACTERS_1 = "etaoinsrhdlucmfywgpbvkxqjzETAOINSRHDLUCMFYWGPBVKXQJZ_";
+    const std::string CHARACTERS_2 = "etaoinsrhdlucmfywgpbvkxqjzETAOINSRHDLUCMFYWGPBVKXQJZ_0123456789";
 
     // Init all 1 letter, 2 letters names
     std::vector<std::string> NAMES;
 
-    for (size_t i = 0; i < FIRST_CHAR_COUNT; ++i) {
-        NAMES.push_back(std::string { CHARACTERS[i] });
+    for (auto c : CHARACTERS_1) {
+        NAMES.push_back(std::string { c });
     }
 
-    for (size_t i = 0; i < FIRST_CHAR_COUNT; ++i) {
-        for (size_t k = 0; k < REMAIN_CHAR_COUNT; ++k) {
+    for (auto c1 : CHARACTERS_1) {
+        for (auto c2 : CHARACTERS_2) {
             std::string name;
 
-            name += CHARACTERS[i];
-            name += CHARACTERS[k];
+            name.push_back(c1);
+            name.push_back(c2);
 
             NAMES.push_back(name);
         }
