@@ -13,7 +13,7 @@ struct Board {
         hash_pawn,
         hash_non_pawn[2];
 
-    void edit(i32 square, i32 piece) {
+    null edit(i32 square, i32 piece) {
         // Remove any pieces that exist in this square
         if (board[square] < PIECE_NONE)
             hash ^= KEYS[board[square]][square],
@@ -159,7 +159,7 @@ struct Board {
         return attackers(pieces[KING] & colors[!stm]) & colors[stm];
     }
 
-    void add_pawn_moves(i16*& list, u64 targets, i32 offset) {
+    null add_pawn_moves(i16*& list, u64 targets, i32 offset) {
         for (; targets;) {
             i32 to = LSB(targets);
             targets &= targets - 1;
@@ -168,7 +168,7 @@ struct Board {
         }
     }
 
-    void add_moves(i16*& list, u64 targets, u64 occupied, u64 mask, i32 type) {
+    null add_moves(i16*& list, u64 targets, u64 occupied, u64 mask, i32 type) {
         for (; mask;) {
             i32 from = LSB(mask);
             mask &= mask - 1;
@@ -419,7 +419,7 @@ struct Board {
     }
 #endif
 
-    void startpos() {
+    null startpos() {
         *this = {};
 
         for (i32 i = 0; i < 64; i++)
