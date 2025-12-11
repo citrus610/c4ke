@@ -6,6 +6,7 @@ using u8 = uint8_t;
 using i16 = int16_t;
 using i32 = int;
 using u64 = uint64_t;
+using null = void;
 
 #define OB
 #define OB_MINI
@@ -173,7 +174,7 @@ i32 move_promo(i16 move) {
     return move >> 12;
 }
 
-void move_print(i32 move) {
+null move_print(i32 move) {
     cout.put(97 + move_from(move) % 8).put(49 + move_from(move) / 8).put(97 + move_to(move) % 8).put(49 + move_to(move) / 8).put(move_promo(move) ? 'q' : 32) << endl;
 }
 

@@ -3,7 +3,7 @@
 // History
 using HTable = i16[12][64];
 
-void update_history(i16& entry, i32 bonus) {
+null update_history(i16& entry, i32 bonus) {
     entry += bonus - entry * abs(bonus) / HIST_MAX;
 }
 
@@ -23,19 +23,18 @@ struct Thread {
     i32 search(Board& board, i32 alpha, i32 beta, i32 ply, i32 depth, i32 is_pv = FALSE, i32 excluded = MOVE_NONE) {
         // All search variables
         i32 eval,
+            score,
             best = -INF,
             is_improving = FALSE,
             quiet_count = 0,
             noisy_count = 0,
             legals = 0,
-            score,
+            bound = BOUND_UPPER,
             move_scores[MAX_MOVE];
 
         i16 move_list[MAX_MOVE],
             quiet_list[MAX_MOVE],
             noisy_list[MAX_MOVE];
-
-        u8 bound = BOUND_UPPER;
 
         // Clamp depth for qsearch
         if (depth < 0)
@@ -334,15 +333,15 @@ struct Thread {
 
         // Update transposition
         if (!excluded)
-            TTABLE[board.hash >> TT_SHIFT] = { i16(board.hash), tt.move, i16(best), u8(depth), bound };
+            TTABLE[board.hash >> TT_SHIFT] = { i16(board.hash), tt.move, i16(best), u8(depth), u8(bound) };
 
         return best;
     }
 
 #ifdef OB_MINI
-    void start(Board board, i32 ID, i32 MAX_DEPTH = 256, i32 BENCH = FALSE) {
+    null start(Board board, i32 ID, i32 MAX_DEPTH = 256, i32 BENCH = FALSE) {
 #else
-    void start(Board board, i32 ID) {
+    null start(Board board, i32 ID) {
         #define MAX_DEPTH 256
 #endif
         id = ID;
