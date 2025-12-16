@@ -179,9 +179,9 @@ null move_print(i32 move) {
 }
 
 // Bitboard
-#define LSB __builtin_ctzll
-#define POPCNT __builtin_popcountll
-#define BSWAP __builtin_bswap64
+#define LSB countr_zero
+#define POPCNT popcount
+#define BSWAP byteswap
 
 u64 north(u64 bitboard) {
     return bitboard << 8;

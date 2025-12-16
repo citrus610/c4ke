@@ -157,7 +157,13 @@ const inline std::vector<std::string> KEYWORDS_SKIP = {
     "atomic",
     "mutex",
     "lock_guard",
-    "max_element"
+    "max_element",
+    "load",
+    "store",
+    "popcount",
+    "countr_zero",
+    "byteswap",
+    "rotl"
 };
 
 const inline std::vector<std::string> KEYWORDS_STATEMENT = {

@@ -17,7 +17,7 @@ BIN_X86_64_V3 := c4ke-$(OSNAME)-x86-64-v3$(SUFFIX)
 .PHONY: c4ke mini tcec mini-bench v1 v2 v3 release minifier check tuner clean
 
 c4ke:
-	g++ -DNDEBUG -std=c++20 -O3 -march=native -pthread $(OSFLAG) src/main.cpp -o $(EXE)$(SUFFIX)
+	g++ -DNDEBUG -std=c++23 -O3 -march=native -pthread $(OSFLAG) src/main.cpp -o $(EXE)$(SUFFIX)
 
 mini: minifier
 	./mini | ./compress.sh | cat launcher.sh - >c4ke-mini
@@ -31,27 +31,27 @@ tcec: minifier
 
 mini-bench: minifier
 	./mini bench
-	g++ -DNDEBUG -std=c++20 -O3 -march=native -pthread $(OSFLAG) mini.cpp -o c4ke-mini-bench$(SUFFIX)
+	g++ -DNDEBUG -std=c++23 -O3 -march=native -pthread $(OSFLAG) mini.cpp -o c4ke-mini-bench$(SUFFIX)
 
 v1:
-	g++ -DNDEBUG -std=c++20 -O3 -march=x86-64 -pthread $(OSFLAG) src/main.cpp -o $(BIN_X86_64_V1)
+	g++ -DNDEBUG -std=c++23 -O3 -march=x86-64 -pthread $(OSFLAG) src/main.cpp -o $(BIN_X86_64_V1)
 
 v2:
-	g++ -DNDEBUG -std=c++20 -O3 -march=x86-64-v2 -pthread $(OSFLAG) src/main.cpp -o $(BIN_X86_64_V2)
+	g++ -DNDEBUG -std=c++23 -O3 -march=x86-64-v2 -pthread $(OSFLAG) src/main.cpp -o $(BIN_X86_64_V2)
 
 v3:
-	g++ -DNDEBUG -std=c++20 -O3 -march=x86-64-v3 -pthread $(OSFLAG) src/main.cpp -o $(BIN_X86_64_V3)
+	g++ -DNDEBUG -std=c++23 -O3 -march=x86-64-v3 -pthread $(OSFLAG) src/main.cpp -o $(BIN_X86_64_V3)
 
 release: clean v1 v2 v3 mini tcec
 
 minifier:
-	g++ -O3 -std=c++20 $(OSFLAG) minifier/*.cpp -o mini$(SUFFIX)
+	g++ -O3 -std=c++23 $(OSFLAG) minifier/*.cpp -o mini$(SUFFIX)
 
 check:
 	./check.sh
 
 tuner:
-	g++ -DUNICODE -O3 -std=c++20 $(OSFLAG) tuner/chess/*.cpp tuner/*.cpp -o tune$(SUFFIX)
+	g++ -DUNICODE -O3 -std=c++23 $(OSFLAG) tuner/chess/*.cpp tuner/*.cpp -o tune$(SUFFIX)
 
 clean:
 	@rm -rf $(EXE)$(SUFFIX)
