@@ -7,7 +7,8 @@ struct Board {
     i32 stm,
         castled,
         enpassant = SQUARE_NONE,
-        halfmove;
+        halfmove,
+        trend;
     u64 checkers,
         hash,
         hash_pawn,
@@ -219,7 +220,7 @@ struct Board {
     }
 
     i32 eval() {
-        i32 eval = 0,
+        i32 eval = trend / 2 + (trend / 4 << 16),
             phases[2] {};
 
         for (i32 color = WHITE; color < 2; color++) {
