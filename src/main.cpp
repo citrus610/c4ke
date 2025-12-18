@@ -117,9 +117,8 @@ i32 main() {
     // Zobrist hash init
     mt19937_64 rng;
 
-    for (i32 i = 0; i < 13; i++)
-        for (i32 k = 0; k < 64; k++)
-            KEYS[i][k] = rng();
+    for (i32 i = 0; i < 832; i++)
+        KEYS[i / 64][i % 64] = rng();
 
     // Search data
     Board board;
