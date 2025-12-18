@@ -7,7 +7,8 @@ struct Board {
     i32 stm,
         castled,
         enpassant = SQUARE_NONE,
-        halfmove;
+        halfmove,
+        trend;
     u64 checkers,
         hash,
         hash_pawn,
@@ -199,15 +200,15 @@ struct Board {
         add_pawn_moves(list, (stm ? se(pawns) : nw(pawns)) & pawns_targets, stm ? -7 : 7);
         add_pawn_moves(list, (stm ? sw(pawns) : ne(pawns)) & pawns_targets, stm ? -9 : 9);
 
+        // King
+        add_moves(list, targets, occupied, pieces[KING] & colors[stm], KING);
+
         // Knight
         add_moves(list, targets, occupied, pieces[KNIGHT] & colors[stm], KNIGHT);
         
         // Sliders
         add_moves(list, targets, occupied, (pieces[BISHOP] | pieces[QUEEN]) & colors[stm], BISHOP);
         add_moves(list, targets, occupied, (pieces[ROOK] | pieces[QUEEN]) & colors[stm], ROOK);
-
-        // King
-        add_moves(list, targets, occupied, pieces[KING] & colors[stm], KING);
 
         // Castling
         if (is_all && !checkers) {
@@ -219,7 +220,7 @@ struct Board {
     }
 
     i32 eval() {
-        i32 eval = 0,
+        i32 eval = trend / 2 + (trend / 4 << 16),
             phases[2] {};
 
         for (i32 color = WHITE; color < 2; color++) {
@@ -289,6 +290,10 @@ struct Board {
 
                         eval += (get_data(type + INDEX_MOBILITY) + OFFSET_MOBILITY) * POPCNT(mobility & ~colors[color] & ~pawns_threats);
 
+                        // Pawn threats
+                        if (1ull << square & pawns_threats)
+                            eval -= (get_data(type + INDEX_THREAT) + OFFSET_THREAT) * SCALE;
+
                         // Open file
                         if (!(0x101010101010101u << square % 8 & pieces[PAWN]))
                             eval += (type > QUEEN) * KING_OPEN + (type == ROOK) * ROOK_OPEN;
@@ -303,10 +308,6 @@ struct Board {
                         else if (pieces[QUEEN])
                             // King attacker
                             eval += POPCNT(mobility & attack(1ull << king_them, 0, KING)) * (get_data(type + INDEX_KING_ATTACK) + OFFSET_KING_ATTACK);
-
-                        // Pawn threats
-                        if (1ull << square & pawns_threats)
-                            eval -= (get_data(type + INDEX_THREAT) + OFFSET_THREAT) * SCALE;
 
                         // Pawn push threats
                         if (1ull << square & pawns_push_threats)
@@ -328,9 +329,9 @@ struct Board {
         // Scaling
         i32 strong = eval < 0,
             phase = phases[WHITE] + phases[BLACK],
-            x = 8 - POPCNT(pieces[PAWN] & colors[strong]);
+            x = POPCNT(pieces[PAWN] & colors[strong]);
 
-        return (i16(eval = stm ? -eval : eval) * phase + (eval + 0x8000 >> 16) * (x > 7 && phases[strong] - phases[!strong] < 2 ? 32 : 128 - x * x) / 128 * (24 - phase)) / 24 + TEMPO;
+        return (i16(eval = stm ? -eval : eval) * phase + (eval >> 16) * (!x && phases[strong] - phases[!strong] < 2 ? 32 : 64 + x * 8) / 128 * (24 - phase)) / 24 + TEMPO;
     }
 
 #ifdef OB_MINI
