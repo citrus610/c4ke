@@ -269,19 +269,17 @@ struct Board {
                             eval += (get_data(square / 8 + INDEX_PHALANX) + OFFSET_PHALANX) * SCALE;
 
                         // Passed pawn
-                        if (!(0x101010101010101u << square & (pawns_them | pawns_threats))) {
+                        if (!(0x101010101010101u << square & (pawns_them | pawns_threats)))
                             eval += (get_data(square / 8 + INDEX_PASSER) + OFFSET_PASSER +
 
                                 // King distance
                                 get_data(max(abs(square / 8 - king_us / 8 + 1), abs(square % 8 - king_us % 8)) + INDEX_KING_PASSER_US) +
                                 get_data(max(abs(square / 8 - king_them / 8 + 1), abs(square % 8 - king_them % 8)) + INDEX_KING_PASSER_THEM) +
                                 OFFSET_KING_PASSER
-                            ) * SCALE;
+                            ) * SCALE
 
                             // Blocked passed pawn
-                            if (north(1ull << square) & colors[!color])
-                                eval -= PASSER_BLOCKED;
-                        }
+                            - PASSER_BLOCKED * (south(colors[!color]) >> square & 1);
                     }
                     else {
                         // Mobility
