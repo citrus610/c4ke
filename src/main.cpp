@@ -215,7 +215,7 @@ i32 main() {
             for (; tokens >> token;)
                 BEST_MOVE = move_make(token[0] + token[1] * 8 - 489, token[2] + token[3] * 8 - 489, token[4] % 35 * 5 % 6),
                 VISITED[VISITED_COUNT++] = board.hash,
-                VISITED_COUNT *= board.board[move_from(BEST_MOVE)] > BLACK_PAWN && board.board[move_to(BEST_MOVE)] > BLACK_KING,
+                VISITED_COUNT *= board.board[move_to(BEST_MOVE)] > BLACK_KING && board.board[move_from(BEST_MOVE)] > BLACK_PAWN,
                 board.make(BEST_MOVE);
         }
         // Uci go
