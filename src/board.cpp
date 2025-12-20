@@ -115,7 +115,7 @@ struct Board {
         halfmove *= board[to] > BLACK_KING && piece > BLACK_PAWN;
 
         // Move piece
-        edit(to, move_promo(move) ? move_promo(move) * 2 + stm : piece);
+        edit(to, move_promo(move) ? WHITE_QUEEN + stm : piece);
         edit(from, PIECE_NONE);
 
         // Enpassant
@@ -165,7 +165,7 @@ struct Board {
             i32 to = LSB(targets);
             targets &= targets - 1;
 
-            *list++ = move_make(to - offset, to, (to < 8 || to > 55) * QUEEN);
+            *list++ = move_make(to - offset, to, to < 8 || to > 55);
         }
     }
 
@@ -269,20 +269,17 @@ struct Board {
                             eval += (get_data(square / 8 + INDEX_PHALANX) + OFFSET_PHALANX) * SCALE;
 
                         // Passed pawn
-                        if (!(0x101010101010101u << square & (pawns_them | pawns_threats))) {
-                            eval += (get_data(square / 8 + INDEX_PASSER) + OFFSET_PASSER) * SCALE;
+                        if (!(0x101010101010101u << square & (pawns_them | pawns_threats)))
+                            eval += (get_data(square / 8 + INDEX_PASSER) + OFFSET_PASSER +
 
-                            // Blocked passed pawn
-                            if (north(1ull << square) & colors[!color])
-                                eval -= PASSER_BLOCKED;
-
-                            // King distance
-                            eval += (
+                                // King distance
                                 get_data(max(abs(square / 8 - king_us / 8 + 1), abs(square % 8 - king_us % 8)) + INDEX_KING_PASSER_US) +
                                 get_data(max(abs(square / 8 - king_them / 8 + 1), abs(square % 8 - king_them % 8)) + INDEX_KING_PASSER_THEM) +
                                 OFFSET_KING_PASSER
-                            ) * SCALE;
-                        }
+                            ) * SCALE
+
+                            // Blocked passed pawn
+                            - PASSER_BLOCKED * (south(colors[!color]) >> square & 1);
                     }
                     else {
                         // Mobility

@@ -50,8 +50,8 @@ struct Thread {
         // Oracle
         if (ply) {
             // Repetition
-            for (i32 i = 4; i <= ply; i += 2)
-                if (board.hash == visited[ply - i])
+            for (i32 i = 3; i < ply; i++)
+                if (board.hash == visited[ply - ++i])
                     return DRAW;
 
             for (i32 i = 0; i < VISITED_COUNT; i++)
@@ -145,9 +145,9 @@ struct Thread {
                     // Quiet history
                     qhist[board.stm][move & 4095] +
                     // Conthist 2-ply
-                    2.1 * stack_conthist[ply][0][board.board[move_from(move)]][move_to(move)] +
+                    2.1 * (stack_conthist[ply][0][board.board[move_from(move)]][move_to(move)] +
                     // Conthist 1-ply
-                    2.1 * stack_conthist[ply + 1][0][board.board[move_from(move)]][move_to(move)] :
+                           stack_conthist[ply + 1][0][board.board[move_from(move)]][move_to(move)]) :
                 // Noisy moves
                     // MVV
                     VALUE[board.board[move_to(move)] / 2 % TYPE_NONE] * 16 +
@@ -247,10 +247,8 @@ struct Thread {
                 score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next);
 
             // Principal variation search and qsearch
-            if (!depth || !legals || is_pv && score > alpha)
+            if (!legals++ || !depth || is_pv && score > alpha)
                 score = -search(child, -beta, -alpha, ply + 1, depth_next, is_pv);
-
-            legals++;
 
             // Abort
             if (STOP)
