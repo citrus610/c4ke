@@ -145,9 +145,9 @@ struct Thread {
                     // Quiet history
                     qhist[board.stm][move & 4095] +
                     // Conthist 2-ply
-                    2.1 * stack_conthist[ply][0][board.board[move_from(move)]][move_to(move)] +
+                    2.1 * (stack_conthist[ply][0][board.board[move_from(move)]][move_to(move)] +
                     // Conthist 1-ply
-                    2.1 * stack_conthist[ply + 1][0][board.board[move_from(move)]][move_to(move)] :
+                           stack_conthist[ply + 1][0][board.board[move_from(move)]][move_to(move)]) :
                 // Noisy moves
                     // MVV
                     VALUE[board.board[move_to(move)] / 2 % TYPE_NONE] * 16 +
