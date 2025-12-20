@@ -115,7 +115,7 @@ struct Board {
         halfmove *= board[to] > BLACK_KING && piece > BLACK_PAWN;
 
         // Move piece
-        edit(to, move_promo(move) ? move_promo(move) * 2 + stm : piece);
+        edit(to, move_promo(move) ? WHITE_QUEEN + stm : piece);
         edit(from, PIECE_NONE);
 
         // Enpassant
