@@ -50,8 +50,8 @@ struct Thread {
         // Oracle
         if (ply) {
             // Repetition
-            for (i32 i = 4; i <= ply; i += 2)
-                if (board.hash == visited[ply - i])
+            for (i32 i = 3; i < ply; i++)
+                if (board.hash == visited[ply - ++i])
                     return DRAW;
 
             for (i32 i = 0; i < VISITED_COUNT; i++)
