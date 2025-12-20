@@ -165,7 +165,7 @@ struct Board {
             i32 to = LSB(targets);
             targets &= targets - 1;
 
-            *list++ = move_make(to - offset, to, (to < 8 || to > 55) * QUEEN);
+            *list++ = move_make(to - offset, to, to < 8 || to > 55);
         }
     }
 

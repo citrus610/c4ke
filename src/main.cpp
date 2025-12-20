@@ -10,7 +10,7 @@ string move_str(i16 move) {
     str += 49 + move_to(move) / 8;
 
     if (move_promo(move)) {
-        str += " nbrq"[move_promo(move)];
+        str += 'q';
     }
 
     return str;
