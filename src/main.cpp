@@ -94,6 +94,8 @@ void bench()
         TIME_LIMIT = UINT64_MAX;
         VISITED_COUNT = 0;
 
+        memset(corrhist, 0, 1 << 16);
+
         u64 time_1 = now();
 
         engine.start(board, 0, 15, TRUE);
@@ -245,6 +247,8 @@ i32 main() {
             TIME_START = now();
             TIME_SOFT = time / 20;
             TIME_LIMIT = TIME_START + time / 2;
+
+            memset(corrhist, 0, 1 << 16);
 
 #ifdef OB
             vector<jthread> threads(THREADS);
