@@ -261,7 +261,6 @@ u64 TIME_START,
 i32 BEST_MOVE,
     VISITED_COUNT;
 atomic<i32> STOP;
-i16 corrhist[2][CORRHIST_SIZE];
 
 #ifdef OB
 void print_bitboard(u64 bitboard) {
