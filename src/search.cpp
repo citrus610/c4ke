@@ -9,15 +9,14 @@ null update_history(i16& entry, i32 bonus) {
 
 // Search thread
 struct Thread {
-    i16 qhist[2][4096],
-        corrhist[2][CORRHIST_SIZE];
     HTable nhist[6],
         conthist[12][64],
         *stack_conthist[STACK_SIZE];
     u64 nodes,
         nodes_table[4096],
         visited[STACK_SIZE];
-    i32 id,
+    i16 id,
+        qhist[2][4096],
         stack_eval[STACK_SIZE];
 
     i32 search(Board& board, i32 alpha, i32 beta, i32 ply, i32 depth, i32 is_pv = FALSE, i32 excluded = MOVE_NONE) {

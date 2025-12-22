@@ -40,13 +40,12 @@ i32 PHASE[] { 0, 1, 1, 2, 4, 0 },
 #define INDEX_KING_PASSER_THEM 133
 
 #define OFFSET_MOBILITY S(-9, -2)
-#define OFFSET_PASSER S(-5, -3)
 #define OFFSET_PHALANX S(1, 1)
 #define OFFSET_THREAT S(10, -7)
 #define OFFSET_PUSH_THREAT S(20, -16)
 #define OFFSET_KING_ATTACK S(8, -27)
 #define OFFSET_PST S(-23, -14)
-#define OFFSET_KING_PASSER S(-21, -16)
+#define OFFSET_PASSER S(-26, -19)
 
 i32 get_data(i32 index) {
     auto data = DATA_STR;

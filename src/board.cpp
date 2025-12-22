@@ -256,12 +256,11 @@ struct Board {
                     phases[color] += PHASE[type];
 
                     // PST
-                    eval +=
-                        MATERIAL[type] + (
-                            get_data(type * 8 + square / 8) +
-                            get_data(type * 8 + square % 8 + INDEX_PST_FILE) +
-                            OFFSET_PST
-                        ) * SCALE;
+                    eval += MATERIAL[type] + (
+                        get_data(type * 8 + square / 8 + INDEX_PST_RANK) +
+                        get_data(type * 8 + square % 8 + INDEX_PST_FILE) +
+                        OFFSET_PST
+                    ) * SCALE;
 
                     if (!type) {
                         // Pawn phalanx
@@ -269,20 +268,17 @@ struct Board {
                             eval += (get_data(square / 8 + INDEX_PHALANX) + OFFSET_PHALANX) * SCALE;
 
                         // Passed pawn
-                        if (!(0x101010101010101u << square & (pawns_them | pawns_threats))) {
-                            eval += (get_data(square / 8 + INDEX_PASSER) + OFFSET_PASSER) * SCALE;
-
-                            // Blocked passed pawn
-                            if (north(1ull << square) & colors[!color])
-                                eval -= PASSER_BLOCKED;
-
-                            // King distance
+                        if (!(0x101010101010101u << square & (pawns_them | pawns_threats)))
                             eval += (
+                                // Passed pawn
+                                get_data(square / 8 + INDEX_PASSER) +
+                                // King distance
                                 get_data(max(abs(square / 8 - king_us / 8 + 1), abs(square % 8 - king_us % 8)) + INDEX_KING_PASSER_US) +
                                 get_data(max(abs(square / 8 - king_them / 8 + 1), abs(square % 8 - king_them % 8)) + INDEX_KING_PASSER_THEM) +
-                                OFFSET_KING_PASSER
-                            ) * SCALE;
-                        }
+                                OFFSET_PASSER
+                            ) * SCALE -
+                            // Blocked passed pawn
+                            PASSER_BLOCKED * !!(north(1ull << square) & colors[!color]);
                     }
                     else {
                         // Mobility

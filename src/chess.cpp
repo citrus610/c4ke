@@ -154,9 +154,6 @@ u64 now() {
     return t.tv_sec * 1e3 + t.tv_nsec / 1e6;
 }
 
-// Zobrist
-u64 KEYS[13][65];
-
 // Move
 i16 move_make(i32 from, i32 to, i32 promo = PAWN) {
     return from | to << 6 | promo << 12;
@@ -254,13 +251,15 @@ struct TTEntry {
 };
 
 TTEntry* TTABLE = (TTEntry*)calloc(1ull << TT_BITS, 8);
-u64 TIME_START,
+u64 BEST_MOVE,
+    VISITED_COUNT,
+    TIME_START,
     TIME_SOFT,
     TIME_LIMIT,
+    KEYS[13][65],
     VISITED[STACK_SIZE];
-i32 BEST_MOVE,
-    VISITED_COUNT;
 atomic<i32> STOP;
+i16 corrhist[2][CORRHIST_SIZE];
 
 #ifdef OB
 void print_bitboard(u64 bitboard) {
