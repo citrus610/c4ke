@@ -1,36 +1,34 @@
 #include "eval.cpp"
 
 struct Board {
-    u64 pieces[6],
-        colors[2];
-    u8 board[64];
-    i32 stm,
-        castled,
-        enpassant = SQUARE_NONE,
-        halfmove,
-        trend;
     u64 checkers,
         hash,
         hash_pawn,
-        hash_non_pawn[2];
+        hash_non_pawn[2],
+        colors[2],
+        pieces[6];
+    i32 trend;
+    u8 stm,
+        castled,
+        halfmove,
+        enpassant = SQUARE_NONE,
+        board[64];
 
     null edit(i32 square, i32 piece) {
         // Remove any pieces that exist in this square
         if (board[square] < PIECE_NONE)
-            hash ^= KEYS[board[square]][square],
-
             pieces[board[square] / 2] ^= 1ull << square,
             colors[board[square] % 2] ^= 1ull << square,
 
+            hash ^= KEYS[board[square]][square],
             (board[square] < WHITE_KNIGHT ? hash_pawn : hash_non_pawn[board[square] % 2]) ^= KEYS[board[square]][square];
 
         // Place new piece
         if (piece < PIECE_NONE)
-            hash ^= KEYS[piece][square],
-
             pieces[piece / 2] ^= 1ull << square,
             colors[piece % 2] ^= 1ull << square,
 
+            hash ^= KEYS[piece][square],
             (piece < WHITE_KNIGHT ? hash_pawn : hash_non_pawn[piece % 2]) ^= KEYS[piece][square];
 
         board[square] = piece;
@@ -196,7 +194,7 @@ struct Board {
 
         // Pawn
         add_pawn_moves(list, pawns_push, stm ? -8 : 8);
-        add_pawn_moves(list, (stm ? south(pawns_push & 0xff0000000000) : north(pawns_push & 0xff0000ull)) & ~occupied, stm ? -16 : 16);
+        add_pawn_moves(list, (stm ? south(pawns_push & 0xff0000000000) : north(pawns_push & 0xff0000)) & ~occupied, stm ? -16 : 16);
         add_pawn_moves(list, (stm ? se(pawns) : nw(pawns)) & pawns_targets, stm ? -7 : 7);
         add_pawn_moves(list, (stm ? sw(pawns) : ne(pawns)) & pawns_targets, stm ? -9 : 9);
 
@@ -211,10 +209,8 @@ struct Board {
         add_moves(list, targets, occupied, (pieces[ROOK] | pieces[QUEEN]) & colors[stm], ROOK);
 
         // Castling
-        if (is_all && !checkers) {
-            if (~castled >> stm * 2 & 1 && !(occupied & 0x60ull << stm * 56)) *list++ = move_make(E1 + stm * 56, G1 + stm * 56);
-            if (~castled >> stm * 2 & 2 && !(occupied & 0xeull << stm * 56)) *list++ = move_make(E1 + stm * 56, C1 + stm * 56);
-        }
+        if (is_all && !checkers && ~castled >> stm * 2 & 1 && !(occupied & 96ull << stm * 56)) *list++ = move_make(E1 + stm * 56, G1 + stm * 56);
+        if (is_all && !checkers && ~castled >> stm * 2 & 2 && !(occupied & 14ull << stm * 56)) *list++ = move_make(E1 + stm * 56, C1 + stm * 56);
 
         return list - list_start;
     }
@@ -228,7 +224,6 @@ struct Board {
                 pawns_them = pieces[PAWN] & colors[!color],
                 pawns_threats = se(pawns_them) | sw(pawns_them),
                 pawns_attacks = ne(pawns_us) | nw(pawns_us),
-                pawns_phalanx = west(pawns_us) & pawns_us,
                 pawns_them_push = south(pawns_them) & ~(colors[WHITE] | colors[BLACK]),
                 pawns_push_threats = se(pawns_them_push) | sw(pawns_them_push);
 
@@ -264,7 +259,7 @@ struct Board {
 
                     if (!type) {
                         // Pawn phalanx
-                        if (pawns_phalanx & 1ull << square)
+                        if (west(pawns_us) & pawns_us & 1ull << square)
                             eval += (get_data(square / 8 + INDEX_PHALANX) + OFFSET_PHALANX) * SCALE;
 
                         // Passed pawn
@@ -300,7 +295,7 @@ struct Board {
 
                         if (type > QUEEN)
                             // Pawn shield
-                            eval += POPCNT(pawns_us & 0x70700 << 5 * (square % 8 > 2)) * PAWN_SHIELD * (square < A2);
+                            eval += POPCNT(pawns_us & 460544 << 5 * (square % 8 > 2)) * PAWN_SHIELD * (square < A2);
                         else if (pieces[QUEEN])
                             // King attacker
                             eval += POPCNT(mobility & attack(1ull << king_them, 0, KING)) * (get_data(type + INDEX_KING_ATTACK) + OFFSET_KING_ATTACK);
@@ -327,7 +322,7 @@ struct Board {
             phase = phases[WHITE] + phases[BLACK],
             x = POPCNT(pieces[PAWN] & colors[strong]);
 
-        return (i16(eval = stm ? -eval : eval) * phase + (eval >> 16) * (!x && phases[strong] - phases[!strong] < 2 ? 32 : 64 + x * 8) / 128 * (24 - phase)) / 24 + TEMPO;
+        return (i16(eval = stm ? -eval : eval) * phase + (eval >> 16) * (!x && phases[strong] - phases[!strong] < 2 ? 4 : 8 + x) / 16 * (24 - phase)) / 24 + TEMPO;
     }
 
 #ifdef OB_MINI
