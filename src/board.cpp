@@ -322,7 +322,7 @@ struct Board {
             phase = phases[WHITE] + phases[BLACK],
             x = POPCNT(pieces[PAWN] & colors[strong]);
 
-        return (i16(eval = stm ? -eval : eval) * phase + (eval >> 16) * (!x && phases[strong] - phases[!strong] < 2 ? 4 : 8 + x) / 16 * (24 - phase)) / 24 + TEMPO;
+        return (i16(eval = stm ? -eval : eval) * phase + (eval >> 16) * (!x && phases[strong] - phases[!strong] < 2 ? 1 : 8 + x) / 16 * (24 - phase)) / 24 + TEMPO;
     }
 
 #ifdef OB_MINI
