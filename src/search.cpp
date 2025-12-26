@@ -109,7 +109,7 @@ struct Thread {
 
             // Reverse futility pruning
             if (!is_pv && !excluded && depth && depth < 9 && eval < WIN && eval > beta + 69 * depth - 69 * is_improving)
-                return eval;
+                return (eval + beta) / 2;
 
             // Null move pruning
             if (!is_pv && !excluded && depth > 2 && eval > beta + 26 && board.colors[board.stm] & ~board.pieces[PAWN] & ~board.pieces[KING]) {
@@ -195,7 +195,7 @@ struct Thread {
             // Make
             Board child = board;
 
-            if (child.make(move) || move == excluded)
+            if (move == excluded || child.make(move))
                 continue;
 
             // Singular extension
