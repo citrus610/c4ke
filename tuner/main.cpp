@@ -5,7 +5,7 @@ int main()
     chess::init();
 
     // Load dataset
-    auto dataset = get_dataset("dataset/data.txt");
+    auto dataset = get_dataset("dataset/sirius-mix.txt");
 
     // Load initial weights
     auto weights = get_init_weights();
@@ -15,8 +15,7 @@ int main()
     print_weights(weights);
 
     // Get optimal K value
-    // auto K = get_optimal_K(dataset);
-    auto K = 2.5;
+    auto K = get_optimal_K(dataset);
 
     // Get loss
     auto loss = get_mse(dataset, weights, K);
@@ -29,7 +28,7 @@ int main()
     f64 lr = 0.1;
     f64 lr_drop_rate = 1.0;
 
-    usize epoch_max = 2000;
+    usize epoch_max = 5000;
     usize lr_drop_interval = 200;
 
     std::vector<Pair> momentum(weights.size(), { 0.0 , 0.0 });

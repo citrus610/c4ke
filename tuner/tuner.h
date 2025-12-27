@@ -49,6 +49,7 @@ inline f64 get_mse(const Dataset& dataset, const std::vector<Pair>& weights, f64
             for (usize i = 0; i < workload; ++i) {
                 const auto& entry = dataset.data[id * workload + i];
 
+                f64 target = entry.wdl * 0.6 + get_sigmoid(entry.score, K) * 0.4;
                 f64 score = get_linear(entry, weights);
                 f64 delta = entry.wdl - get_sigmoid(score, K);
 
@@ -102,9 +103,7 @@ inline f64 get_optimal_K(const Dataset& dataset)
 
         i += 1;
 
-        if ((i % 100) == 0) {
-            std::cout << "\rK: " << std::to_string(K) << " - deviation: " << std::to_string(deviation);
-        }
+        std::cout << "\rK: " << std::to_string(K) << " - deviation: " << std::to_string(deviation);
     }
 
     std::cout << std::endl;
