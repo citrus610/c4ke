@@ -216,8 +216,12 @@ struct Thread {
                 // Multicut
                 else if (score >= beta)
                     return score;
+                // Negative extension
+                else if (tt.score >= beta)
+                    depth_next -= 2;
             }
 
+            // Update stack
             stack_conthist[ply + 2] = &conthist[board.board[move_from(move)]][move_to(move)];
 
             // Set this as a dummy value to drop straight into ZWS if we don't do LMR
@@ -249,6 +253,7 @@ struct Thread {
             if (!depth || !legals || is_pv && score > alpha)
                 score = -search(child, -beta, -alpha, ply + 1, depth_next, is_pv);
 
+            // Update legal moves count
             legals++;
 
             // Abort
