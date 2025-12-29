@@ -271,9 +271,7 @@ struct Board {
                                 get_data(max(abs(square / 8 - king_us / 8 + 1), abs(square % 8 - king_us % 8)) + INDEX_KING_PASSER_US) +
                                 get_data(max(abs(square / 8 - king_them / 8 + 1), abs(square % 8 - king_them % 8)) + INDEX_KING_PASSER_THEM) +
                                 OFFSET_PASSER
-                            ) * SCALE -
-                            // Blocked passed pawn
-                            PASSER_BLOCKED * !!(north(1ull << square) & colors[!color]);
+                            ) * SCALE;
                     }
                     else {
                         // Mobility

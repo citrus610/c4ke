@@ -34,43 +34,43 @@ struct Trace
 };
 
 i32 MATERIAL[5] = {
-    S(95, 196), S(362, 575), S(378, 583), S(504, 1050), S(1294, 1716)
+    S(95, 206), S(360, 586), S(375, 595), S(506, 1062), S(1271, 1795)
 };
 
 i32 PST_RANK[] = {
-    S(0, 0), S(-21, -18), S(-35, -28), S(-26, -25), S(-11, -16), S(43, 23), S(56, 124), S(0, 0),
-    S(-31, -28), S(-11, -13), S(5, 6), S(25, 31), S(45, 36), S(60, 6), S(35, -13), S(-129, -26),
-    S(-6, -14), S(11, -11), S(16, 5), S(16, 5), S(27, 4), S(20, 2), S(-11, -2), S(-73, 11),
-    S(4, -25), S(-7, -28), S(-5, -23), S(-14, 2), S(9, 11), S(17, 10), S(-1, 30), S(-4, 22),
-    S(9, -49), S(15, -45), S(5, -7), S(2, 12), S(3, 29), S(10, 28), S(-18, 33), S(-26, -1),
-    S(-22, -33), S(40, -12), S(-36, 6), S(-99, 21), S(-79, 27), S(20, 27), S(34, 24), S(23, -50)
+    S(0, 0), S(-22, -25), S(-35, -36), S(-27, -32), S(-11, -23), S(45, 13), S(52, 120), S(0, 0),
+    S(-30, -28), S(-10, -11), S(5, 7), S(26, 32), S(46, 36), S(60, 6), S(35, -14), S(-131, -28),
+    S(-6, -15), S(11, -11), S(17, 4), S(16, 6), S(27, 6), S(21, 2), S(-11, -3), S(-75, 11),
+    S(3, -25), S(-8, -27), S(-6, -22), S(-15, 2), S(9, 11), S(17, 10), S(-2, 31), S(1, 20),
+    S(9, -52), S(16, -48), S(5, -8), S(1, 15), S(1, 34), S(9, 30), S(-18, 34), S(-24, -4),
+    S(-20, -32), S(42, -12), S(-37, 6), S(-102, 21), S(-81, 26), S(21, 27), S(35, 23), S(21, -49)
 };
 i32 PST_FILE[] = { 
-    S(-20, 14), S(-9, 14), S(-5, -4), S(5, -15), S(15, -9), S(13, -1), S(14, 6), S(-14, -4),
-    S(-41, -19), S(-14, -3), S(-3, 14), S(15, 19), S(16, 19), S(20, 4), S(8, -4), S(-2, -28),
-    S(-18, -5), S(2, 0), S(4, -1), S(-3, 11), S(5, 9), S(-1, 7), S(13, -2), S(-1, -18),
-    S(-14, 5), S(-15, 11), S(-7, 14), S(4, 1), S(15, -9), S(4, -2), S(18, -9), S(-5, -10),
-    S(-16, -17), S(-12, -6), S(-11, 9), S(-3, 13), S(-2, 19), S(6, 4), S(20, -9), S(17, -13),
-    S(7, -58), S(38, -17), S(-1, 13), S(-58, 34), S(-24, 23), S(-45, 24), S(28, -8), S(17, -55)
+    S(-19, 14), S(-9, 14), S(-5, -4), S(5, -16), S(15, -9), S(13, -1), S(14, 6), S(-14, -5),
+    S(-41, -20), S(-14, -3), S(-3, 15), S(15, 19), S(17, 18), S(19, 4), S(8, -5), S(-2, -29),
+    S(-18, -6), S(2, 0), S(4, -1), S(-3, 11), S(4, 9), S(-1, 7), S(13, -1), S(-1, -18),
+    S(-14, 5), S(-15, 11), S(-6, 13), S(4, 1), S(16, -10), S(4, -1), S(17, -8), S(-6, -11),
+    S(-15, -19), S(-12, -5), S(-12, 12), S(-4, 15), S(-2, 21), S(6, 5), S(20, -11), S(18, -18),
+    S(5, -56), S(38, -18), S(-1, 13), S(-58, 34), S(-24, 22), S(-44, 22), S(29, -8), S(16, -53)
 };
-i32 MOBILITY[] = { S(9, 5), S(8, 7), S(3, 6), S(1, 12), S(-9, -3) };
-i32 PASSER[] = { S(12, -25), S(8, 9), S(1, 71), S(14, 135), S(-25, 224), S(24, 223) };
-i32 PHALANX[] = { S(10, 4), S(17, 20), S(32, 36), S(60, 98), S(163, 279), S(152, 275) };
-i32 THREAT[] = { S(76, 27), S(81, 55), S(102, -3), S(89, -61) };
-i32 PUSH_THREAT[] = { S(29, 6), S(29, -6), S(19, 20), S(26, -22) };
-i32 KING_ATTACK[] = { S(11, -7), S(23, -4), S(34, -14), S(18, 19) };
-i32 KING_PASSER_US[] = { S(-57, 59), S(-44, 88), S(-13, 34), S(-22, 11), S(-3, -19), S(6, -36), S(35, -47), S(1, -34) };
-i32 KING_PASSER_THEM[] = {S(-82, -15), S(18, -75), S(1, -39), S(-15, -4), S(-20, 24), S(-25, 43), S(-45, 65), S(-48, 49) };
-i32 BISHOP_PAIR = S(29, 95);
-i32 KING_OPEN = S(-69, -6);
-i32 KING_SEMIOPEN = S(-33, 12);
-i32 KING_PAWN_THREAT = S(19, 50);
+i32 MOBILITY[] = { S(9, 5), S(8, 7), S(3, 6), S(2, 10), S(-9, -2) };
+i32 PASSER[] = { S(15, -27), S(10, 8), S(2, 72), S(12, 138), S(-36, 235), S(20, 228) };
+i32 PHALANX[] = { S(9, 4), S(17, 21), S(32, 37), S(59, 102), S(159, 293), S(154, 294) };
+i32 THREAT[] = { S(76, 27), S(81, 56), S(104, -6), S(89, -58) };
+i32 PUSH_THREAT[] = { S(29, 9), S(29, -7), S(20, 19), S(25, -16) };
+i32 KING_ATTACK[] = { S(8, 20), S(16, 31), S(45, -27), S(18, 19) };
+i32 KING_PASSER_US[] = { S(-74, 68), S(-49, 94), S(-14, 37), S(-23, 13), S(-3, -18), S(7, -35), S(40, -49), S(8, -37) };
+i32 KING_PASSER_THEM[] = { S(-97, -4), S(40, -80), S(1, -41), S(-16, -6), S(-21, 24), S(-28, 44), S(-52, 68), S(-64, 60) };
+i32 BISHOP_PAIR = S(30, 96);
+i32 KING_OPEN = S(-69, -7);
+i32 KING_SEMIOPEN = S(-33, 13);
+i32 KING_PAWN_THREAT = S(14, 53);
 i32 ROOK_OPEN = S(25, -5);
-i32 ROOK_SEMIOPEN = S(16, 17);
-i32 PAWN_PROTECTED = S(23, 27);
+i32 ROOK_SEMIOPEN = S(15, 19);
+i32 PAWN_PROTECTED = S(23, 28);
 i32 PAWN_DOUBLED = S(10, 39);
-i32 PAWN_SHIELD = S(29, -14);
-i32 PASSER_BLOCKED = S(-7, 66);
+i32 PAWN_SHIELD = S(29, -13);
+// i32 PASSER_BLOCKED = S(-10, 72);
 
 i32 TEMPO = 20;
 
@@ -157,10 +157,10 @@ inline Trace get_trace(Board& board, f64 wdl)
                         trace.passer[color][square / 8 - 1] += 1;
 
                         // Blocked passed pawn
-                        if (((1ULL << square) << 8) & board.colors[!color]) {
-                            score -= PASSER_BLOCKED;
-                            trace.passer_blocked[color] -= 1;
-                        }
+                        // if (((1ULL << square) << 8) & board.colors[!color]) {
+                        //     score -= PASSER_BLOCKED;
+                        //     trace.passer_blocked[color] -= 1;
+                        // }
 
                         // King distance
                         i32 king_passer_us = std::max(std::abs(square / 8 - king_square_us / 8 + 1), std::abs(square % 8 - king_square_us % 8));
@@ -277,14 +277,14 @@ inline Trace get_trace(Board& board, f64 wdl)
 
     // Scaling
     i32 strong = wdl < 0.5;
-    i32 x = 8 - bitboard::get_count(board.pieces[piece::type::PAWN] & board.colors[strong]);
-    i32 scale = x > 7 && phases[strong] - phases[!strong] < 2 ? 32 : 128 - x * x;
+    i32 x = bitboard::get_count(board.pieces[piece::type::PAWN] & board.colors[strong]);
+    i32 scale = x == 0 && (phases[strong] - phases[!strong] < 2 || phases[strong] < 3 && bitboard::get_count(board.pieces[piece::type::KNIGHT]) < 3) ? 1 : 8 + x;
     i32 mg = get_mg(score);
     i32 eg = get_eg(score);
     
-    score = (mg * phase + eg * scale / 128 * (24 - phase)) / 24;
+    score = (mg * phase + eg * scale / 16 * (24 - phase)) / 24;
 
-    trace.scale = f64(scale) / 128.0;
+    trace.scale = f64(scale) / 16.0;
     trace.score = score;
     trace.phase = phase;
     trace.delta = material;
@@ -334,7 +334,14 @@ std::string get_str_weight(std::vector<Pair>& weights, i32& index, std::string n
 
 std::string get_str_weights(std::vector<Pair>& weights, i32& index, std::string name, i32 count)
 {
-    std::string str = "i32 " + name + "[] = { ";
+    std::string str = "i32 " + name + "[] = {";
+
+    if (count > 8) {
+        str += "\n";
+    }
+    else {
+        str += " ";
+    }
 
     for (i32 i = 0; i < count; ++i) {
         str += get_str_score(weights[index]);
@@ -343,10 +350,21 @@ std::string get_str_weights(std::vector<Pair>& weights, i32& index, std::string 
 
         if (i < count - 1) {
             str += ", ";
+
+            if ((i + 1) % 8 == 0) {
+                str += "\n";
+            }
         }
     }
 
-    str += " };\n";
+    if (count > 8) {
+        str += "\n";
+    }
+    else {
+        str += " ";
+    }
+
+    str += "};\n";
 
     return str;
 };
@@ -379,7 +397,7 @@ std::vector<Pair> get_init_weights()
     add_weight(result, PAWN_PROTECTED);
     add_weight(result, PAWN_DOUBLED);
     add_weight(result, PAWN_SHIELD);
-    add_weight(result, PASSER_BLOCKED);
+    // add_weight(result, PASSER_BLOCKED);
 
     return result;
 };
@@ -408,7 +426,7 @@ std::vector<i32> get_coefs(Trace trace)
     add_coef(result, trace.pawn_protected);
     add_coef(result, trace.pawn_doubled);
     add_coef(result, trace.pawn_shield);
-    add_coef(result, trace.passer_blocked);
+    // add_coef(result, trace.passer_blocked);
 
     return result;
 };
@@ -476,7 +494,9 @@ std::string get_str_print_weights(std::vector<Pair> weights)
     str += get_str_weight(weights, index, "PAWN_PROTECTED");
     str += get_str_weight(weights, index, "PAWN_DOUBLED");
     str += get_str_weight(weights, index, "PAWN_SHIELD");
-    str += get_str_weight(weights, index, "PASSER_BLOCKED");
+    // str += get_str_weight(weights, index, "PASSER_BLOCKED");
+
+    str += "i32 TEMPO = " + std::to_string(std::round(TEMPO)) + ";\n";
 
     return str;
 };

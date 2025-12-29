@@ -102,9 +102,7 @@ inline f64 get_optimal_K(const Dataset& dataset)
 
         i += 1;
 
-        if ((i % 100) == 0) {
-            std::cout << "\rK: " << std::to_string(K) << " - deviation: " << std::to_string(deviation);
-        }
+        std::cout << "\rK: " << std::to_string(K) << " - deviation: " << std::to_string(deviation);
     }
 
     std::cout << std::endl;
