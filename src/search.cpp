@@ -159,14 +159,14 @@ struct Thread {
         // Iterate moves
         for (i32 i = 0; i < move_count; i++) {
             // Sort next move
-            i32 next_index = i;
+            i32 next = i;
 
             for (i32 k = i; k < move_count; k++)
-                if (move_scores[k] > move_scores[next_index])
-                    next_index = k;
+                if (move_scores[k] > move_scores[next])
+                    next = k;
             
-            swap(move_list[i], move_list[next_index]);
-            swap(move_scores[i], move_scores[next_index]);
+            swap(move_list[i], move_list[next]);
+            swap(move_scores[i], move_scores[next]);
 
             // Search data
             i32 move = move_list[i],
@@ -218,6 +218,7 @@ struct Thread {
                     return score;
             }
 
+            // Update stack
             stack_conthist[ply + 2] = &conthist[board.board[move_from(move)]][move_to(move)];
 
             // Set this as a dummy value to drop straight into ZWS if we don't do LMR
@@ -249,6 +250,7 @@ struct Thread {
             if (!depth || !legals || is_pv && score > alpha)
                 score = -search(child, -beta, -alpha, ply + 1, depth_next, is_pv);
 
+            // Update legal moves count
             legals++;
 
             // Abort

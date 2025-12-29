@@ -1,6 +1,7 @@
 #include "chess.cpp"
 
 // data: lichess-big3 - loss: 0.074724
+// 0.074465 hm pawn
 
 #define S(MG, EG) (MG + (EG << 16))
 

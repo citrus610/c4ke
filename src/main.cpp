@@ -122,6 +122,11 @@ i32 main() {
     for (i32 i = 0; i < 832; i++)
         KEYS[i / 64][i % 64] = rng();
 
+    // Mask
+    for (i32 i = 0; i < 64; i++)
+        DIAG[0][i] = ray(1ull << i, 0, ne) | ray(1ull << i, 0, sw),
+        DIAG[1][i] = ray(1ull << i, 0, se) | ray(1ull << i, 0, nw);
+
     // Search data
     Board board;
 

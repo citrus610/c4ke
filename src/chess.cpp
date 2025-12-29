@@ -180,6 +180,8 @@ null move_print(i32 move) {
 #define POPCNT popcount
 #define BSWAP byteswap
 
+u64 DIAG[2][64];
+
 u64 north(u64 bitboard) {
     return bitboard << 8;
 }
@@ -225,6 +227,10 @@ u64 ray(u64 mask, u64 occupied, auto func) {
     return mask;
 }
 
+u64 hyperbola(u64 mask, u64 occupied, u64 line) {
+    return line & ((occupied & line) - mask ^ BSWAP(BSWAP(occupied & line) - BSWAP(mask)));
+}
+
 // Get non-pawn attack mask
 u64 attack(u64 mask, u64 occupied, i32 type) {
     // Knight
@@ -237,8 +243,8 @@ u64 attack(u64 mask, u64 occupied, i32 type) {
     
     // Slider
     return
-        (type > BISHOP) * (ray(mask, occupied, north) | ray(mask, occupied, south) | ray(mask, occupied, west) | ray(mask, occupied, east)) |
-        (type != ROOK) * (ray(mask, occupied, nw) | ray(mask, occupied, ne) | ray(mask, occupied, sw) | ray(mask, occupied, se));
+        (type > BISHOP) * (ray(mask, occupied, east) | ray(mask, occupied, west) | hyperbola(mask, occupied, mask ^ 0x101010101010101u << LSB(mask) % 8)) |
+        (type != ROOK) * (hyperbola(mask, occupied, DIAG[0][LSB(mask)]) | hyperbola(mask, occupied, DIAG[1][LSB(mask)]));
 }
 
 // Shared states
