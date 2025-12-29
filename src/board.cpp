@@ -423,4 +423,4 @@ struct Board {
             edit(i + A2, WHITE_PAWN),
             edit(i + A7, BLACK_PAWN);
     }
-};
+} BOARD;

@@ -341,13 +341,14 @@ struct Thread {
     }
 
 #ifdef OB_MINI
-    null start(Board board, i32 ID, i32 MAX_DEPTH = 256, i32 BENCH = FALSE) {
+    null start(i32 ID, i32 MAX_DEPTH = 256, i32 BENCH = FALSE) {
 #else
-    null start(Board board, i32 ID) {
+    null start(i32 ID) {
         #define MAX_DEPTH 256
 #endif
         id = ID;
         i32 score;
+        Board board = BOARD;
 
         // Iterative deepening
         for (i32 depth = 1; depth < MAX_DEPTH; depth++) {
