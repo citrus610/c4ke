@@ -236,9 +236,7 @@ struct Board {
                 // Pawn protected
                 POPCNT(pawns_us & pawns_attacks) * PAWN_PROTECTED -
                 // Pawn doubled
-                POPCNT(pawns_us & (north(pawns_us) | pawns_us << 16)) * PAWN_DOUBLED +
-                // King threatening pawns
-                POPCNT(attack(1ull << king_us, 0, KING) & pawns_them) * KING_PAWN_THREAT;
+                POPCNT(pawns_us & (north(pawns_us) | pawns_us << 16)) * PAWN_DOUBLED;
 
             for (i32 type = PAWN; type < TYPE_NONE; type++) {
                 u64 mask = pieces[type] & colors[color];

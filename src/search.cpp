@@ -376,10 +376,10 @@ struct Thread {
                 else
                     break;
 
-                board.trend = clamp(board.stm ? -score : score, -64, 64);
-
                 // Scale delta
                 delta *= 1.3;
+
+                board.trend = clamp(board.stm ? -score : score, -64, 64);
             }
 
             // Print info
