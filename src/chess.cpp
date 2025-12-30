@@ -249,11 +249,9 @@ u64 attack(u64 mask, u64 occupied, i32 type) {
         return mask << 8 | mask >> 8 | (mask >> 1 | mask >> 9 | mask << 7) & ~0x8080808080808080 | (mask << 1 | mask << 9 | mask >> 7) & ~0x101010101010101;
     
     // Slider
-    i32 square = LSB(mask);
-
     return
-        (type != ROOK) * (hyperbola(mask, occupied, DIAG[0][square]) | hyperbola(mask, occupied, DIAG[1][square])) |
-        (type > BISHOP) * (hyperbola(mask, occupied, mask ^ 0x101010101010101u << square % 8) | ray(mask, occupied, east) | ray(mask, occupied, west));
+        (type != ROOK) * (hyperbola(mask, occupied, DIAG[0][LSB(mask)]) | hyperbola(mask, occupied, DIAG[1][LSB(mask)])) |
+        (type > BISHOP) * (hyperbola(mask, occupied, mask ^ 0x101010101010101u << LSB(mask) % 8) | ray(mask, occupied, east) | ray(mask, occupied, west));
 }
 
 // Shared states
