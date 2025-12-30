@@ -17,8 +17,8 @@ struct Thread {
         visited[STACK_SIZE];
     i16 id,
         qhist[2][4096],
-        stack_eval[STACK_SIZE],
-        corrhist[2][CORRHIST_SIZE];
+        corrhist[2][CORRHIST_SIZE],
+        stack_eval[STACK_SIZE];
 
     i32 search(Board& board, i32 alpha, i32 beta, i32 ply, i32 depth, i32 is_pv = FALSE, i32 excluded = MOVE_NONE) {
         // All search variables
