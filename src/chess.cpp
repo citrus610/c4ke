@@ -252,8 +252,8 @@ u64 attack(u64 mask, u64 occupied, i32 type) {
     i32 square = LSB(mask);
 
     return
-        (type > BISHOP) * (ray(mask, occupied, east) | ray(mask, occupied, west) | hyperbola(mask, occupied, mask ^ 0x101010101010101u << square % 8)) |
-        (type != ROOK) * (hyperbola(mask, occupied, DIAG[0][square]) | hyperbola(mask, occupied, DIAG[1][square]));
+        (type != ROOK) * (hyperbola(mask, occupied, DIAG[0][square]) | hyperbola(mask, occupied, DIAG[1][square])) |
+        (type > BISHOP) * (hyperbola(mask, occupied, mask ^ 0x101010101010101u << square % 8) | ray(mask, occupied, east) | ray(mask, occupied, west));
 }
 
 // Shared states
