@@ -180,7 +180,14 @@ null move_print(i32 move) {
 #define POPCNT popcount
 #define BSWAP byteswap
 
-u64 DIAG[2][64];
+u64 BEST_MOVE,
+    VISITED_COUNT,
+    TIME_START,
+    TIME_SOFT,
+    TIME_LIMIT,
+    DIAG[2][64],
+    KEYS[13][65],
+    VISITED[STACK_SIZE];
 
 u64 north(u64 bitboard) {
     return bitboard << 8;
@@ -259,13 +266,6 @@ struct TTEntry {
 };
 
 TTEntry* TTABLE = (TTEntry*)calloc(1ull << TT_BITS, 8);
-u64 BEST_MOVE,
-    VISITED_COUNT,
-    TIME_START,
-    TIME_SOFT,
-    TIME_LIMIT,
-    KEYS[13][65],
-    VISITED[STACK_SIZE];
 atomic<i32> STOP;
 
 #ifdef OB
