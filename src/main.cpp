@@ -83,8 +83,7 @@ void bench()
     for (auto& fen : FENS) {
         stringstream ss(fen);
 
-        Board board;
-        board.from_fen(ss);
+        BOARD.from_fen(ss);
 
         Thread engine {};
 
@@ -94,11 +93,9 @@ void bench()
         TIME_LIMIT = UINT64_MAX;
         VISITED_COUNT = 0;
 
-        memset(corrhist, 0, 1 << 16);
-
         u64 time_1 = now();
 
-        engine.start(board, 0, 15, TRUE);
+        engine.start(0, 15, TRUE);
 
         u64 time_2 = now();
 
@@ -116,14 +113,15 @@ i32 main(i32 argc, char *argv[]) {
 #else
 i32 main() {
 #endif
+    // Mask
+    for (i32 i = 0; i < 64; i++)
+        DIAG[0][i ^ 56] = BSWAP(DIAG[1][i] = ray(1ull << i, 0, se) | ray(1ull << i, 0, nw));
+
     // Zobrist hash init
     mt19937_64 rng;
 
     for (i32 i = 0; i < 832; i++)
         KEYS[i / 64][i % 64] = rng();
-
-    // Search data
-    Board board;
 
 #ifdef OB_MINI
     // Bench
@@ -136,10 +134,10 @@ i32 main() {
 #ifdef OB
     // Perft
     if (argc > 2 && std::string(argv[1]) == "perft") {
-        board.startpos();
+        BOARD.startpos();
 
         u64 time_1 = now();
-        u64 nodes = perft(board, std::stoi(argv[2]), true);
+        u64 nodes = perft(BOARD, std::stoi(argv[2]), true);
         u64 time_2 = now();
 
         cout << nodes << " nodes " << (nodes * 1000 / max(time_2 - time_1, u64(1))) << " nps" << endl;
@@ -199,14 +197,14 @@ i32 main() {
 #endif
         // Uci position
         else if (token[0] == 'p') {
-            board.startpos();
+            BOARD.startpos();
             VISITED_COUNT = 0;
 
 #ifdef OB
             tokens >> token;
 
             if (token[0] == 'f') {
-                board.from_fen(tokens);
+                BOARD.from_fen(tokens);
             }
 
             tokens >> token;
@@ -216,9 +214,9 @@ i32 main() {
 
             for (; tokens >> token;)
                 BEST_MOVE = move_make(token[0] + token[1] * 8 - 489, token[2] + token[3] * 8 - 489, token[4] % 35 * 5 % 6),
-                VISITED[VISITED_COUNT++] = board.hash,
-                VISITED_COUNT *= board.board[move_to(BEST_MOVE)] > BLACK_KING && board.board[move_from(BEST_MOVE)] > BLACK_PAWN,
-                board.make(BEST_MOVE);
+                VISITED[VISITED_COUNT++] = BOARD.hash,
+                VISITED_COUNT *= BOARD.board[move_to(BEST_MOVE)] > BLACK_KING && BOARD.board[move_from(BEST_MOVE)] > BLACK_PAWN,
+                BOARD.make(BEST_MOVE);
         }
         // Uci go
         else if (token[0] == 'g') {
@@ -228,18 +226,18 @@ i32 main() {
             time = 1ull << 32;
 
             while (tokens >> token) {
-                if (token == "wtime" && board.stm == WHITE) {
+                if (token == "wtime" && BOARD.stm == WHITE) {
                     tokens >> time;
                 }
 
-                if (token == "btime" && board.stm == BLACK) {
+                if (token == "btime" && BOARD.stm == BLACK) {
                     tokens >> time;
                 }
             }
 #else
             tokens >> token >> time;
 
-            if (board.stm)
+            if (BOARD.stm)
                 tokens >> token >> time;
 #endif
 
@@ -248,8 +246,6 @@ i32 main() {
             TIME_SOFT = time / 20;
             TIME_LIMIT = TIME_START + time / 2;
 
-            memset(corrhist, 0, 1 << 16);
-
 #ifdef OB
             vector<jthread> threads(THREADS);
 #else
@@ -257,7 +253,7 @@ i32 main() {
 #endif
 
             for (i32 id = 0; id < THREADS; id++)
-                threads[id] = jthread([=] { Thread{}.start(board, id); });
+                threads[id] = jthread([=] { Thread{}.start(id); });
 
 #ifdef OB
             bool is_quitting = false;

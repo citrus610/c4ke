@@ -17,6 +17,7 @@ struct Thread {
         visited[STACK_SIZE];
     i16 id,
         qhist[2][4096],
+        corrhist[2][CORRHIST_SIZE],
         stack_eval[STACK_SIZE];
 
     i32 search(Board& board, i32 alpha, i32 beta, i32 ply, i32 depth, i32 is_pv = FALSE, i32 excluded = MOVE_NONE) {
@@ -159,14 +160,14 @@ struct Thread {
         // Iterate moves
         for (i32 i = 0; i < move_count; i++) {
             // Sort next move
-            i32 next_index = i;
+            i32 next = i;
 
             for (i32 k = i; k < move_count; k++)
-                if (move_scores[k] > move_scores[next_index])
-                    next_index = k;
+                if (move_scores[k] > move_scores[next])
+                    next = k;
             
-            swap(move_list[i], move_list[next_index]);
-            swap(move_scores[i], move_scores[next_index]);
+            swap(move_list[i], move_list[next]);
+            swap(move_scores[i], move_scores[next]);
 
             // Search data
             i32 move = move_list[i],
@@ -218,6 +219,7 @@ struct Thread {
                     return score;
             }
 
+            // Update stack
             stack_conthist[ply + 2] = &conthist[board.board[move_from(move)]][move_to(move)];
 
             // Set this as a dummy value to drop straight into ZWS if we don't do LMR
@@ -249,6 +251,7 @@ struct Thread {
             if (!depth || !legals || is_pv && score > alpha)
                 score = -search(child, -beta, -alpha, ply + 1, depth_next, is_pv);
 
+            // Update legal moves count
             legals++;
 
             // Abort
@@ -338,13 +341,14 @@ struct Thread {
     }
 
 #ifdef OB_MINI
-    null start(Board board, i32 ID, i32 MAX_DEPTH = 256, i32 BENCH = FALSE) {
+    null start(i32 ID, i32 MAX_DEPTH = 256, i32 BENCH = FALSE) {
 #else
-    null start(Board board, i32 ID) {
+    null start(i32 ID) {
         #define MAX_DEPTH 256
 #endif
         id = ID;
         i32 score;
+        Board board = BOARD;
 
         // Iterative deepening
         for (i32 depth = 1; depth < MAX_DEPTH; depth++) {
@@ -372,10 +376,10 @@ struct Thread {
                 else
                     break;
 
-                board.trend = clamp(board.stm ? -score : score, -64, 64);
-
                 // Scale delta
                 delta *= 1.3;
+
+                board.trend = clamp(board.stm ? -score : score, -64, 64);
             }
 
             // Print info

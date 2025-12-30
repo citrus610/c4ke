@@ -222,8 +222,8 @@ struct Board {
         for (i32 color = WHITE; color < 2; color++) {
             u64 pawns_us = pieces[PAWN] & colors[color],
                 pawns_them = pieces[PAWN] & colors[!color],
-                pawns_threats = se(pawns_them) | sw(pawns_them),
                 pawns_attacks = ne(pawns_us) | nw(pawns_us),
+                pawns_threats = se(pawns_them) | sw(pawns_them),
                 pawns_them_push = south(pawns_them) & ~(colors[WHITE] | colors[BLACK]),
                 pawns_push_threats = se(pawns_them_push) | sw(pawns_them_push);
 
@@ -236,9 +236,7 @@ struct Board {
                 // Pawn protected
                 POPCNT(pawns_us & pawns_attacks) * PAWN_PROTECTED -
                 // Pawn doubled
-                POPCNT(pawns_us & (north(pawns_us) | north(north(pawns_us)))) * PAWN_DOUBLED +
-                // King threatening pawns
-                POPCNT(attack(1ull << king_us, 0, KING) & pawns_them) * KING_PAWN_THREAT;
+                POPCNT(pawns_us & (north(pawns_us) | pawns_us << 16)) * PAWN_DOUBLED;
 
             for (i32 type = PAWN; type < TYPE_NONE; type++) {
                 u64 mask = pieces[type] & colors[color];
@@ -271,9 +269,7 @@ struct Board {
                                 get_data(max(abs(square / 8 - king_us / 8 + 1), abs(square % 8 - king_us % 8)) + INDEX_KING_PASSER_US) +
                                 get_data(max(abs(square / 8 - king_them / 8 + 1), abs(square % 8 - king_them % 8)) + INDEX_KING_PASSER_THEM) +
                                 OFFSET_PASSER
-                            ) * SCALE -
-                            // Blocked passed pawn
-                            PASSER_BLOCKED * !!(north(1ull << square) & colors[!color]);
+                            ) * SCALE;
                     }
                     else {
                         // Mobility
@@ -423,4 +419,4 @@ struct Board {
             edit(i + A2, WHITE_PAWN),
             edit(i + A7, BLACK_PAWN);
     }
-};
+} BOARD;
