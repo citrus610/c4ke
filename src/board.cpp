@@ -54,6 +54,8 @@ struct Board {
             to = move_to(move),
             side = !stm;
 
+        i32 VALUE[] { VALUE_P, VALUE_N, VALUE_B, VALUE_R, VALUE_Q, 5000, 0 };
+
         // Skip special moves such as promo and enpassant
         // We don't have to handle castling here since king moves are always safe
         if (move_promo(move) || board[from] < WHITE_KNIGHT && to == enpassant)
