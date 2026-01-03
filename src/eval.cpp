@@ -6,7 +6,7 @@
 
 i32 PHASE[] { 0, 1, 1, 2, 4, 0 },
     LAYOUT[] { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK },
-    VALUE[] { 111, 312, 290, 513, 934, 5000, 0 },
+    VALUE[] { 115, 300, 300, 497, 974, 5000, 0 },
     MATERIAL[] { S(92, 231), S(359, 658), S(375, 667), S(505, 1197), S(1290, 1975), 0 };
 
 #define SCALE 8
@@ -48,5 +48,5 @@ i32 PHASE[] { 0, 1, 1, 2, 4, 0 },
 i32 get_data(i32 index) {
     auto data = DATA_STR;
 
-    return data[index] + (data[index + INDEX_EG] << 16) - S(32, 32);
+    return data[index] + (data[index + INDEX_EG] - 32 << 16) - 32;
 }
