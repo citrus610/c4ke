@@ -84,12 +84,12 @@ struct Thread {
             // Get eval
             eval = stack_eval[ply] = board.eval() +
                 // Pawn corrhist
-                corrhist[board.stm][board.hash_pawn % CORRHIST_SIZE] / 129 +
+                corrhist[board.stm][board.hash_pawn % CORRHIST_SIZE] / 107 +
                 // Non-pawn corrhist
-                corrhist[board.stm][board.hash_non_pawn[WHITE] % CORRHIST_SIZE] / 199 +
-                corrhist[board.stm][board.hash_non_pawn[BLACK] % CORRHIST_SIZE] / 199 +
+                corrhist[board.stm][board.hash_non_pawn[WHITE] % CORRHIST_SIZE] / 166 +
+                corrhist[board.stm][board.hash_non_pawn[BLACK] % CORRHIST_SIZE] / 166 +
                 // Contcorrhist 1-ply
-                stack_conthist[ply + 1][0][0][0] / 140 +
+                stack_conthist[ply + 1][0][0][0] / 130 +
                 // Contcorrhist 2-ply
                 stack_conthist[ply][0][1][0] / 200;
 
@@ -101,7 +101,7 @@ struct Thread {
             is_improving = ply > 1 && stack_eval[ply] > stack_eval[ply - 2];
 
             // Razoring
-            if (!is_pv && !excluded && depth < 6 && stack_eval[ply] + 200 * depth < alpha)
+            if (!is_pv && !excluded && depth < 6 && stack_eval[ply] + 180 * depth < alpha)
                 depth = 0;
 
             // Standpat
@@ -109,11 +109,11 @@ struct Thread {
                 return eval;
 
             // Reverse futility pruning
-            if (!is_pv && !excluded && depth && depth < 9 && eval < WIN && eval > beta + 69 * depth - 69 * is_improving)
+            if (!is_pv && !excluded && depth && depth < 9 && eval < WIN && eval > beta + 79 * depth - 79 * is_improving)
                 return (eval + beta) / 2;
 
             // Null move pruning
-            if (!is_pv && !excluded && depth > 2 && eval > beta + 26 && board.colors[board.stm] & ~board.pieces[PAWN] & ~board.pieces[KING]) {
+            if (!is_pv && !excluded && depth > 2 && eval > beta + 27 && board.colors[board.stm] & ~board.pieces[PAWN] & ~board.pieces[KING]) {
                 Board child = board;
 
                 child.stm ^= 1;
@@ -145,9 +145,9 @@ struct Thread {
                     // Quiet history
                     qhist[board.stm][move & 4095] +
                     // Conthist 2-ply
-                    2.1 * stack_conthist[ply][0][board.board[move_from(move)]][move_to(move)] +
+                    2 * stack_conthist[ply][0][board.board[move_from(move)]][move_to(move)] +
                     // Conthist 1-ply
-                    2.1 * stack_conthist[ply + 1][0][board.board[move_from(move)]][move_to(move)] :
+                    2.2 * stack_conthist[ply + 1][0][board.board[move_from(move)]][move_to(move)] :
                 // Noisy moves
                     // MVV
                     VALUE[board.board[move_to(move)] / 2 % TYPE_NONE] * 16 +
@@ -186,11 +186,11 @@ struct Thread {
                 continue;
 
             // Futility pruning
-            if (ply && best > -WIN && depth < 10 && !board.checkers && stack_eval[ply] + 86 * depth + move_scores[i] / 31 + 94 < alpha && is_quiet)
+            if (ply && best > -WIN && depth < 10 && !board.checkers && stack_eval[ply] + 80 * depth + move_scores[i] / 32 + 90 < alpha && is_quiet)
                 continue;
 
             // SEE pruning in pvsearch
-            if (ply && best > -WIN && move_scores[i] < 1e6 && !board.see(move, -78 * depth))
+            if (ply && best > -WIN && move_scores[i] < 1e6 && !board.see(move, -77 * depth))
                 continue;
 
             // Make
@@ -200,7 +200,7 @@ struct Thread {
                 continue;
 
             // Singular extension
-            if (ply && depth > 4 && !excluded && move == tt.move && tt.depth > depth - 4 && tt.bound && abs(tt.score) < WIN) {
+            if (ply && depth > 3 && !excluded && move == tt.move && tt.depth > depth - 4 && tt.bound && abs(tt.score) < WIN) {
                 i32 singular_beta = tt.score - depth;
                 
                 score = search(board, singular_beta - 1, singular_beta, ply, depth_next / 2, FALSE, move);
@@ -213,7 +213,7 @@ struct Thread {
                         // Double extension
                         (!is_pv && score < singular_beta - 10) +
                         // Triple extension
-                        (!is_pv && score < singular_beta - 39 && is_quiet);
+                        (!is_pv && score < singular_beta - 35 && is_quiet);
                 // Multicut
                 else if (score >= beta)
                     return score;
@@ -229,11 +229,11 @@ struct Thread {
             if (depth > 2 && legals > 2) {
                 i32 reduction =
                     // Base reduction
-                    log(depth) * log(legals + 1) * 0.35 + 1 +
+                    log(depth) * log(legals + 1) * .33 + 1 +
                     // PV
                     !is_pv -
                     // History reduction
-                    is_quiet * move_scores[i] / 7561;
+                    is_quiet * move_scores[i] / 7560;
 
                 // Clamp noisy reduction
                 if (!is_quiet && reduction > 1)
@@ -289,7 +289,7 @@ struct Thread {
                     break;
 
                 // History bonus
-                i32 bonus = min(168 * depth - 59, 1530) + (stack_eval[ply] <= best) * 145;
+                i32 bonus = min(169 * depth - 69, 1660) + (stack_eval[ply] <= best) * 154;
 
                 if (is_quiet) {
                     // Update quiet history
@@ -324,7 +324,7 @@ struct Thread {
 
         // Update corrhist
         if (!board.checkers && (!bound || board.quiet(tt.move)) && bound != best < stack_eval[ply]) {
-            i32 bonus = clamp((best - stack_eval[ply]) * depth, -CORRHIST_BONUS_MAX, CORRHIST_BONUS_MAX) * CORRHIST_BONUS_SCALE;
+            i32 bonus = clamp((best - stack_eval[ply]) * depth, -550, 550) * 8.4;
 
             update_history(corrhist[board.stm][board.hash_pawn % CORRHIST_SIZE], bonus);
             update_history(corrhist[board.stm][board.hash_non_pawn[WHITE] % CORRHIST_SIZE], bonus);
@@ -377,9 +377,9 @@ struct Thread {
                     break;
 
                 // Scale delta
-                delta *= 1.3;
+                delta *= 1.2;
 
-                board.trend = clamp(board.stm ? -score : score, -64, 64);
+                board.trend = clamp(board.stm ? -score : score, -76, 76);
             }
 
             // Print info
