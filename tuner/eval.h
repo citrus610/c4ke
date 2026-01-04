@@ -19,13 +19,11 @@ struct Trace
     i32 bishop_pair[2] {};
     i32 king_open[2] {};
     i32 king_semiopen[2] {};
-    i32 king_pawn_threat[2] {};
     i32 rook_open[2] {};
     i32 rook_semiopen[2] {};
     i32 pawn_protected[2] {};
     i32 pawn_doubled[2] {};
     i32 pawn_shield[2] {};
-    i32 passer_blocked[2] {};
 
     f64 score = 0.0;
     f64 scale = 1.0;
@@ -64,13 +62,11 @@ i32 KING_PASSER_THEM[] = { S(-97, -4), S(40, -80), S(1, -41), S(-16, -6), S(-21,
 i32 BISHOP_PAIR = S(30, 96);
 i32 KING_OPEN = S(-69, -7);
 i32 KING_SEMIOPEN = S(-33, 13);
-i32 KING_PAWN_THREAT = S(14, 53);
 i32 ROOK_OPEN = S(25, -5);
 i32 ROOK_SEMIOPEN = S(15, 19);
 i32 PAWN_PROTECTED = S(23, 28);
 i32 PAWN_DOUBLED = S(10, 39);
 i32 PAWN_SHIELD = S(29, -13);
-// i32 PASSER_BLOCKED = S(-10, 72);
 
 i32 TEMPO = 20;
 
@@ -114,12 +110,6 @@ inline Trace get_trace(Board& board, f64 wdl)
         score -= pawn_doubled * PAWN_DOUBLED;
         trace.pawn_doubled[color] -= pawn_doubled;
 
-        // King threatening pawns
-        i32 pawn_threaten = bitboard::get_count(attack::get_king(king_square_us) & pawns_them);
-
-        score += pawn_threaten * KING_PAWN_THREAT;
-        trace.king_pawn_threat[color] += pawn_threaten;
-
         for (i8 type = piece::type::PAWN; type < 6; ++type) {
             u64 mask = board.pieces[type] & board.colors[color];
 
@@ -155,12 +145,6 @@ inline Trace get_trace(Board& board, f64 wdl)
                     if (!(0x101010101010101ULL << square & (pawns_them | pawns_threats))) {
                         score += PASSER[square / 8 - 1];
                         trace.passer[color][square / 8 - 1] += 1;
-
-                        // Blocked passed pawn
-                        // if (((1ULL << square) << 8) & board.colors[!color]) {
-                        //     score -= PASSER_BLOCKED;
-                        //     trace.passer_blocked[color] -= 1;
-                        // }
 
                         // King distance
                         i32 king_passer_us = std::max(std::abs(square / 8 - king_square_us / 8 + 1), std::abs(square % 8 - king_square_us % 8));
@@ -391,13 +375,11 @@ std::vector<Pair> get_init_weights()
     add_weight(result, BISHOP_PAIR);
     add_weight(result, KING_OPEN);
     add_weight(result, KING_SEMIOPEN);
-    add_weight(result, KING_PAWN_THREAT);
     add_weight(result, ROOK_OPEN);
     add_weight(result, ROOK_SEMIOPEN);
     add_weight(result, PAWN_PROTECTED);
     add_weight(result, PAWN_DOUBLED);
     add_weight(result, PAWN_SHIELD);
-    // add_weight(result, PASSER_BLOCKED);
 
     return result;
 };
@@ -420,13 +402,11 @@ std::vector<i32> get_coefs(Trace trace)
     add_coef(result, trace.bishop_pair);
     add_coef(result, trace.king_open);
     add_coef(result, trace.king_semiopen);
-    add_coef(result, trace.king_pawn_threat);
     add_coef(result, trace.rook_open);
     add_coef(result, trace.rook_semiopen);
     add_coef(result, trace.pawn_protected);
     add_coef(result, trace.pawn_doubled);
     add_coef(result, trace.pawn_shield);
-    // add_coef(result, trace.passer_blocked);
 
     return result;
 };
@@ -488,13 +468,11 @@ std::string get_str_print_weights(std::vector<Pair> weights)
     str += get_str_weight(weights, index, "BISHOP_PAIR");
     str += get_str_weight(weights, index, "KING_OPEN");
     str += get_str_weight(weights, index, "KING_SEMIOPEN");
-    str += get_str_weight(weights, index, "KING_PAWN_THREAT");
     str += get_str_weight(weights, index, "ROOK_OPEN");
     str += get_str_weight(weights, index, "ROOK_SEMIOPEN");
     str += get_str_weight(weights, index, "PAWN_PROTECTED");
     str += get_str_weight(weights, index, "PAWN_DOUBLED");
     str += get_str_weight(weights, index, "PAWN_SHIELD");
-    // str += get_str_weight(weights, index, "PASSER_BLOCKED");
 
     str += "i32 TEMPO = " + std::to_string(std::round(TEMPO)) + ";\n";
 
