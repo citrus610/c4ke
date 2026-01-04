@@ -1087,6 +1087,18 @@ ScopeIR get_scope_id(Scope& scope, std::vector<NameID> toplevels)
         }
     }
 
+    // Get this scope id if it's a struct, used for checking with member functions
+    std::optional<size_t> struct_id = {};
+
+    if (scope.type == ScopeType::STRUCT) {
+        for (auto& toplvl_id : toplevels) {
+            if (scope.name == toplvl_id.name) {
+                struct_id = toplvl_id.id;
+                break;
+            }
+        }
+    }
+
     // Get id
     size_t id = 0;
 
@@ -1102,6 +1114,23 @@ ScopeIR get_scope_id(Scope& scope, std::vector<NameID> toplevels)
                     found = true;
                     id += 1;
                     break;
+                }
+            }
+
+            // Special case for member functions of a struct
+            if (scope.type == ScopeType::STRUCT) {
+                bool is_member_function = false;
+    
+                for (const auto& child : scope.children) {
+                    if (child.type == ScopeType::FUNCTION && name.name == child.name) {
+                        is_member_function = true;
+                        break;
+                    }
+                }
+
+                if (is_member_function && struct_id.has_value() && id == struct_id.value()) {
+                    found = true;
+                    id += 1;
                 }
             }
 
