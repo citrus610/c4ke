@@ -384,11 +384,29 @@ struct Thread {
 
             // Print info
 #ifdef OB_MINI
-            if (!id && !BENCH)
+            if (!id && !BENCH) {
+                cout << "info ";
+                cout << "depth " << depth << " ";
+                cout << "score ";
+
+                if (score >= WIN) {
+                    cout << "mate " << i32((INF - score) / 2) << " ";
+                }
+                else if (score <= -WIN) {
+                    cout << "mate " << i32((-INF - score) / 2) << " ";
+                }
+                else {
+                    cout << "cp " << score << " ";
+                }
+
+                cout << "nodes " << nodes << " ";
+                cout << "nps " << u64(nodes * 1000 / max(now() - TIME_START, u64(1))) << " ";
+                cout << "pv ", move_print(BEST_MOVE);
+            }
 #else
             if (!id)
-#endif
                 cout << "info depth " << depth << " score cp " << score << " pv ", move_print(BEST_MOVE);
+#endif
 
             // Check time
             if (!id && now() > TIME_START + TIME_SOFT * (2 - 1.5 * nodes_table[BEST_MOVE & 4095] / nodes))
