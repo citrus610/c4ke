@@ -187,8 +187,8 @@ struct Board {
         i16* list_start = list;
 
         u64 occupied = colors[WHITE] | colors[BLACK],
-            targets = is_all ? ~colors[stm] : colors[!stm],
             pawns = pieces[PAWN] & colors[stm],
+            targets = is_all ? ~colors[stm] : colors[!stm],
             pawns_push = (stm ? south(pawns) : north(pawns)) & ~occupied & (is_all ? ~0ull : 0xff000000000000ff),
             pawns_targets = colors[!stm] | u64(enpassant < SQUARE_NONE) << enpassant;
 
