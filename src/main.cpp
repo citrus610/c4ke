@@ -197,8 +197,8 @@ i32 main() {
 #endif
         // Uci position
         else if (token[0] == 'p') {
-            BOARD.startpos();
             VISITED_COUNT = 0;
+            BOARD.startpos();
 
 #ifdef OB
             tokens >> token;
@@ -220,10 +220,8 @@ i32 main() {
         }
         // Uci go
         else if (token[0] == 'g') {
-            u64 time;
-
 #ifdef OB
-            time = 1ull << 32;
+            u64 time = 1ull << 32;
 
             while (tokens >> token) {
                 if (token == "wtime" && BOARD.stm == WHITE) {
@@ -234,17 +232,19 @@ i32 main() {
                     tokens >> time;
                 }
             }
+
+            TIME_LIMIT = time;
 #else
-            tokens >> token >> time;
+            tokens >> token >> TIME_LIMIT;
 
             if (BOARD.stm)
-                tokens >> token >> time;
+                tokens >> token >> TIME_LIMIT;
 #endif
 
             STOP = FALSE;
             TIME_START = now();
-            TIME_SOFT = time / 20;
-            TIME_LIMIT = TIME_START + time / 2;
+            TIME_SOFT = TIME_LIMIT / 20;
+            TIME_LIMIT = TIME_START + TIME_LIMIT / 2;
 
 #ifdef OB
             vector<jthread> threads(THREADS);
