@@ -25,7 +25,7 @@ Additional support for non-4K builds:
 The first message is always regarded as `uci` due to the space restriction
 
 ## Building
-Building c4ke requires `g++` that supports `c++20`:
+Building c4ke requires `g++` that supports `c++23`:
 ```
 git clone https://github.com/citrus610/c4ke
 cd c4ke
@@ -48,7 +48,7 @@ The minifier isn't general-purpose and won't work on all c++ code
 ### Board representation
 - Bitboard
 - 8x8 Mailbox
-- Dumb7Fill move generation
+- Hyperbola Quintessence move generation
 ### Search
 - Iterative deepening
 - Aspiration windows
@@ -59,7 +59,7 @@ The minifier isn't general-purpose and won't work on all c++ code
 - Transposition table
 - Move ordering
   - TT move
-  - MVV-LVA
+  - MVV
   - Quiet history
   - Noisy history
   - Continuation history
@@ -101,7 +101,6 @@ The minifier isn't general-purpose and won't work on all c++ code
   - Protected pawn
   - Doubled pawn
   - Passed pawn
-  - Blocked passed pawn
   - Pawn phalanx
   - Passed pawn kings proximity
 - King safety
@@ -110,7 +109,6 @@ The minifier isn't general-purpose and won't work on all c++ code
   - Pawn shield
   - King ring attack
   - Queenless attack
-- King attack pawns
 - Endgame scaling
 ### Time management
 - Soft limit
