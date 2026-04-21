@@ -235,12 +235,8 @@ struct Thread {
                     // History reduction
                     is_quiet * move_scores[i] / 7560;
 
-                // Clamp noisy reduction
-                if (!is_quiet && reduction > 1)
-                    reduction = 1;
-
                 if (reduction > 0)
-                    score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next - reduction);
+                    score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next - (is_quiet ? reduction : 1));
             }
 
             // Zero window search (don't do it for qsearch)
