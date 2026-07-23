@@ -304,11 +304,9 @@ struct Board {
             }
 
             // Flip board
-            colors[WHITE] = BSWAP(colors[WHITE]);
-            colors[BLACK] = BSWAP(colors[BLACK]);
-
             for (i32 type = PAWN; type < TYPE_NONE; type++)
-                pieces[type] = BSWAP(pieces[type]);
+                pieces[type] = BSWAP(pieces[type]),
+                colors[type % 2] = BSWAP(colors[type % 2]);
 
             eval = -eval;
         }
