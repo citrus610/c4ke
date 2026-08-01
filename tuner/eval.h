@@ -24,6 +24,7 @@ struct Trace
     i32 pawn_protected[2] {};
     i32 pawn_doubled[2] {};
     i32 pawn_shield[2] {};
+    i32 minor_behind_pawn[2] {};
 
     f64 score = 0.0;
     f64 scale = 1.0;
@@ -32,41 +33,42 @@ struct Trace
 };
 
 i32 MATERIAL[5] = {
-    S(95, 206), S(360, 586), S(375, 595), S(506, 1062), S(1271, 1795)
+    S(92, 231), S(359, 658), S(375, 667), S(505, 1197), S(1290, 1975)
 };
 
 i32 PST_RANK[] = {
-    S(0, 0), S(-22, -25), S(-35, -36), S(-27, -32), S(-11, -23), S(45, 13), S(52, 120), S(0, 0),
-    S(-30, -28), S(-10, -11), S(5, 7), S(26, 32), S(46, 36), S(60, 6), S(35, -14), S(-131, -28),
-    S(-6, -15), S(11, -11), S(17, 4), S(16, 6), S(27, 6), S(21, 2), S(-11, -3), S(-75, 11),
-    S(3, -25), S(-8, -27), S(-6, -22), S(-15, 2), S(9, 11), S(17, 10), S(-2, 31), S(1, 20),
-    S(9, -52), S(16, -48), S(5, -8), S(1, 15), S(1, 34), S(9, 30), S(-18, 34), S(-24, -4),
-    S(-20, -32), S(42, -12), S(-37, 6), S(-102, 21), S(-81, 26), S(21, 27), S(35, 23), S(21, -49)
+    S(0, 0), S(-23, -22), S(-36, -34), S(-27, -32), S(-11, -22), S(45, 17), S(50, 116), S(0, 0),
+    S(-31, -28), S(-11, -11), S(5, 9), S(26, 38), S(46, 39), S(60, 4), S(35, -18), S(-131, -32),
+    S(-6, -15), S(10, -12), S(16, 7), S(15, 7), S(27, 5), S(21, 1), S(-11, -5), S(-74, 12),
+    S(3, -30), S(-9, -31), S(-6, -24), S(-15, 4), S(8, 13), S(16, 12), S(-2, 34), S(5, 22),
+    S(9, -59), S(16, -54), S(5, -9), S(1, 18), S(1, 40), S(9, 35), S(-18, 39), S(-23, -8),
+    S(-23, -51), S(40, -26), S(-37, -3), S(-97, 23), S(-75, 45), S(18, 53), S(35, 40), S(21, -57)
 };
 i32 PST_FILE[] = { 
-    S(-19, 14), S(-9, 14), S(-5, -4), S(5, -16), S(15, -9), S(13, -1), S(14, 6), S(-14, -5),
-    S(-41, -20), S(-14, -3), S(-3, 15), S(15, 19), S(17, 18), S(19, 4), S(8, -5), S(-2, -29),
-    S(-18, -6), S(2, 0), S(4, -1), S(-3, 11), S(4, 9), S(-1, 7), S(13, -1), S(-1, -18),
-    S(-14, 5), S(-15, 11), S(-6, 13), S(4, 1), S(16, -10), S(4, -1), S(17, -8), S(-6, -11),
-    S(-15, -19), S(-12, -5), S(-12, 12), S(-4, 15), S(-2, 21), S(6, 5), S(20, -11), S(18, -18),
-    S(5, -56), S(38, -18), S(-1, 13), S(-58, 34), S(-24, 22), S(-44, 22), S(29, -8), S(16, -53)
+    S(-20, 16), S(-9, 15), S(-5, -5), S(6, -19), S(15, -11), S(13, -1), S(14, 8), S(-14, -4),
+    S(-41, -19), S(-14, -2), S(-3, 16), S(15, 21), S(17, 20), S(20, 2), S(9, -7), S(-2, -32),
+    S(-18, -4), S(2, 0), S(4, -2), S(-3, 12), S(4, 9), S(-1, 6), S(13, -3), S(-1, -19),
+    S(-14, 6), S(-15, 13), S(-6, 15), S(4, 1), S(16, -11), S(4, -2), S(17, -10), S(-6, -12),
+    S(-16, -20), S(-12, -5), S(-12, 14), S(-4, 17), S(-2, 24), S(6, 4), S(20, -13), S(18, -21),
+    S(7, -68), S(37, -16), S(-1, 17), S(-59, 40), S(-24, 28), S(-45, 28), S(28, -7), S(17, -63)
 };
-i32 MOBILITY[] = { S(9, 5), S(8, 7), S(3, 6), S(2, 10), S(-9, -2) };
-i32 PASSER[] = { S(15, -27), S(10, 8), S(2, 72), S(12, 138), S(-36, 235), S(20, 228) };
-i32 PHALANX[] = { S(9, 4), S(17, 21), S(32, 37), S(59, 102), S(159, 293), S(154, 294) };
-i32 THREAT[] = { S(76, 27), S(81, 56), S(104, -6), S(89, -58) };
-i32 PUSH_THREAT[] = { S(29, 9), S(29, -7), S(20, 19), S(25, -16) };
-i32 KING_ATTACK[] = { S(8, 20), S(16, 31), S(45, -27), S(18, 19) };
-i32 KING_PASSER_US[] = { S(-74, 68), S(-49, 94), S(-14, 37), S(-23, 13), S(-3, -18), S(7, -35), S(40, -49), S(8, -37) };
-i32 KING_PASSER_THEM[] = { S(-97, -4), S(40, -80), S(1, -41), S(-16, -6), S(-21, 24), S(-28, 44), S(-52, 68), S(-64, 60) };
-i32 BISHOP_PAIR = S(30, 96);
-i32 KING_OPEN = S(-69, -7);
-i32 KING_SEMIOPEN = S(-33, 13);
-i32 ROOK_OPEN = S(25, -5);
-i32 ROOK_SEMIOPEN = S(15, 19);
-i32 PAWN_PROTECTED = S(23, 28);
-i32 PAWN_DOUBLED = S(10, 39);
-i32 PAWN_SHIELD = S(29, -13);
+i32 MOBILITY[] = { S(9, 6), S(8, 9), S(3, 6), S(1, 13), S(-8, -4) };
+i32 PASSER[] = { S(14, -57), S(9, -18), S(0, 53), S(11, 125), S(-37, 232), S(17, 236) };
+i32 PHALANX[] = { S(10, 4), S(17, 25), S(31, 44), S(57, 123), S(160, 341), S(160, 334) };
+i32 THREAT[] = { S(76, 33), S(81, 65), S(103, -1), S(87, -53) };
+i32 PUSH_THREAT[] = { S(29, 7), S(29, -5), S(20, 24), S(24, -11) };
+i32 KING_ATTACK[] = { S(9, 18), S(17, 32), S(46, -36), S(18, 21) };
+i32 KING_PASSER_US[] = { S(-89, 57), S(-47, 86), S(-15, 27), S(-23, -1), S(-3, -36), S(7, -56), S(40, -71), S(9, -60) };
+i32 KING_PASSER_THEM[] = { S(-104, -86), S(38, -60), S(0, -7), S(-15, 35), S(-20, 68), S(-26, 91), S(-51, 119), S(-62, 111) };
+i32 BISHOP_PAIR = S(29, 106);
+i32 KING_OPEN = S(-67, -14);
+i32 KING_SEMIOPEN = S(-34, 17);
+i32 ROOK_OPEN = S(26, -10);
+i32 ROOK_SEMIOPEN = S(14, 27);
+i32 PAWN_PROTECTED = S(23, 30);
+i32 PAWN_DOUBLED = S(10, 44);
+i32 PAWN_SHIELD = S(29, -16);
+i32 MINOR_BEHIND_PAWN = S(10, 20);
 
 i32 TEMPO = 20;
 
@@ -244,6 +246,14 @@ inline Trace get_trace(Board& board, f64 wdl)
                         score += king_attack * KING_ATTACK[type - 1];
                         trace.king_attack[color][type - 1] += king_attack;
                     }
+
+                    // Minor behind pawn
+                    if (type == piece::type::KNIGHT || type == piece::type::BISHOP) {
+                        if (bitboard::get_shift<direction::SOUTH>(board.pieces[piece::type::PAWN]) & (1ULL << square)) {
+                            score += MINOR_BEHIND_PAWN;
+                            trace.minor_behind_pawn[color] += 1;
+                        }
+                    }
                 }
             }
         }
@@ -380,6 +390,7 @@ std::vector<Pair> get_init_weights()
     add_weight(result, PAWN_PROTECTED);
     add_weight(result, PAWN_DOUBLED);
     add_weight(result, PAWN_SHIELD);
+    add_weight(result, MINOR_BEHIND_PAWN);
 
     return result;
 };
@@ -407,6 +418,7 @@ std::vector<i32> get_coefs(Trace trace)
     add_coef(result, trace.pawn_protected);
     add_coef(result, trace.pawn_doubled);
     add_coef(result, trace.pawn_shield);
+    add_coef(result, trace.minor_behind_pawn);
 
     return result;
 };
@@ -473,6 +485,7 @@ std::string get_str_print_weights(std::vector<Pair> weights)
     str += get_str_weight(weights, index, "PAWN_PROTECTED");
     str += get_str_weight(weights, index, "PAWN_DOUBLED");
     str += get_str_weight(weights, index, "PAWN_SHIELD");
+    str += get_str_weight(weights, index, "MINOR_BEHIND_PAWN");
 
     str += "i32 TEMPO = " + std::to_string(std::round(TEMPO)) + ";\n";
 

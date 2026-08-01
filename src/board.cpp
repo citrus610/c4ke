@@ -306,6 +306,10 @@ struct Board {
                         // Pawn push threats
                         if (1ull << square & pawns_push_threats)
                             eval -= get_data(type + INDEX_PUSH_THREAT) + OFFSET_PUSH_THREAT;
+
+                        // Minor behind pawn
+                        if (type < ROOK && 256ull << square & pieces[PAWN])
+                            eval += MINOR_BEHIND_PAWN;
                     }
                 }
             }
@@ -323,7 +327,17 @@ struct Board {
             phase = phases[WHITE] + phases[BLACK],
             x = POPCNT(pieces[PAWN] & colors[strong]);
 
-        return (i16(eval = stm ? -eval : eval) * phase + (eval >> 16) * (!x && phases[strong] - phases[!strong] < 2 ? 1 : 8 + x) / 16 * (24 - phase)) / 24 + TEMPO;
+        return (
+            // Midgame eval
+            i16(eval = stm ? -eval : eval) * phase +
+            // Endgame eval
+            (eval >> 16) * (
+                // Scale eval down for positions with no pawns and low material difference
+                !x && phases[strong] - phases[!strong] < 2 ? 1 :
+                // Scale eval down with the number of pawns
+                8 + x
+            ) / 16 * (24 - phase)
+        ) / 24 + TEMPO;
     }
 
 #ifdef OB_MINI
