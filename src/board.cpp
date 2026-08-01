@@ -19,20 +19,24 @@ struct Board {
 
     null edit(i32 square, i32 piece) {
         // Remove any pieces that exist in this square
-        if (board[square] < PIECE_NONE)
-            pieces[board[square] / 2] ^= 1ull << square,
-            colors[board[square] % 2] ^= 1ull << square,
+        i32 p = board[square];
 
-            hash ^= KEYS[board[square]][square],
-            (board[square] < WHITE_KNIGHT ? hash_corrhist[HASH_PAWN] : hash_corrhist[board[square] % 2]) ^= KEYS[board[square]][square];
+        if (p < PIECE_NONE)
+            pieces[p / 2] ^= 1ull << square,
+            colors[p % 2] ^= 1ull << square,
+
+            hash ^= KEYS[p][square],
+            (p < WHITE_KNIGHT ? hash_corrhist[HASH_PAWN] : hash_corrhist[p % 2]) ^= KEYS[p][square];
 
         // Place new piece
-        if (piece < PIECE_NONE)
-            pieces[piece / 2] ^= 1ull << square,
-            colors[piece % 2] ^= 1ull << square,
+        p = piece;
 
-            hash ^= KEYS[piece][square],
-            (piece < WHITE_KNIGHT ? hash_corrhist[HASH_PAWN] : hash_corrhist[piece % 2]) ^= KEYS[piece][square];
+        if (p < PIECE_NONE)
+            pieces[p / 2] ^= 1ull << square,
+            colors[p % 2] ^= 1ull << square,
+
+            hash ^= KEYS[p][square],
+            (p < WHITE_KNIGHT ? hash_corrhist[HASH_PAWN] : hash_corrhist[p % 2]) ^= KEYS[p][square];
 
         board[square] = piece;
     }
