@@ -84,10 +84,10 @@ struct Thread {
             // Get eval
             eval = stack_eval[ply] = board.eval() +
                 // Pawn corrhist
-                corrhist[board.stm][board.hash_pawn % CORRHIST_SIZE] / 107 +
+                corrhist[board.stm][board.hash_corrhist[HASH_PAWN] % CORRHIST_SIZE] / 107 +
                 // Non-pawn corrhist
-                corrhist[board.stm][board.hash_non_pawn[WHITE] % CORRHIST_SIZE] / 166 +
-                corrhist[board.stm][board.hash_non_pawn[BLACK] % CORRHIST_SIZE] / 166 +
+                corrhist[board.stm][board.hash_corrhist[HASH_NONPAWN_WHITE] % CORRHIST_SIZE] / 166 +
+                corrhist[board.stm][board.hash_corrhist[HASH_NONPAWN_BLACK] % CORRHIST_SIZE] / 166 +
                 // Contcorrhist 1-ply
                 stack_conthist[ply + 1][0][0][0] / 130 +
                 // Contcorrhist 2-ply
@@ -322,9 +322,9 @@ struct Thread {
         if (!board.checkers && (!bound || board.quiet(tt.move)) && bound != best < stack_eval[ply]) {
             i32 bonus = clamp((best - stack_eval[ply]) * depth, -550, 550) * 8.4;
 
-            update_history(corrhist[board.stm][board.hash_pawn % CORRHIST_SIZE], bonus);
-            update_history(corrhist[board.stm][board.hash_non_pawn[WHITE] % CORRHIST_SIZE], bonus);
-            update_history(corrhist[board.stm][board.hash_non_pawn[BLACK] % CORRHIST_SIZE], bonus);
+            update_history(corrhist[board.stm][board.hash_corrhist[HASH_PAWN] % CORRHIST_SIZE], bonus);
+            update_history(corrhist[board.stm][board.hash_corrhist[HASH_NONPAWN_WHITE] % CORRHIST_SIZE], bonus);
+            update_history(corrhist[board.stm][board.hash_corrhist[HASH_NONPAWN_BLACK] % CORRHIST_SIZE], bonus);
             update_history(stack_conthist[ply + 1][0][0][0], bonus);
             update_history(stack_conthist[ply][0][1][0], bonus);
         }
