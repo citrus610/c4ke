@@ -1,10 +1,13 @@
 #include "eval.cpp"
 
+#define HASH_NONPAWN_WHITE 0
+#define HASH_NONPAWN_BLACK 1
+#define HASH_PAWN 2
+
 struct Board {
     u64 checkers,
         hash,
-        hash_pawn,
-        hash_non_pawn[2],
+        hash_corrhist[3],
         colors[2],
         pieces[6];
     i32 trend;
@@ -21,7 +24,7 @@ struct Board {
             colors[board[square] % 2] ^= 1ull << square,
 
             hash ^= KEYS[board[square]][square],
-            (board[square] < WHITE_KNIGHT ? hash_pawn : hash_non_pawn[board[square] % 2]) ^= KEYS[board[square]][square];
+            (board[square] < WHITE_KNIGHT ? hash_corrhist[HASH_PAWN] : hash_corrhist[board[square] % 2]) ^= KEYS[board[square]][square];
 
         // Place new piece
         if (piece < PIECE_NONE)
@@ -29,7 +32,7 @@ struct Board {
             colors[piece % 2] ^= 1ull << square,
 
             hash ^= KEYS[piece][square],
-            (piece < WHITE_KNIGHT ? hash_pawn : hash_non_pawn[piece % 2]) ^= KEYS[piece][square];
+            (piece < WHITE_KNIGHT ? hash_corrhist[HASH_PAWN] : hash_corrhist[piece % 2]) ^= KEYS[piece][square];
 
         board[square] = piece;
     }
