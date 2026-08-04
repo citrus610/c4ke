@@ -239,9 +239,7 @@ struct Board {
 
             eval +=
                 // Bishop pair
-                (POPCNT(pieces[BISHOP] & colors[color]) > 1) * BISHOP_PAIR +
-                // Pawn protected
-                POPCNT(pawns_us & pawns_attacks) * PAWN_PROTECTED -
+                (POPCNT(pieces[BISHOP] & colors[color]) > 1) * BISHOP_PAIR -
                 // Pawn doubled
                 POPCNT(pawns_us & (north(pawns_us) | pawns_us << 16)) * PAWN_DOUBLED;
 
@@ -277,6 +275,10 @@ struct Board {
                                 get_data(max(abs(square / 8 - king_them / 8 + 1), abs(square % 8 - king_them % 8)) + INDEX_KING_PASSER_THEM) +
                                 OFFSET_PASSER
                             ) * SCALE;
+
+                        // Pawn protected
+                        if (1ull << square & pawns_attacks)
+                            eval += PAWN_PROTECTED;
                     }
                     else {
                         // Mobility
@@ -306,6 +308,10 @@ struct Board {
                         // Pawn push threats
                         if (1ull << square & pawns_push_threats)
                             eval -= get_data(type + INDEX_PUSH_THREAT) + OFFSET_PUSH_THREAT;
+
+                        // Minor behind pawn
+                        if (type < ROOK && 256ull << square & pieces[PAWN])
+                            eval += MINOR_BEHIND_PAWN;
                     }
                 }
             }
@@ -323,7 +329,17 @@ struct Board {
             phase = phases[WHITE] + phases[BLACK],
             x = POPCNT(pieces[PAWN] & colors[strong]);
 
-        return (i16(eval = stm ? -eval : eval) * phase + (eval >> 16) * (!x && phases[strong] - phases[!strong] < 2 ? 1 : 8 + x) / 16 * (24 - phase)) / 24 + TEMPO;
+        return (
+            // Midgame eval
+            i16(eval = stm ? -eval : eval) * phase +
+            // Endgame eval
+            (eval >> 16) * (
+                // Scale eval down for positions with no pawns and low material difference
+                !x && phases[strong] - phases[!strong] < 2 ? 1 :
+                // Scale eval down with the number of pawns
+                8 + x
+            ) / 16 * (24 - phase)
+        ) / 24 + TEMPO;
     }
 
 #ifdef OB_MINI
