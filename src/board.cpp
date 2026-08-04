@@ -239,9 +239,7 @@ struct Board {
 
             eval +=
                 // Bishop pair
-                (POPCNT(pieces[BISHOP] & colors[color]) > 1) * BISHOP_PAIR +
-                // Pawn protected
-                POPCNT(pawns_us & pawns_attacks) * PAWN_PROTECTED -
+                (POPCNT(pieces[BISHOP] & colors[color]) > 1) * BISHOP_PAIR -
                 // Pawn doubled
                 POPCNT(pawns_us & (north(pawns_us) | pawns_us << 16)) * PAWN_DOUBLED;
 
@@ -277,6 +275,10 @@ struct Board {
                                 get_data(max(abs(square / 8 - king_them / 8 + 1), abs(square % 8 - king_them % 8)) + INDEX_KING_PASSER_THEM) +
                                 OFFSET_PASSER
                             ) * SCALE;
+
+                        // Pawn protected
+                        if (1ull << square & pawns_attacks)
+                            eval += PAWN_PROTECTED;
                     }
                     else {
                         // Mobility
