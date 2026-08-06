@@ -1,7 +1,7 @@
 #include "search.cpp"
 
 #ifdef OB
-string move_str(i16 move) {
+string move_str(i32 move) {
     string str;
 
     str += 97 + move_from(move) % 8;
@@ -23,7 +23,7 @@ u64 perft(Board& board, i32 depth, bool is_root = FALSE) {
 
     u64 nodes = 0;
 
-    i16 moves[MAX_MOVE];
+    i32 moves[MAX_MOVE];
     i32 count = board.movegen(moves, TRUE);
 
     for (i32 i = 0; i < count; i++) {

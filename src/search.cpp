@@ -30,9 +30,8 @@ struct Thread {
             noisy_count = 0,
             legals = 0,
             bound = BOUND_UPPER,
-            move_scores[MAX_MOVE];
-
-        i16 move_list[MAX_MOVE],
+            move_scores[MAX_MOVE],
+            move_list[MAX_MOVE],
             quiet_list[MAX_MOVE],
             noisy_list[MAX_MOVE];
 

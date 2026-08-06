@@ -153,7 +153,7 @@ u64 now() {
 }
 
 // Move
-i16 move_make(i32 from, i32 to, i32 promo = PAWN) {
+i32 move_make(i32 from, i32 to, i32 promo = PAWN) {
     return from | to << 6 | promo << 12;
 }
 
@@ -165,7 +165,7 @@ i32 move_to(i32 move) {
     return move >> 6 & 63;
 }
 
-i32 move_promo(i16 move) {
+i32 move_promo(i32 move) {
     return move >> 12;
 }
 
