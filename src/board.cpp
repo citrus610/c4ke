@@ -165,7 +165,7 @@ struct Board {
         return attackers(pieces[KING] & colors[!stm]) & colors[stm];
     }
 
-    null add_pawn_moves(i16*& list, u64 targets, i32 offset) {
+    null add_pawn_moves(i32*& list, u64 targets, i32 offset) {
         for (; targets;) {
             i32 to = LSB(targets);
             targets &= targets - 1;
@@ -174,7 +174,7 @@ struct Board {
         }
     }
 
-    null add_moves(i16*& list, u64 targets, u64 occupied, u64 mask, i32 type) {
+    null add_moves(i32*& list, u64 targets, u64 occupied, u64 mask, i32 type) {
         for (; mask;) {
             i32 from = LSB(mask);
             mask &= mask - 1;
@@ -190,8 +190,8 @@ struct Board {
         }
     }
 
-    i32 movegen(i16* list, i32 is_all) {
-        i16* list_start = list;
+    i32 movegen(i32* list, i32 is_all) {
+        i32* list_start = list;
 
         u64 occupied = colors[WHITE] | colors[BLACK],
             targets = is_all ? ~colors[stm] : colors[!stm],
