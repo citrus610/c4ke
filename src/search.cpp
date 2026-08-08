@@ -288,23 +288,31 @@ struct Thread {
 
                 if (is_quiet) {
                     // Update quiet history
-                    update_history(qhist[board.stm][move & 4095], bonus);
-                    update_history(stack_conthist[ply][0][board.board[move_from(move)]][move_to(move)], bonus);
+                    update_history(qhist[board.stm][move & 4095], bonus),
+                    update_history(stack_conthist[ply][0][board.board[move_from(move)]][move_to(move)], bonus),
                     update_history(stack_conthist[ply + 1][0][board.board[move_from(move)]][move_to(move)], bonus);
+
+                    bonus = -bonus;
 
                     // Add penalty to visited quiet moves
                     for (i32 k = 0; k < quiet_count; k++)
-                        update_history(qhist[board.stm][quiet_list[k] & 4095], -bonus),
-                        update_history(stack_conthist[ply][0][board.board[move_from(quiet_list[k])]][move_to(quiet_list[k])], -bonus),
-                        update_history(stack_conthist[ply + 1][0][board.board[move_from(quiet_list[k])]][move_to(quiet_list[k])], -bonus);
+                        move = quiet_list[k],
+                        update_history(qhist[board.stm][move & 4095], bonus),
+                        update_history(stack_conthist[ply][0][board.board[move_from(move)]][move_to(move)], bonus),
+                        update_history(stack_conthist[ply + 1][0][board.board[move_from(move)]][move_to(move)], bonus);
+
+                    bonus = -bonus;
                 }
                 else
                     // Update noisy history
                     update_history(nhist[board.board[move_to(move)] / 2 % TYPE_NONE][board.board[move_from(move)]][move_to(move)], bonus);
 
+                bonus = -bonus;
+
                 // Add penalty to visited noisy moves
                 for (i32 k = 0; k < noisy_count; k++)
-                    update_history(nhist[board.board[move_to(noisy_list[k])] / 2 % TYPE_NONE][board.board[move_from(noisy_list[k])]][move_to(noisy_list[k])], -bonus);
+                    move = noisy_list[k],
+                    update_history(nhist[board.board[move_to(move)] / 2 % TYPE_NONE][board.board[move_from(move)]][move_to(move)], bonus);
 
                 break;
             }
