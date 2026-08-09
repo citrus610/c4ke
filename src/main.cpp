@@ -113,15 +113,12 @@ i32 main(i32 argc, char *argv[]) {
 #else
 i32 main() {
 #endif
-    // Mask
-    for (i32 i = 0; i < 64; i++)
-        DIAG[0][i ^ 56] = BSWAP(DIAG[1][i] = ray(1ull << i, 0, se) | ray(1ull << i, 0, nw));
-
-    // Zobrist hash init
+    // Tables init
     mt19937_64 rng;
 
     for (i32 i = 0; i < 832; i++)
-        KEYS[i / 64][i % 64] = rng();
+        KEYS[i / 64][i % 64] = rng(),
+        DIAG[0][i % 64 ^ 56] = BSWAP(DIAG[1][i % 64] = ray(1ull << i % 64, 0, se) | ray(1ull << i % 64, 0, nw));
 
 #ifdef OB_MINI
     // Bench
