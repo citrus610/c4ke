@@ -225,18 +225,6 @@ struct Thread {
             score = beta;
 
             // Late move reduction
-            if (depth > 2 && legals > 2) {
-                i32 reduction =
-                    // Base reduction
-                    log(depth) * log(legals + 1) * .33 + 1 +
-                    // PV
-                    !is_pv -
-                    // History reduction
-                    is_quiet * move_scores[i] / 7560;
-
-                if (reduction > 0)
-                    score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next - (is_quiet ? reduction : 1));
-            }
 
             // Zero window search (don't do it for qsearch)
             if (score > alpha && depth && legals)
