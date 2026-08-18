@@ -230,7 +230,9 @@ struct Thread {
                     // Base reduction
                     log(depth) * log(legals + 1) * .4 + .8 -
                     // PV
-                    is_pv;
+                    is_pv - 
+                    // History
+                    is_quiet * move_scores[i] / 8192;
 
                 if (reduction > 0)
                     score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next - reduction);
