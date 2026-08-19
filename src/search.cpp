@@ -232,7 +232,7 @@ struct Thread {
                     // PV
                     is_pv - 
                     // History
-                    is_quiet * move_scores[i] / 8192 -
+                    (is_quiet ? move_scores[i] / 8192 : nhist[board.board[move_to(move)] / 2 % TYPE_NONE][board.board[move_from(move)]][move_to(move)] / 5000) -
                     // Give check
                     !!child.checkers;
 
