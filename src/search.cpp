@@ -232,7 +232,9 @@ struct Thread {
                     // PV
                     is_pv - 
                     // History
-                    is_quiet * move_scores[i] / 8192;
+                    is_quiet * move_scores[i] / 8192 -
+                    // Give check
+                    !!child.checkers;
 
                 if (reduction > 0)
                     score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next - reduction);
