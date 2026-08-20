@@ -234,7 +234,9 @@ struct Thread {
                     // History
                     (is_quiet ? move_scores[i] / 8192 : nhist[board.board[move_to(move)] / 2 % TYPE_NONE][board.board[move_from(move)]][move_to(move)] / 5000) -
                     // Give check
-                    !!child.checkers;
+                    !!child.checkers +
+                    // Noisy tt move
+                    (tt.move && !board.quiet(tt.move));
 
                 if (reduction > 0)
                     score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next - reduction);
