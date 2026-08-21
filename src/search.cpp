@@ -18,7 +18,8 @@ struct Thread {
     i16 id,
         qhist[2][4096],
         corrhist[2][CORRHIST_SIZE],
-        stack_eval[STACK_SIZE];
+        stack_eval[STACK_SIZE],
+        cutoff_count[STACK_SIZE];
 
     i32 search(Board& board, i32 alpha, i32 beta, i32 ply, i32 depth, i32 is_pv = FALSE, i32 excluded = MOVE_NONE) {
         // All search variables
@@ -77,6 +78,9 @@ struct Thread {
 
         // Static eval
         stack_eval[ply] = INF;
+
+        // Cutoff count
+        cutoff_count[ply + 1] = 0;
         
         // Check guard
         if (!board.checkers) {
@@ -236,7 +240,9 @@ struct Thread {
                     // Give check
                     !!child.checkers +
                     // Noisy tt move
-                    (tt.move && !board.quiet(tt.move));
+                    (tt.move && !board.quiet(tt.move)) +
+                    // Cutoff count
+                    (cutoff_count[ply + 1] > 3);
 
                 if (reduction > 0)
                     score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next - reduction);
@@ -286,6 +292,9 @@ struct Thread {
                 // Skip for qsearch
                 if (!depth)
                     break;
+
+                // Update cutoff count
+                cutoff_count[ply]++;
 
                 // History bonus
                 i32 bonus = min(169 * depth - 69, 1660) + (stack_eval[ply] <= best) * 154;
