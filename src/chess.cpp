@@ -7,6 +7,7 @@ using i16 = int16_t;
 using i32 = int;
 using u64 = uint64_t;
 using null = void;
+using HTable = i16[12][64];
 
 #define OB
 #define OB_MINI
@@ -169,10 +170,6 @@ i32 move_promo(i32 move) {
     return move >> 12;
 }
 
-null move_print(i32 move) {
-    cout.put(97 + move_from(move) % 8).put(49 + move_from(move) / 8).put(97 + move_to(move) % 8).put(49 + move_to(move) / 8).put(move_promo(move) ? 'q' : 32) << endl;
-}
-
 // Bitboard
 #define LSB countr_zero
 #define POPCNT popcount
@@ -259,9 +256,7 @@ struct TTEntry {
         score;
     u8 depth,
         bound;
-};
-
-TTEntry* TTABLE = (TTEntry*)calloc(1ull << TT_BITS, 8);
+} *TTABLE = (TTEntry*)calloc(1ull << TT_BITS, 8);
 atomic<i32> STOP;
 
 #ifdef OB

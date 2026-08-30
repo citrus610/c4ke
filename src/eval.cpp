@@ -6,7 +6,7 @@
 
 i32 PHASE[] { 0, 1, 1, 2, 4, 0 },
     LAYOUT[] { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK },
-    VALUE[] { 115, 300, 300, 497, 974, 5000, 0 },
+    VALUE[] { 121, 317, 300, 496, 1024, 5000, 0 },
     MATERIAL[] { S(90, 240), S(348, 683), S(362, 689), S(487, 1244), S(1137, 2234), 0 };
 
 #define SCALE 8
