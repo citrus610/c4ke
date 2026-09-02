@@ -87,12 +87,12 @@ struct Thread {
                 // Pawn corrhist
                 corrhist[board.stm][board.hash_corrhist[HASH_PAWN] % CORRHIST_SIZE] / 105 +
                 // Non-pawn corrhist
-                corrhist[board.stm][board.hash_corrhist[HASH_NONPAWN_WHITE] % CORRHIST_SIZE] / 143 +
-                corrhist[board.stm][board.hash_corrhist[HASH_NONPAWN_BLACK] % CORRHIST_SIZE] / 143 +
+                corrhist[board.stm][board.hash_corrhist[HASH_NONPAWN_WHITE] % CORRHIST_SIZE] / 140 +
+                corrhist[board.stm][board.hash_corrhist[HASH_NONPAWN_BLACK] % CORRHIST_SIZE] / 140 +
                 // Contcorrhist 1-ply
-                stack_conthist[ply + 1][0][0][0] / 118 +
+                stack_conthist[ply + 1][0][0][0] / 120 +
                 // Contcorrhist 2-ply
-                stack_conthist[ply][0][1][0] / 208;
+                stack_conthist[ply][0][1][0] / 207;
 
             // Use tt score as better eval
             if (tt.key && !excluded && tt.bound != tt.score < eval)
@@ -110,7 +110,7 @@ struct Thread {
                 return eval;
 
             // Reverse futility pruning
-            if (!is_pv && !excluded && depth && depth < 9 && eval < WIN && eval > beta + 74 * depth - 74 * is_improving)
+            if (!is_pv && !excluded && depth && depth < 9 && eval < WIN && eval > beta + 72 * depth - 72 * is_improving)
                 return (eval + beta) / 2;
 
             // Null move pruning
@@ -148,10 +148,10 @@ struct Thread {
                     // Conthist 2-ply
                     2.2 * stack_conthist[ply][0][board.board[move_from(move)]][move_to(move)] +
                     // Conthist 1-ply
-                    2.2 * stack_conthist[ply + 1][0][board.board[move_from(move)]][move_to(move)] :
+                    2.1 * stack_conthist[ply + 1][0][board.board[move_from(move)]][move_to(move)] :
                 // Noisy moves
                     // MVV
-                    VALUE[board.board[move_to(move)] / 2 % TYPE_NONE] * 16 +
+                    VALUE[board.board[move_to(move)] / 2 % TYPE_NONE] * 15 +
                     // Noisy history
                     nhist[board.board[move_to(move)] / 2 % TYPE_NONE][board.board[move_from(move)]][move_to(move)] +
                     // SEE
@@ -187,11 +187,11 @@ struct Thread {
                 continue;
 
             // Futility pruning
-            if (ply && best > -WIN && depth < 10 && !board.checkers && stack_eval[ply] + 77 * depth + move_scores[i] / 30 + 90 < alpha && is_quiet)
+            if (ply && best > -WIN && depth < 10 && !board.checkers && stack_eval[ply] + 78 * depth + move_scores[i] / 30 + 90 < alpha && is_quiet)
                 continue;
 
             // SEE pruning in pvsearch
-            if (ply && best > -WIN && move_scores[i] < 1e6 && !board.see(move, -81 * depth))
+            if (ply && best > -WIN && move_scores[i] < 1e6 && !board.see(move, -80 * depth))
                 continue;
 
             // Make
@@ -214,7 +214,7 @@ struct Thread {
                         // Double extension
                         (!is_pv && score < singular_beta - 10) +
                         // Triple extension
-                        (!is_pv && score < singular_beta - 37 && is_quiet);
+                        (!is_pv && score < singular_beta - 38 && is_quiet);
                 // Multicut
                 else if (score >= beta)
                     return score;
@@ -230,11 +230,11 @@ struct Thread {
             if (depth > 2 && legals) {
                 i32 reduction =
                     // Base reduction
-                    log(depth) * log(legals + 1) * .42 + .8 -
+                    log(depth) * log(legals + 1) * .42 + .82 -
                     // PV
                     is_pv - 
                     // History
-                    (is_quiet ? move_scores[i] / 8300 : nhist[board.board[move_to(move)] / 2 % TYPE_NONE][board.board[move_from(move)]][move_to(move)] / 4650) -
+                    (is_quiet ? move_scores[i] / 8200 : nhist[board.board[move_to(move)] / 2 % TYPE_NONE][board.board[move_from(move)]][move_to(move)] / 4380) -
                     // Give check
                     !!child.checkers +
                     // Noisy tt move
@@ -293,7 +293,7 @@ struct Thread {
                     cutoff_count[ply]++;
 
                     // History bonus
-                    i32 bonus = min(183 * depth - 65, 1628) + (stack_eval[ply] <= best) * 147;
+                    i32 bonus = min(190 * depth - 65, 1616) + (stack_eval[ply] <= best) * 149;
 
                     if (is_quiet) {
                         // Update quiet history
@@ -337,7 +337,7 @@ struct Thread {
 
         // Update corrhist
         if (!board.checkers && (!bound || board.quiet(tt.move)) && bound != best < stack_eval[ply]) {
-            i32 bonus = clamp((best - stack_eval[ply]) * depth, -572, 572) * 8;
+            i32 bonus = clamp((best - stack_eval[ply]) * depth, -612, 612) * 7.6;
 
             update_history(corrhist[board.stm][board.hash_corrhist[HASH_PAWN] % CORRHIST_SIZE], bonus);
             update_history(corrhist[board.stm][board.hash_corrhist[HASH_NONPAWN_WHITE] % CORRHIST_SIZE], bonus);
@@ -390,9 +390,9 @@ struct Thread {
                     break;
 
                 // Scale delta
-                delta *= 1.13;
+                delta *= 1.1;
 
-                board.trend = clamp(board.stm ? -score : score, -82, 82);
+                board.trend = clamp(board.stm ? -score : score, -84, 84);
             }
 
             // Print info
