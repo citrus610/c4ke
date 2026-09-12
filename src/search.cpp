@@ -218,6 +218,9 @@ struct Thread {
                 // Multicut
                 else if (score >= beta)
                     return score;
+                // Negative extension
+                else
+                    depth_next -= tt.score >= beta;
             }
 
             // Update stack
