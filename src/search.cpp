@@ -243,7 +243,10 @@ struct Thread {
                     (cutoff_count[ply + 1] > 3);
 
                 if (reduction > 0)
-                    score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next - reduction);
+                    score = -search(child, -alpha - 1, -alpha, ply + 1, depth_next - reduction),
+
+                    // Shallower and deeper search
+                    depth_next += (score > best + 50) - (score < best + 8 && reduction > 1);
             }
 
             // Zero window search (don't do it for qsearch)
