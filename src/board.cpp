@@ -197,16 +197,19 @@ struct Board {
             targets = is_all ? ~colors[stm] : colors[!stm],
             pawns = pieces[PAWN] & colors[stm],
             pawns_push = (stm ? south(pawns) : north(pawns)) & ~occupied & (is_all ? ~0ull : 0xff000000000000ff),
-            pawns_targets = colors[!stm] | u64(enpassant < SQUARE_NONE) << enpassant;
+            pawns_targets = colors[!stm] | u64(enpassant < SQUARE_NONE) << enpassant,
+            check_ray = checkers ? checkers | attack(pieces[KING] & colors[stm], 0, QUEEN) & attack(checkers, 0, QUEEN) : ~0ull;
 
         // Pawn
-        add_pawn_moves(list, pawns_push, stm ? -8 : 8);
-        add_pawn_moves(list, (stm ? south(pawns_push & 0xff0000000000) : north(pawns_push & 0xff0000)) & ~occupied, stm ? -16 : 16);
-        add_pawn_moves(list, (stm ? se(pawns) : nw(pawns)) & pawns_targets, stm ? -7 : 7);
-        add_pawn_moves(list, (stm ? sw(pawns) : ne(pawns)) & pawns_targets, stm ? -9 : 9);
+        add_pawn_moves(list, check_ray & pawns_push, stm ? -8 : 8);
+        add_pawn_moves(list, check_ray & (stm ? south(pawns_push & 0xff0000000000) : north(pawns_push & 0xff0000)) & ~occupied, stm ? -16 : 16);
+        add_pawn_moves(list, check_ray & (stm ? se(pawns) : nw(pawns)) & pawns_targets, stm ? -7 : 7);
+        add_pawn_moves(list, check_ray & (stm ? sw(pawns) : ne(pawns)) & pawns_targets, stm ? -9 : 9);
 
         // King
         add_moves(list, targets, occupied, pieces[KING] & colors[stm], KING);
+
+        targets &= check_ray;
 
         // Knight
         add_moves(list, targets, occupied, pieces[KNIGHT] & colors[stm], KNIGHT);
