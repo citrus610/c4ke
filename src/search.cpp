@@ -90,9 +90,9 @@ struct Thread {
                 corrhist[board.stm][board.hash_corrhist[HASH_NONPAWN_WHITE] % CORRHIST_SIZE] / 135 +
                 corrhist[board.stm][board.hash_corrhist[HASH_NONPAWN_BLACK] % CORRHIST_SIZE] / 135 +
                 // Contcorrhist 1-ply
-                stack_conthist[ply + 1][0][0][0] / 121 +
+                stack_conthist[ply + 3][0][0][0] / 121 +
                 // Contcorrhist 2-ply
-                stack_conthist[ply][0][1][0] / 206;
+                stack_conthist[ply + 2][0][1][0] / 206;
 
             // Use tt score as better eval
             if (tt.key && !excluded && tt.bound != tt.score < eval)
@@ -122,7 +122,7 @@ struct Thread {
                 child.hash ^= KEYS[PIECE_NONE][child.enpassant];
                 child.enpassant = SQUARE_NONE;
 
-                stack_conthist[ply + 2] = conthist[WHITE_PAWN];
+                stack_conthist[ply + 4] = conthist[WHITE_PAWN];
 
                 score = -search(child, -beta, -alpha, ply + 1, depth - 4 - depth / 3);
 
@@ -145,10 +145,12 @@ struct Thread {
                 board.quiet(move) ?
                     // Quiet history
                     qhist[board.stm][move & 4095] +
+                    // Conthist 4-ply
+                    stack_conthist[ply][0][board.board[move_from(move)]][move_to(move)] +
                     // Conthist 2-ply
-                    2.2 * stack_conthist[ply][0][board.board[move_from(move)]][move_to(move)] +
+                    2.2 * stack_conthist[ply + 2][0][board.board[move_from(move)]][move_to(move)] +
                     // Conthist 1-ply
-                    2.1 * stack_conthist[ply + 1][0][board.board[move_from(move)]][move_to(move)] :
+                    2.1 * stack_conthist[ply + 3][0][board.board[move_from(move)]][move_to(move)] :
                 // Noisy moves
                     // MVV
                     VALUE[board.board[move_to(move)] / 2 % TYPE_NONE] * 16 +
@@ -221,7 +223,7 @@ struct Thread {
             }
 
             // Update stack
-            stack_conthist[ply + 2] = &conthist[board.board[move_from(move)]][move_to(move)];
+            stack_conthist[ply + 4] = &conthist[board.board[move_from(move)]][move_to(move)];
 
             // Set this as a dummy value to drop straight into ZWS if we don't do LMR
             score = beta;
@@ -302,7 +304,8 @@ struct Thread {
                         // Update quiet history
                         update_history(qhist[board.stm][move & 4095], bonus),
                         update_history(stack_conthist[ply][0][board.board[move_from(move)]][move_to(move)], bonus),
-                        update_history(stack_conthist[ply + 1][0][board.board[move_from(move)]][move_to(move)], bonus);
+                        update_history(stack_conthist[ply + 2][0][board.board[move_from(move)]][move_to(move)], bonus),
+                        update_history(stack_conthist[ply + 3][0][board.board[move_from(move)]][move_to(move)], bonus);
 
                         bonus = -bonus;
 
@@ -311,7 +314,8 @@ struct Thread {
                             move = quiet_list[k],
                             update_history(qhist[board.stm][move & 4095], bonus),
                             update_history(stack_conthist[ply][0][board.board[move_from(move)]][move_to(move)], bonus),
-                            update_history(stack_conthist[ply + 1][0][board.board[move_from(move)]][move_to(move)], bonus);
+                            update_history(stack_conthist[ply + 2][0][board.board[move_from(move)]][move_to(move)], bonus),
+                            update_history(stack_conthist[ply + 3][0][board.board[move_from(move)]][move_to(move)], bonus);
 
                         bonus = -bonus;
                     }
@@ -345,8 +349,8 @@ struct Thread {
             update_history(corrhist[board.stm][board.hash_corrhist[HASH_PAWN] % CORRHIST_SIZE], bonus);
             update_history(corrhist[board.stm][board.hash_corrhist[HASH_NONPAWN_WHITE] % CORRHIST_SIZE], bonus);
             update_history(corrhist[board.stm][board.hash_corrhist[HASH_NONPAWN_BLACK] % CORRHIST_SIZE], bonus);
-            update_history(stack_conthist[ply + 1][0][0][0], bonus);
-            update_history(stack_conthist[ply][0][1][0], bonus);
+            update_history(stack_conthist[ply + 3][0][0][0], bonus);
+            update_history(stack_conthist[ply + 2][0][1][0], bonus);
         }
 
         // Update transposition
@@ -369,7 +373,7 @@ struct Thread {
         // Iterative deepening
         for (i32 depth = 1; depth < MAX_DEPTH; depth++) {
             // Clear stack
-            stack_conthist[0] = stack_conthist[1] = &conthist[WHITE_PAWN][B1];
+            stack_conthist[0] = stack_conthist[1] = stack_conthist[2] = stack_conthist[3] = &conthist[WHITE_PAWN][B1];
 
             // Aspiration window
             i32 delta = 9,
