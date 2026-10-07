@@ -152,6 +152,48 @@ i32 main() {
     cout << "id author citrus610 and cj5716" << endl;
     cout << "option name Hash type spin default 8 min 1 max 67108864" << endl;
     cout << "option name Threads type spin default 1 min 1 max 2048" << endl;
+
+    cout << "option name CORRHIST_PAWN type string default 104.0" << endl;
+    cout << "option name CORRHIST_NONPAWN type string default 135.0" << endl;
+    cout << "option name CORRHIST_1PLY type string default 121.0" << endl;
+    cout << "option name CORRHIST_2PLY type string default 206.0" << endl;
+    cout << "option name RAZOR_DEPTH type string default 6.5" << endl;
+    cout << "option name RAZOR_COEF type string default 166.0" << endl;
+    cout << "option name RFP_DEPTH type string default 10.5" << endl;
+    cout << "option name RFP_COEF type string default 75.0" << endl;
+    cout << "option name NMP_DEPTH type string default 2.5" << endl;
+    cout << "option name NMP_MARGIN type string default 28.0" << endl;
+    cout << "option name CONTHIST_1PLY type string default 2.1" << endl;
+    cout << "option name CONTHIST_2PLY type string default 2.2" << endl;
+    cout << "option name CONTHIST_4PLY type string default 1.0" << endl;
+    cout << "option name FP_DEPTH type string default 10.5" << endl;
+    cout << "option name FP_COEF type string default 77.0" << endl;
+    cout << "option name FP_BASE type string default 88.0" << endl;
+    cout << "option name FP_HIST_DIV type string default 29.0" << endl;
+    cout << "option name SEEP_COEF type string default 76.0" << endl;
+    cout << "option name SE_COEF type string default 16.0" << endl;
+    cout << "option name SE_DOUBLE_MARGIN type string default 10.0" << endl;
+    cout << "option name SE_TRIPLE_MARGIN type string default 37.0" << endl;
+    cout << "option name LMR_COEF type string default 0.42" << endl;
+    cout << "option name LMR_BASE type string default 0.84" << endl;
+    cout << "option name LMR_QUIET_DIV type string default 8352.0" << endl;
+    cout << "option name LMR_NOISY_DIV type string default 4311.0" << endl;
+    cout << "option name LMR_DEEPER_MARGIN type string default 50.0" << endl;
+    cout << "option name LMR_SHALLOWER_MARGIN type string default 8.0" << endl;
+    cout << "option name HIST_BONUS_COEF type string default 192.0" << endl;
+    cout << "option name HIST_BONUS_BASE type string default -64.0" << endl;
+    cout << "option name HIST_BONUS_MAX type string default 1640.0" << endl;
+    cout << "option name HIST_BONUS_EVAL_COEF type string default 152.0" << endl;
+    cout << "option name CORRHIST_BONUS_MAX type string default 604.0" << endl;
+    cout << "option name CORRHIST_BONUS_COEF type string default 7.3" << endl;
+    cout << "option name AW_DELTA type string default 9.0" << endl;
+    cout << "option name AW_GROWTH type string default 1.1" << endl;
+    cout << "option name OPTIMISM_MAX type string default 83.0" << endl;
+    cout << "option name VALUE_PAWN type string default 128.0" << endl;
+    cout << "option name VALUE_KNIGHT type string default 314.0" << endl;
+    cout << "option name VALUE_BISHOP type string default 304.0" << endl;
+    cout << "option name VALUE_ROOK type string default 503.0" << endl;
+    cout << "option name VALUE_QUEEN type string default 984.0" << endl;
 #endif
 
     cout << "uciok\n";
@@ -190,6 +232,48 @@ i32 main() {
             if (token == "Threads") {
                 tokens >> token >> THREADS;
             }
+
+            if (token == "CORRHIST_PAWN") { tokens >> token >> CORRHIST_PAWN; }
+            if (token == "CORRHIST_NONPAWN") { tokens >> token >> CORRHIST_NONPAWN; }
+            if (token == "CORRHIST_1PLY") { tokens >> token >> CORRHIST_1PLY; }
+            if (token == "CORRHIST_2PLY") { tokens >> token >> CORRHIST_2PLY; }
+            if (token == "RAZOR_DEPTH") { tokens >> token >> RAZOR_DEPTH; }
+            if (token == "RAZOR_COEF") { tokens >> token >> RAZOR_COEF; }
+            if (token == "RFP_DEPTH") { tokens >> token >> RFP_DEPTH; }
+            if (token == "RFP_COEF") { tokens >> token >> RFP_COEF; }
+            if (token == "NMP_DEPTH") { tokens >> token >> NMP_DEPTH; }
+            if (token == "NMP_MARGIN") { tokens >> token >> NMP_MARGIN; }
+            if (token == "CONTHIST_1PLY") { tokens >> token >> CONTHIST_1PLY; }
+            if (token == "CONTHIST_2PLY") { tokens >> token >> CONTHIST_2PLY; }
+            if (token == "CONTHIST_4PLY") { tokens >> token >> CONTHIST_4PLY; }
+            if (token == "FP_DEPTH") { tokens >> token >> FP_DEPTH; }
+            if (token == "FP_COEF") { tokens >> token >> FP_COEF; }
+            if (token == "FP_BASE") { tokens >> token >> FP_BASE; }
+            if (token == "FP_HIST_DIV") { tokens >> token >> FP_HIST_DIV; }
+            if (token == "SEEP_COEF") { tokens >> token >> SEEP_COEF; }
+            if (token == "SE_COEF") { tokens >> token >> SE_COEF; }
+            if (token == "SE_DOUBLE_MARGIN") { tokens >> token >> SE_DOUBLE_MARGIN; }
+            if (token == "SE_TRIPLE_MARGIN") { tokens >> token >> SE_TRIPLE_MARGIN; }
+            if (token == "LMR_COEF") { tokens >> token >> LMR_COEF; }
+            if (token == "LMR_BASE") { tokens >> token >> LMR_BASE; }
+            if (token == "LMR_QUIET_DIV") { tokens >> token >> LMR_QUIET_DIV; }
+            if (token == "LMR_NOISY_DIV") { tokens >> token >> LMR_NOISY_DIV; }
+            if (token == "LMR_DEEPER_MARGIN") { tokens >> token >> LMR_DEEPER_MARGIN; }
+            if (token == "LMR_SHALLOWER_MARGIN") { tokens >> token >> LMR_SHALLOWER_MARGIN; }
+            if (token == "HIST_BONUS_COEF") { tokens >> token >> HIST_BONUS_COEF; }
+            if (token == "HIST_BONUS_BASE") { tokens >> token >> HIST_BONUS_BASE; }
+            if (token == "HIST_BONUS_MAX") { tokens >> token >> HIST_BONUS_MAX; }
+            if (token == "HIST_BONUS_EVAL_COEF") { tokens >> token >> HIST_BONUS_EVAL_COEF; }
+            if (token == "CORRHIST_BONUS_MAX") { tokens >> token >> CORRHIST_BONUS_MAX; }
+            if (token == "CORRHIST_BONUS_COEF") { tokens >> token >> CORRHIST_BONUS_COEF; }
+            if (token == "AW_DELTA") { tokens >> token >> AW_DELTA; }
+            if (token == "AW_GROWTH") { tokens >> token >> AW_GROWTH; }
+            if (token == "OPTIMISM_MAX") { tokens >> token >> OPTIMISM_MAX; }
+            if (token == "VALUE_PAWN") { tokens >> token >> VALUE_PAWN; }
+            if (token == "VALUE_KNIGHT") { tokens >> token >> VALUE_KNIGHT; }
+            if (token == "VALUE_BISHOP") { tokens >> token >> VALUE_BISHOP; }
+            if (token == "VALUE_ROOK") { tokens >> token >> VALUE_ROOK; }
+            if (token == "VALUE_QUEEN") { tokens >> token >> VALUE_QUEEN; }
         }
 #endif
         // Uci position

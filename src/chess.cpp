@@ -277,3 +277,103 @@ void print_bitboard(u64 bitboard) {
     printf("\n");
 }
 #endif
+
+int CORRHIST_PAWN = 104;
+int CORRHIST_NONPAWN = 135;
+int CORRHIST_1PLY = 121;
+int CORRHIST_2PLY = 206;
+
+int RAZOR_DEPTH = 6.5;
+int RAZOR_COEF = 166;
+
+int RFP_DEPTH = 10.5;
+int RFP_COEF = 75;
+
+int NMP_DEPTH = 2.5;
+int NMP_MARGIN = 28;
+
+double CONTHIST_1PLY = 2.1;
+double CONTHIST_2PLY = 2.2;
+double CONTHIST_4PLY = 1.0;
+
+int FP_DEPTH = 10.5;
+int FP_COEF = 77;
+int FP_BASE = 88;
+int FP_HIST_DIV = 29;
+
+int SEEP_COEF = 76;
+
+int SE_COEF = 16;
+int SE_DOUBLE_MARGIN = 10;
+int SE_TRIPLE_MARGIN = 37;
+
+double LMR_COEF = 0.42;
+double LMR_BASE = 0.84;
+int LMR_QUIET_DIV = 8352;
+int LMR_NOISY_DIV = 4311;
+int LMR_DEEPER_MARGIN = 50;
+int LMR_SHALLOWER_MARGIN = 8;
+
+int HIST_BONUS_COEF = 192;
+int HIST_BONUS_BASE = -64;
+int HIST_BONUS_MAX = 1640;
+int HIST_BONUS_EVAL_COEF = 152;
+
+int CORRHIST_BONUS_MAX = 604;
+double CORRHIST_BONUS_COEF = 7.3;
+
+int AW_DELTA = 9;
+double AW_GROWTH = 1.1;
+
+int OPTIMISM_MAX = 83;
+
+int VALUE_PAWN = 128;
+int VALUE_KNIGHT = 314;
+int VALUE_BISHOP = 304;
+int VALUE_ROOK = 503;
+int VALUE_QUEEN = 984;
+
+// int VALUE[] { VALUE_PAWN, VALUE_KNIGHT, VALUE_BISHOP, VALUE_ROOK, VALUE_QUEEN, 5000, 0 };
+
+
+// CORRHIST_PAWN, int, 104.0, 50.0, 500.0, 15.0, 0.002
+// CORRHIST_NONPAWN, int, 135.0, 50.0, 500.0, 15.0, 0.002
+// CORRHIST_1PLY, int, 121.0, 50.0, 500.0, 15.0, 0.002
+// CORRHIST_2PLY, int, 206.0, 50.0, 500.0, 15.0, 0.002
+// RAZOR_DEPTH, int, 6.5, 2.0, 16.0, 0.5, 0.002
+// RAZOR_COEF, int, 166.0, 50.0, 500.0, 15.0, 0.002
+// RFP_DEPTH, int, 10.5, 2.0, 16.0, 0.5, 0.002
+// RFP_COEF, int, 75.0, 20.0, 200.0, 8.0, 0.002
+// NMP_DEPTH, int, 2.5, 0.5, 8.0, 0.25, 0.002
+// NMP_MARGIN, int, 28.0, 8.0, 128.0, 2.5, 0.002
+// CONTHIST_1PLY, float, 2.1, 0.5, 4.0, 0.2, 0.002
+// CONTHIST_2PLY, float, 2.2, 0.5, 4.0, 0.2, 0.002
+// CONTHIST_4PLY, float, 1.0, 0.5, 4.0, 0.1, 0.002
+// FP_DEPTH, int, 10.5, 2.0, 16.0, 0.5, 0.002
+// FP_COEF, int, 77.0, 20.0, 200.0, 8.0, 0.002
+// FP_BASE, int, 88.0, 20.0, 200.0, 8.0, 0.002
+// FP_HIST_DIV, int, 29.0, 8.0, 128.0, 2.5, 0.002
+// SEEP_COEF, int, 76.0, 20.0, 200.0, 8.0, 0.002
+// SE_COEF, int, 16.0, 8.0, 32.0, 2.0, 0.002
+// SE_DOUBLE_MARGIN, int, 10.0, 2.0, 64.0, 1.0, 0.002
+// SE_TRIPLE_MARGIN, int, 37.0, 4.0, 128.0, 3.0, 0.002
+// LMR_COEF, float, 0.42, 0.25, 1.0, 0.35, 0.002
+// LMR_BASE, float, 0.84, 0.5, 2.0, 0.1, 0.002
+// LMR_QUIET_DIV, int, 8352.0, 512.0, 12000.0, 400.0, 0.002
+// LMR_NOISY_DIV, int, 4311.0, 512.0, 12000.0, 400.0, 0.002
+// LMR_DEEPER_MARGIN, int, 50.0, 8.0, 128.0, 4.8, 0.002
+// LMR_SHALLOWER_MARGIN, int, 8.0, 2.0, 32.0, 1.0, 0.002
+// HIST_BONUS_COEF, int, 192.0, 50.0, 500.0, 15.0, 0.002
+// HIST_BONUS_BASE, int, -64.0, -500.0, 500.0, 8.0, 0.002
+// HIST_BONUS_MAX, int, 1640.0, 1024.0, 4096.0, 100.0, 0.002
+// HIST_BONUS_EVAL_COEF, int, 152.0, 50.0, 500.0, 15.0, 0.002
+// CORRHIST_BONUS_MAX, int, 604.0, 64.0, 1024.0, 50.0, 0.002
+// CORRHIST_BONUS_COEF, float, 7.3, 2.0, 16.0, 0.8, 0.002
+// AW_DELTA, int, 9.0, 8.0, 16.0, 0.8, 0.002
+// AW_GROWTH, float, 1.1, 1.05, 2.0, 0.15, 0.002
+// OPTIMISM_MAX, int, 83.0, 20.0, 200.0, 8.0, 0.002
+// VALUE_PAWN, int, 128.0, 50.0, 200.0, 10.0, 0.002
+// VALUE_KNIGHT, int, 314.0, 200.0, 400.0, 20.0, 0.002
+// VALUE_BISHOP, int, 304.0, 200.0, 400.0, 20.0, 0.002
+// VALUE_ROOK, int, 503.0, 400.0, 800.0, 40.0, 0.002
+// VALUE_QUEEN, int, 984.0, 800.0, 1600.0, 80.0, 0.002
