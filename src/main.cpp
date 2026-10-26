@@ -117,7 +117,7 @@ i32 main() {
     mt19937_64 rng;
 
     for (i32 i = 0; i < 832; i++)
-        KEYS[i / 64][i % 64] = rng(),
+        KEYS[i] = rng(),
         DIAG[0][i % 64 ^ 56] = BSWAP(DIAG[1][i % 64] = ray(1ull << i % 64, 0, se) | ray(1ull << i % 64, 0, nw));
 
 #ifdef OB_MINI
@@ -284,5 +284,4 @@ i32 main() {
             break;
     }
 
-    free(TTABLE);
 };

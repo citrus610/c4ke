@@ -181,7 +181,7 @@ u64 BEST_MOVE,
     TIME_SOFT,
     TIME_LIMIT,
     DIAG[2][64],
-    KEYS[13][65],
+    KEYS[833],
     VISITED[STACK_SIZE];
 
 u64 north(u64 bitboard) {

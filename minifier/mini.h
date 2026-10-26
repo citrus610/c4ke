@@ -362,6 +362,7 @@ inline std::string get_name(size_t index)
         }
     }
 
+    std::swap(NAMES[1], NAMES[5]); // t <-> n, single-letter names only
     return NAMES[index];
 };
 

@@ -150,8 +150,8 @@ inline Compressed get_compressed_data(std::vector<int> data, int scale)
     }
 
     for (auto& score : data) {
-        int mg = get_mg(score) - result.min_mg + 32;
-        int eg = get_eg(score) - result.min_eg + 32;
+        int mg = get_mg(score) - result.min_mg + 41;
+        int eg = get_eg(score) - result.min_eg + 41;
 
         result.str_mg.push_back(char(mg));
         result.str_eg.push_back(char(eg));
@@ -257,7 +257,7 @@ inline std::string get_eval_str()
 
     result += "i32 get_data(i32 index) {\n";
     result += "    auto data = DATA_STR;\n\n";
-    result += "    return data[index] + (data[index + INDEX_EG] - 32 << 16) - 32;\n";
+    result += "    return data[index] + (data[index + INDEX_EG] - 41 << 16) - 41;\n";
     result += "}";
 
     return result;

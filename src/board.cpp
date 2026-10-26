@@ -25,8 +25,8 @@ struct Board {
             pieces[p / 2] ^= 1ull << square,
             colors[p % 2] ^= 1ull << square,
 
-            hash ^= KEYS[p][square],
-            (p < WHITE_KNIGHT ? hash_corrhist[HASH_PAWN] : hash_corrhist[p % 2]) ^= KEYS[p][square];
+            hash ^= KEYS[p*64|square],
+            (p < WHITE_KNIGHT ? hash_corrhist[HASH_PAWN] : hash_corrhist[p % 2]) ^= KEYS[p*64|square];
 
         // Place new piece
         p = piece;
@@ -35,8 +35,8 @@ struct Board {
             pieces[p / 2] ^= 1ull << square,
             colors[p % 2] ^= 1ull << square,
 
-            hash ^= KEYS[p][square],
-            (p < WHITE_KNIGHT ? hash_corrhist[HASH_PAWN] : hash_corrhist[p % 2]) ^= KEYS[p][square];
+            hash ^= KEYS[p*64|square],
+            (p < WHITE_KNIGHT ? hash_corrhist[HASH_PAWN] : hash_corrhist[p % 2]) ^= KEYS[p*64|square];
 
         board[square] = piece;
     }
@@ -124,18 +124,18 @@ struct Board {
         edit(from, PIECE_NONE);
 
         // Enpassant
-        hash ^= KEYS[PIECE_NONE][enpassant];
+        hash ^= KEYS[PIECE_NONE*64|enpassant];
 
         if (piece < WHITE_KNIGHT && to == enpassant)
             edit(to ^ 8, PIECE_NONE),
-            hash ^= KEYS[PIECE_NONE][enpassant];
+            hash ^= KEYS[PIECE_NONE*64|enpassant];
 
         enpassant = piece < WHITE_KNIGHT && abs(from - to) == 16 ? to ^ 8 : SQUARE_NONE;
 
-        hash ^= KEYS[PIECE_NONE][enpassant];
+        hash ^= KEYS[PIECE_NONE*64|enpassant];
 
         // Castling
-        hash ^= KEYS[PIECE_NONE][castled];
+        hash ^= KEYS[PIECE_NONE*64|castled];
 
         if (piece > BLACK_QUEEN && (castled |= 3 << stm * 2) && abs(from - to) == 2) {
             if (attackers(1ull << (from + to) / 2) & colors[!stm])
@@ -150,8 +150,8 @@ struct Board {
         if (from == H8 || to == H8) castled |= CASTLED_BK;
         if (from == A8 || to == A8) castled |= CASTLED_BQ;
 
-        hash ^= KEYS[PIECE_NONE][castled];
-        hash ^= KEYS[PIECE_NONE][0];
+        hash ^= KEYS[PIECE_NONE*64|castled];
+        hash ^= KEYS[PIECE_NONE*64|0];
 
         __builtin_prefetch(&TTABLE[hash >> TT_SHIFT]);
 
@@ -388,7 +388,7 @@ struct Board {
 
         if (token == "b") {
             stm = BLACK;
-            hash ^= KEYS[PIECE_NONE][0];
+            hash ^= KEYS[PIECE_NONE*64|0];
         }
 
         // Castling rights
@@ -403,7 +403,7 @@ struct Board {
             if (c == 'q') castled ^= CASTLED_BQ;
         }
 
-        hash ^= KEYS[PIECE_NONE][castled];
+        hash ^= KEYS[PIECE_NONE*64|castled];
 
         // Enpassant square
         fen >> token;
@@ -412,7 +412,7 @@ struct Board {
 
         if (token != "-") {
             enpassant = (token[1] - '1') * 8 + token[0] - 'a' + A1;
-            hash ^= KEYS[PIECE_NONE][enpassant];
+            hash ^= KEYS[PIECE_NONE*64|enpassant];
         }
 
         // Halfmove counter

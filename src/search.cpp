@@ -31,8 +31,7 @@ struct Thread {
             bound = BOUND_UPPER,
             move_scores[MAX_MOVE],
             move_list[MAX_MOVE],
-            quiet_list[MAX_MOVE],
-            noisy_list[MAX_MOVE];
+            history_list[MAX_MOVE];
 
         // Clamp depth for qsearch
         if (depth < 0)
@@ -118,8 +117,8 @@ struct Thread {
                 Board child = board;
 
                 child.stm ^= 1;
-                child.hash ^= KEYS[PIECE_NONE][0];
-                child.hash ^= KEYS[PIECE_NONE][child.enpassant];
+                child.hash ^= KEYS[PIECE_NONE*64|0];
+                child.hash ^= KEYS[PIECE_NONE*64|child.enpassant];
                 child.enpassant = SQUARE_NONE;
 
                 stack_conthist[ply + 4] = conthist[WHITE_PAWN];
@@ -311,7 +310,7 @@ struct Thread {
 
                         // Add penalty to visited quiet moves
                         for (i32 k = 0; k < quiet_count; k++)
-                            move = quiet_list[k],
+                            move = history_list[k],
                             update_history(qhist[board.stm][move & 4095], bonus),
                             update_history(stack_conthist[ply][0][board.board[move_from(move)]][move_to(move)], bonus),
                             update_history(stack_conthist[ply + 2][0][board.board[move_from(move)]][move_to(move)], bonus),
@@ -327,7 +326,7 @@ struct Thread {
 
                     // Add penalty to visited noisy moves
                     for (i32 k = 0; k < noisy_count; k++)
-                        move = noisy_list[k],
+                        move = history_list[255 ^ k],
                         update_history(nhist[board.board[move_to(move)] / 2 % TYPE_NONE][board.board[move_from(move)]][move_to(move)], bonus);
                 }
 
@@ -335,7 +334,7 @@ struct Thread {
             }
 
             // Push visited moves
-            (is_quiet ? quiet_list[quiet_count++] : noisy_list[noisy_count++]) = move;
+            (is_quiet ? history_list[quiet_count++] : history_list[255 ^ noisy_count++]) = move;
         }
 
         // Return mate score
